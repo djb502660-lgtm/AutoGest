@@ -15,6 +15,7 @@ class ServiceOrder extends Model
         'mechanic_id',
         'created_by',
         'status',
+        'progress',
         'priority',
         'description',
         'diagnosis',

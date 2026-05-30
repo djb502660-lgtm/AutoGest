@@ -61,4 +61,23 @@ class Vehicle extends Model
     {
         return "{$this->brand} {$this->model} ({$this->plate})";
     }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'activo' => 'Activo',
+            'inactivo' => 'Inactivo',
+            'en_taller' => 'En taller',
+            default => ucfirst($this->status),
+        };
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match ($this->status) {
+            'activo' => 'green',
+            'en_taller' => 'yellow',
+            default => 'red',
+        };
+    }
 }

@@ -43,4 +43,34 @@ class Maintenance extends Model
     {
         return $this->belongsTo(User::class, 'mechanic_id');
     }
+
+    public function statusLabel(): string
+    {
+        return match ($this->status) {
+            'pendiente' => 'Pendiente',
+            'en_proceso' => 'En proceso',
+            'completado' => 'Completado',
+            'cancelado' => 'Cancelado',
+            default => ucfirst($this->status),
+        };
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match ($this->status) {
+            'completado' => 'green',
+            'en_proceso' => 'yellow',
+            'pendiente' => 'yellow',
+            default => 'red',
+        };
+    }
+
+    public function typeLabel(): string
+    {
+        return match ($this->type) {
+            'preventivo' => 'Preventivo',
+            'correctivo' => 'Correctivo',
+            default => ucfirst($this->type),
+        };
+    }
 }

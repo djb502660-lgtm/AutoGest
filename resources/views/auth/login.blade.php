@@ -158,6 +158,15 @@
             font-size:0.82rem;
             line-height:1.4;
         }
+        .demo-creds {
+            border-top:1px solid rgba(148,163,184,0.1);
+            padding-top:14px;
+            color:var(--muted);
+            font-size:0.82rem;
+            line-height:1.65;
+        }
+        .demo-creds strong { color:var(--text); display:block; margin-bottom:6px; }
+        .demo-creds code { color:#86efac; background:rgba(34,197,94,0.1); padding:2px 6px; border-radius:4px; }
         @media (max-width: 800px) {
             .auth-shell { grid-template-columns:1fr; }
             .brand-panel { border-right:0; border-bottom:1px solid rgba(148,163,184,0.1); }
@@ -189,7 +198,7 @@
                 <div>
                     <div class="eyebrow">Acceso seguro</div>
                     <h2>Inicia sesión</h2>
-                    <p>Bienvenido de nuevo. Accede al dashboard administrativo con tu cuenta.</p>
+                    <p>Bienvenido de nuevo. Accede con tu cuenta según tu rol asignado.</p>
                 </div>
 
                 @if ($errors->any())
@@ -220,9 +229,11 @@
                     <button type="submit" class="btn-primary">Entrar al dashboard</button>
                 </form>
 
-                <div class="meta">
-                    <strong>Credenciales de demo:</strong><br>
-                    Admin: admin@autogest.test · Mecánico: mecanico1@autogest.test · Cliente: cliente1@autogest.test<br>
+                <div class="demo-creds">
+                    <strong>Credenciales de demo:</strong>
+                    Admin: admin@autogest.test<br>
+                    Mecánico: mecanico1@autogest.test<br>
+                    Cliente: cliente1@autogest.test<br>
                     Contraseña: <code>password</code>
                 </div>
             </div>

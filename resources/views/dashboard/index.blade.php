@@ -172,10 +172,11 @@
 
             <nav class="menu">
                 <a class="menu-item active" href="/dashboard">📊 Dashboard</a>
-                <a class="menu-item" href="#">🚗 Vehículos</a>
-                <a class="menu-item" href="#">🛠️ Mantenimientos</a>
+                <a class="menu-item" href="{{ route('vehicles.index') }}">🚗 Vehículos</a>
+                <a class="menu-item" href="{{ route('maintenances.index') }}">🛠️ Mantenimientos</a>
                 <a class="menu-item" href="{{ route('users.index') }}">👥 Usuarios</a>
-                <a class="menu-item" href="#">📈 Reportes</a>
+                <a class="menu-item" href="{{ route('reports.index') }}">📈 Reportes</a>
+                <a class="menu-item" href="{{ route('calendar.index') }}">📅 Calendario</a>
             </nav>
 
             <div class="sidebar-footer">

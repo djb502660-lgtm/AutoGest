@@ -90,13 +90,13 @@
                 <a class="menu-item {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">📊 Dashboard</a>
 
                 <div class="menu-label">Gestión</div>
-                <a class="menu-item" href="#">🚗 Vehículos</a>
-                <a class="menu-item" href="#">🛠️ Mantenimientos</a>
+                <a class="menu-item {{ request()->routeIs('vehicles.*') ? 'active' : '' }}" href="{{ route('vehicles.index') }}">🚗 Vehículos</a>
+                <a class="menu-item {{ request()->routeIs('maintenances.*') ? 'active' : '' }}" href="{{ route('maintenances.index') }}">🛠️ Mantenimientos</a>
                 <a class="menu-item {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">👥 Usuarios</a>
 
                 <div class="menu-label">Control</div>
-                <a class="menu-item" href="#">📈 Reportes</a>
-                <a class="menu-item" href="#">📅 Calendario</a>
+                <a class="menu-item {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">📈 Reportes</a>
+                <a class="menu-item {{ request()->routeIs('calendar.*') ? 'active' : '' }}" href="{{ route('calendar.index') }}">📅 Calendario</a>
             </nav>
 
             <div class="sidebar-footer">

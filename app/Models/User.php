@@ -93,4 +93,18 @@ class User extends Authenticatable
     {
         return $this->hasMany(ChatbotMessage::class);
     }
+
+    /** Vehículos accesibles por órdenes o mantenimientos del mecánico. */
+    public function accessibleVehicleIds(): \Illuminate\Support\Collection
+    {
+        return $this->assignedOrders()->pluck('vehicle_id')
+            ->merge($this->maintenances()->pluck('vehicle_id'))
+            ->unique()
+            ->filter();
+    }
+
+    public function assignedOrdersQuery()
+    {
+        return $this->assignedOrders()->with('vehicle', 'client');
+    }
 }

@@ -1,73 +1,76 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoGest • Portal Cliente</title>
-    <style>
-        body { margin:0; font-family:Inter,system-ui,sans-serif; background:#020817; color:#f8fafc; }
-        .wrap { max-width:960px; margin:0 auto; padding:32px 20px; }
-        header { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
-        h1 { margin:0; font-size:1.5rem; }
-        p { color:#94a3b8; margin:6px 0 0; }
-        .grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-        .card { background:rgba(6,13,27,.9); border:1px solid rgba(148,163,184,.12); border-radius:16px; padding:16px; }
-        .card h2 { margin:0 0 10px; font-size:1rem; }
-        ul { margin:0; padding-left:18px; color:#cbd5e1; line-height:1.6; }
-        .alert { padding:10px; border-radius:10px; margin-bottom:8px; font-size:.85rem; }
-        .critical { background:rgba(251,113,133,.12); color:#fda4af; }
-        .warning { background:rgba(251,191,36,.12); color:#fde68a; }
-        .logout { background:#22c55e; color:#021b0d; border:0; border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; }
-        @media (max-width:700px){ .grid { grid-template-columns:1fr; } }
-    </style>
-</head>
-<body>
-    <div class="wrap">
-        <header>
-            <div>
-                <h1>Portal del Cliente</h1>
-                <p>{{ $user->name }} · Seguimiento de vehículos</p>
-            </div>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit" class="logout">Cerrar sesión</button>
-            </form>
-        </header>
+@extends('layouts.client')
 
-        <div class="grid">
-            <section class="card">
-                <h2>Mis vehículos ({{ $vehicles->count() }})</h2>
-                <ul>
-                    @forelse ($vehicles as $vehicle)
-                    <li>{{ $vehicle->displayName() }} — {{ ucfirst(str_replace('_', ' ', $vehicle->status)) }}</li>
-                    @empty
-                    <li>No tienes vehículos registrados.</li>
-                    @endforelse
-                </ul>
-            </section>
+@section('title', 'Dashboard')
+@section('heading', 'Dashboard principal')
+@section('subheading')
+    Resumen de tus vehículos, servicios y alertas.
+@endsection
 
-            <section class="card">
-                <h2>Alertas activas</h2>
-                @forelse ($alerts as $alert)
-                <div class="alert {{ $alert->severity === 'critical' ? 'critical' : 'warning' }}">
-                    <strong>{{ $alert->title }}</strong><br>{{ $alert->message }}
+@section('content')
+    <div class="stats">
+        <div class="stat"><span>Vehículos</span><strong>{{ $stats['vehiculos'] }}</strong></div>
+        <div class="stat"><span>Próximo servicio</span><strong>{{ $stats['proximo_servicio'] }}</strong></div>
+        <div class="stat"><span>Servicios realizados</span><strong>{{ $stats['servicios_realizados'] }}</strong></div>
+        <div class="stat"><span>Gastos totales</span><strong>${{ number_format($stats['gastos_totales'], 0) }}</strong></div>
+    </div>
+
+    <div class="grid-2">
+        <div class="panel">
+            <h3 style="margin:0 0 12px;font-size:1rem;">Estado de mis vehículos</h3>
+            @forelse ($vehicles as $vehicle)
+                @php $next = $vehicle->maintenanceSchedules->first(); @endphp
+                <div class="vehicle-card">
+                    <div class="vehicle-thumb">🚗</div>
+                    <div>
+                        <h4>{{ $vehicle->brand }} {{ $vehicle->model }} {{ $vehicle->year }}</h4>
+                        <p>{{ $vehicle->plate }} · {{ number_format($vehicle->mileage) }} km</p>
+                        <p>
+                            <span class="badge {{ $vehicle->statusBadgeClass() }}">{{ $vehicle->statusLabel() }}</span>
+                            @if ($next)
+                                · Próximo: {{ $next->scheduled_date->format('d/m/Y') }}
+                            @endif
+                        </p>
+                    </div>
+                    <a href="{{ route('client.vehicles.show', $vehicle) }}" class="btn btn-secondary btn-sm" style="margin-left:auto;align-self:center;">Ver</a>
                 </div>
-                @empty
-                <p style="color:#94a3b8;margin:0;">Sin alertas pendientes.</p>
-                @endforelse
-            </section>
+            @empty
+                <p style="color:var(--muted);font-size:0.84rem;">No tienes vehículos registrados.</p>
+            @endforelse
+            <a href="{{ route('client.vehicles.index') }}" class="btn btn-secondary btn-sm">Ver todos</a>
+        </div>
 
-            <section class="card" style="grid-column:1/-1;">
-                <h2>Órdenes de servicio recientes</h2>
-                <ul>
-                    @forelse ($orders as $order)
-                    <li>{{ $order->vehicle->plate }} — {{ $order->description }} ({{ $order->statusLabel() }})</li>
-                    @empty
-                    <li>No hay órdenes registradas.</li>
-                    @endforelse
-                </ul>
-            </section>
+        <div class="panel">
+            <h3 style="margin:0 0 12px;font-size:1rem;">Alertas recientes</h3>
+            @forelse ($alerts as $alert)
+                <div class="notif-item {{ $alert->is_read ? '' : 'unread' }}">
+                    <strong>{{ $alert->title }}</strong>
+                    <span style="font-size:0.82rem;color:var(--muted);">{{ $alert->message }}</span>
+                    <small>{{ $alert->created_at->diffForHumans() }}</small>
+                </div>
+            @empty
+                <p style="color:var(--muted);font-size:0.84rem;">Sin alertas pendientes.</p>
+            @endforelse
+            <a href="{{ route('client.notifications.index') }}" class="btn btn-secondary btn-sm" style="margin-top:8px;">Ver notificaciones</a>
         </div>
     </div>
-</body>
-</html>
+
+    <div class="panel">
+        <h3 style="margin:0 0 12px;font-size:1rem;">Órdenes de servicio recientes</h3>
+        <table class="table">
+            <thead><tr><th>Orden</th><th>Vehículo</th><th>Servicio</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+                @forelse ($recentOrders as $order)
+                    <tr>
+                        <td>{{ $order->order_number }}</td>
+                        <td>{{ $order->vehicle->plate }}</td>
+                        <td>{{ Str::limit($order->description, 35) }}</td>
+                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
+                        <td><a href="{{ route('client.orders.show', $order) }}" class="btn btn-secondary btn-sm">Ver</a></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5">No hay órdenes registradas.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+@endsection
