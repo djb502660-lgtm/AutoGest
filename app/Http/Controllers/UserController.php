@@ -76,7 +76,8 @@ class UserController extends Controller
         ActivityLog::record(
             'user.created',
             "Se registró el usuario {$user->email} con rol {$user->role->label()}.",
-            $user,
+            model: $user,
+            user: $request->user(),
         );
 
         return redirect()
@@ -122,7 +123,8 @@ class UserController extends Controller
         ActivityLog::record(
             'user.updated',
             "Se actualizó el usuario {$user->email}.",
-            $user,
+            model: $user,
+            user: $request->user(),
         );
 
         return redirect()
@@ -140,7 +142,8 @@ class UserController extends Controller
             ActivityLog::record(
                 'user.deactivated',
                 "Se desactivó el usuario {$user->email} (tiene registros vinculados).",
-                $user,
+                model: $user,
+                user: auth()->user(),
             );
 
             return redirect()
@@ -154,6 +157,7 @@ class UserController extends Controller
         ActivityLog::record(
             'user.deleted',
             "Se eliminó el usuario {$email}.",
+            user: auth()->user(),
         );
 
         return redirect()
