@@ -12,9 +12,8 @@ class AdminLoginTest extends TestCase
 
     public function test_admin_can_login_and_access_dashboard(): void
     {
-        $admin = User::factory()->admin()->create([
+        User::factory()->admin()->create([
             'email' => 'admin@autogest.test',
-            'password' => 'password',
         ]);
 
         $response = $this->post('/login', [

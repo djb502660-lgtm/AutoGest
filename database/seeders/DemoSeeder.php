@@ -13,61 +13,66 @@ use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 
 class DemoSeeder extends Seeder
 {
     public function run(): void
     {
-        $admin = User::create([
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@autogest.test'],
+            [
             'name' => 'Jokabeth Verenice Valdes Jaramillo',
-            'email' => 'admin@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Admin,
             'phone' => '0991234567',
             'status' => 'activo',
         ]);
 
-        $mechanic1 = User::create([
+        $mechanic1 = User::updateOrCreate(
+            ['email' => 'mecanico1@autogest.test'],
+            [
             'name' => 'Carlos Méndez',
-            'email' => 'mecanico1@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Mechanic,
             'phone' => '0992345678',
             'status' => 'activo',
         ]);
 
-        $mechanic2 = User::create([
+        $mechanic2 = User::updateOrCreate(
+            ['email' => 'mecanico2@autogest.test'],
+            [
             'name' => 'Ana Torres',
-            'email' => 'mecanico2@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Mechanic,
             'phone' => '0993456789',
             'status' => 'activo',
         ]);
 
-        $client1 = User::create([
+        $client1 = User::updateOrCreate(
+            ['email' => 'cliente1@autogest.test'],
+            [
             'name' => 'María González',
-            'email' => 'cliente1@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Client,
             'phone' => '0994567890',
             'status' => 'activo',
         ]);
 
-        $client2 = User::create([
+        $client2 = User::updateOrCreate(
+            ['email' => 'cliente2@autogest.test'],
+            [
             'name' => 'Pedro Ramírez',
-            'email' => 'cliente2@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Client,
             'phone' => '0995678901',
             'status' => 'activo',
         ]);
 
-        $client3 = User::create([
+        $client3 = User::updateOrCreate(
+            ['email' => 'cliente3@autogest.test'],
+            [
             'name' => 'Lucía Herrera',
-            'email' => 'cliente3@autogest.test',
-            'password' => Hash::make('password'),
+            'password' => 'password',
             'role' => UserRole::Client,
             'phone' => '0996789012',
             'status' => 'activo',
