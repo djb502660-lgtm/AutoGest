@@ -59,11 +59,7 @@ jobs:
 
       - name: Execute tests
         env:
-          DB_CONNECTION: mysql
-          DB_HOST: 127.0.0.1
-          DB_PORT: 3306
-          DB_DATABASE: autogest_test
-          DB_USERNAME: root
+          # MySQL del servicio CI usa root/password; phpunit.xml deja DB_PASSWORD vacío para Laragon.
           DB_PASSWORD: password
           SESSION_DRIVER: array
           CACHE_STORE: array
