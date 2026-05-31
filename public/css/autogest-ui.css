@@ -1289,6 +1289,20 @@ body.auth-page {
 .report-card h3 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--text); font-weight: 700; }
 .report-card p { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.45; }
 .report-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+
+.report-export-note {
+    margin: 0 0 1rem;
+    padding: 0.85rem 1rem;
+    background: var(--surface-alt, #f0fdfa);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md, 10px);
+    font-size: 0.88rem;
+    color: var(--text-muted, #64748b);
+}
+
+.report-export-note code {
+    font-size: 0.82rem;
+}
 .filter-panel { position: sticky; top: 1.25rem; }
 
 .summary-grid {

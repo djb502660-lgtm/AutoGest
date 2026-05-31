@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-
+use App\Mail\AdminReportMail;
+use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\ServiceOrder;
 use App\Models\Vehicle;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ReportController extends Controller
 {
@@ -20,13 +23,72 @@ class ReportController extends Controller
 
     public function generate(Request $request)
     {
-        $validated = $request->validate([
+        $validated = $this->validateFilters($request);
+        $report = $this->buildReportData($validated);
+
+        return view('admin.reports.result', [
+            ...$report,
+            'filters' => $validated,
+            'vehicles' => Vehicle::orderBy('plate')->get(),
+        ]);
+    }
+
+    public function downloadPdf(Request $request)
+    {
+        $validated = $this->validateFilters($request);
+        $report = $this->buildReportData($validated);
+
+        $pdf = Pdf::loadView('admin.reports.pdf', [
+            'title' => $report['title'],
+            'summary' => $report['summary'],
+            'columns' => $report['columns'],
+            'rows' => $report['rows'],
+            'filtersLabel' => $report['filters_label'],
+            'generatedAt' => now()->format('d/m/Y H:i'),
+        ]);
+
+        $filename = 'reporte-'.$validated['type'].'-'.now()->format('Y-m-d-His').'.pdf';
+
+        ActivityLog::record(
+            'report.downloaded',
+            "Se descargó el reporte «{$report['title']}» en PDF.",
+            user: $request->user(),
+        );
+
+        return $pdf->download($filename);
+    }
+
+    public function sendEmail(Request $request)
+    {
+        $validated = $this->validateFilters($request);
+        $report = $this->buildReportData($validated);
+        $admin = $request->user();
+
+        Mail::to($admin->email)->send(new AdminReportMail($report, $admin));
+
+        ActivityLog::record(
+            'report.emailed',
+            "Se envió por correo el reporte «{$report['title']}» a {$admin->email}.",
+            user: $admin,
+        );
+
+        return redirect()
+            ->route('reports.generate', $validated)
+            ->with('success', "Reporte enviado correctamente a {$admin->email}. Revisa tu bandeja de entrada.");
+    }
+
+    private function validateFilters(Request $request): array
+    {
+        return $request->validate([
             'type' => ['required', 'in:mantenimientos,gastos,vehiculos,pendientes'],
             'vehicle_id' => ['nullable', 'exists:vehicles,id'],
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date', 'after_or_equal:from'],
         ]);
+    }
 
+    private function buildReportData(array $validated): array
+    {
         $type = $validated['type'];
         $vehicleId = $validated['vehicle_id'] ?? null;
         $from = $validated['from'] ?? null;
@@ -39,15 +101,37 @@ class ReportController extends Controller
             'pendientes' => $this->pendingReport($vehicleId),
         };
 
-        return view('admin.reports.result', [
-            'type' => $type,
-            'title' => $data['title'],
-            'summary' => $data['summary'],
-            'rows' => $data['rows'],
-            'columns' => $data['columns'],
-            'filters' => $validated,
-            'vehicles' => Vehicle::orderBy('plate')->get(),
-        ]);
+        $data['type'] = $type;
+        $data['filters_label'] = $this->filtersLabel($validated);
+
+        return $data;
+    }
+
+    private function filtersLabel(array $filters): string
+    {
+        $types = [
+            'mantenimientos' => 'Mantenimientos',
+            'gastos' => 'Gastos',
+            'vehiculos' => 'Vehículos',
+            'pendientes' => 'Pendientes',
+        ];
+
+        $parts = ['Tipo: '.($types[$filters['type']] ?? $filters['type'])];
+
+        if (! empty($filters['vehicle_id'])) {
+            $vehicle = Vehicle::find($filters['vehicle_id']);
+            $parts[] = 'Vehículo: '.($vehicle?->plate ?? $filters['vehicle_id']);
+        }
+
+        if (! empty($filters['from'])) {
+            $parts[] = 'Desde: '.date('d/m/Y', strtotime($filters['from']));
+        }
+
+        if (! empty($filters['to'])) {
+            $parts[] = 'Hasta: '.date('d/m/Y', strtotime($filters['to']));
+        }
+
+        return implode(' · ', $parts);
     }
 
     private function maintenanceReport(?int $vehicleId, ?string $from, ?string $to): array

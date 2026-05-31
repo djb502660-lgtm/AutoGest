@@ -16,6 +16,8 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('maintenances', MaintenanceController::class)->except(['show']);
     Route::get('/reportes', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reportes/generar', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('/reportes/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
+    Route::post('/reportes/enviar', [ReportController::class, 'sendEmail'])->name('reports.email');
     Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendario/crear', [CalendarController::class, 'create'])->name('calendar.create');
     Route::post('/calendario', [CalendarController::class, 'store'])->name('calendar.store');
