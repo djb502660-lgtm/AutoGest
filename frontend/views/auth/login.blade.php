@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutoGest • Acceso</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="stylesheet" href="{{ asset('css/autogest-ui.css') }}">
+    @include('layouts.partials.bootstrap-head')
 </head>
 <body class="auth-page" data-theme="admin">
     <div class="auth-shell">
@@ -28,35 +28,39 @@
                 </div>
 
                 @if ($errors->any())
-                    <ul class="error-list">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
+                    <div class="alert alert-danger" role="alert">
+                        <ul class="mb-0 ps-3">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
                 @endif
 
                 <p class="auth-back-home"><a href="{{ route('home') }}">← Volver al inicio</a></p>
 
                 <form method="POST" action="{{ route('login.submit') }}">
                     @csrf
-                    <div class="field-group">
-                        <label for="email">Correo electrónico</label>
-                        <input type="email" id="email" name="email" value="{{ old('email') }}" placeholder="correo@ejemplo.com" required autocomplete="email">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Correo electrónico</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ old('email') }}" placeholder="correo@ejemplo.com" required autocomplete="email">
                     </div>
 
-                    <div class="field-group">
-                        <label for="password">Contraseña</label>
-                        <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Contraseña</label>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
                     </div>
 
-                    <div class="remember-row">
-                        <label><input type="checkbox" name="remember" value="1"> Recordarme</label>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember" value="1" id="remember">
+                        <label class="form-check-label" for="remember">Recordarme</label>
                     </div>
 
-                    <button type="submit" class="btn-login">Entrar al sistema</button>
+                    <button type="submit" class="btn btn-primary w-100 btn-login">Entrar al sistema</button>
                 </form>
             </div>
         </section>
     </div>
+    @include('layouts.partials.bootstrap-scripts')
 </body>
 </html>

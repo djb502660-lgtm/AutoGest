@@ -82,6 +82,47 @@ body {
     flex-direction: column;
     gap: 1.5rem;
     box-shadow: var(--shadow-sm);
+    width: var(--sidebar-width);
+    min-width: var(--sidebar-width);
+}
+
+.mobile-topbar {
+    z-index: 1030;
+    background: var(--surface) !important;
+}
+
+/* Bootstrap 5 — integración con tema AutoGest */
+.menu .nav-link.menu-item {
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+}
+
+.menu .nav-link.menu-item:hover,
+.menu .nav-link.menu-item:focus {
+    color: var(--text);
+    background: var(--surface-muted);
+}
+
+.menu .nav-link.menu-item.active {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.offcanvas.sidebar,
+.offcanvas-body.sidebar {
+    background: var(--surface);
+}
+
+.alert.alert-success {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+    color: #065f46;
+}
+
+.btn-close:focus {
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.25);
 }
 
 .brand {
@@ -336,6 +377,17 @@ body {
 }
 
 .btn-secondary:hover {
+    background: var(--surface-muted);
+    border-color: var(--muted);
+}
+
+.btn-outline-secondary {
+    color: var(--text-secondary);
+    border-color: var(--border-strong);
+}
+
+.btn-outline-secondary:hover {
+    color: var(--text);
     background: var(--surface-muted);
     border-color: var(--muted);
 }
@@ -995,6 +1047,17 @@ body.auth-page {
 .btn-login:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
+}
+
+.auth-page .form-control:focus,
+.auth-page .form-check-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 0.2rem rgba(13, 148, 136, 0.15);
+}
+
+.auth-page .form-check-input:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
 }
 
 @media (max-width: 960px) {
@@ -1734,6 +1797,11 @@ body.home-page {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 1.25rem;
+}
+
+.home-features-grid.row,
+.home-benefits.row {
+    display: flex;
 }
 
 .home-feature-card {
