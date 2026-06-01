@@ -9,7 +9,7 @@
     @include('layouts.partials.bootstrap-head')
 </head>
 <body class="home-page" data-theme="admin">
-    <header class="home-header container-fluid px-4">
+    <header class="home-header">
         <a href="{{ route('home') }}" class="home-logo home-logo-istae">
             <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-logo">
             <span class="home-logo-text">
@@ -26,9 +26,8 @@
     </header>
 
     <main>
-        <section class="home-hero container py-5">
-            <div class="row align-items-center g-4">
-            <div class="col-lg-6 home-hero-content">
+        <section class="home-hero">
+            <div class="home-hero-content">
                 <div class="home-hero-brand">
                     <img src="{{ asset('images/logo-istae.png') }}" alt="Logo ISTAE" class="home-hero-istae">
                     <p class="home-eyebrow">Instituto Superior Tecnológico Alberto Enríquez · San Lorenzo</p>
@@ -46,7 +45,7 @@
                     <li><strong>UI/UX</strong><span>interfaz clara y profesional</span></li>
                 </ul>
             </div>
-            <div class="col-lg-6 home-hero-visual" aria-hidden="true">
+            <div class="home-hero-visual" aria-hidden="true">
                 <div class="home-mockup">
                     <div class="home-mockup-bar">
                         <span></span><span></span><span></span>
@@ -65,65 +64,51 @@
                     </div>
                 </div>
             </div>
-            </div>
         </section>
 
-        <section id="funciones" class="home-section container">
+        <section id="funciones" class="home-section">
             <div class="home-section-head">
                 <p class="home-eyebrow">Funciones principales</p>
                 <h2>Todo lo que tu taller necesita en un solo lugar</h2>
                 <p>Desde la recepción del vehículo hasta el historial del cliente, con reportes y calendario integrados.</p>
             </div>
-            <div class="home-features-grid row g-3">
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">🚗</span>
-                        <h3>Gestión de flota</h3>
-                        <p>Registro de vehículos, placas, kilometraje y estado operativo con historial completo.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">🛠️</span>
-                        <h3>Órdenes y mantenimientos</h3>
-                        <p>Órdenes de servicio, trabajos preventivos y correctivos con costos y seguimiento.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">📅</span>
-                        <h3>Calendario inteligente</h3>
-                        <p>Programación visual de citas y servicios con alertas de vencimiento.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">📈</span>
-                        <h3>Reportes y métricas</h3>
-                        <p>Dashboard ejecutivo, gastos, pendientes y salud de la flota en tiempo real.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">🔔</span>
-                        <h3>Alertas y notificaciones</h3>
-                        <p>Avisos sobre mantenimientos críticos o próximos programados.</p>
-                    </article>
-                </div>
-                <div class="col-md-6 col-xl-4">
-                    <article class="home-feature-card h-100">
-                        <span class="home-feature-icon">🤖</span>
-                        <h3>Portal y asistente</h3>
-                        <p>Consulta de estado, gastos y servicios desde el portal del cliente.</p>
-                    </article>
-                </div>
+            <div class="home-features-grid">
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">🚗</span>
+                    <h3>Gestión de flota</h3>
+                    <p>Registro de vehículos, placas, kilometraje y estado operativo con historial completo.</p>
+                </article>
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">🛠️</span>
+                    <h3>Órdenes y mantenimientos</h3>
+                    <p>Órdenes de servicio, trabajos preventivos y correctivos con costos y seguimiento.</p>
+                </article>
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">📅</span>
+                    <h3>Calendario inteligente</h3>
+                    <p>Programación visual de citas y servicios con alertas de vencimiento.</p>
+                </article>
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">📈</span>
+                    <h3>Reportes y métricas</h3>
+                    <p>Dashboard ejecutivo, gastos, pendientes y salud de la flota en tiempo real.</p>
+                </article>
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">🔔</span>
+                    <h3>Alertas y notificaciones</h3>
+                    <p>Avisos sobre mantenimientos críticos o próximos programados.</p>
+                </article>
+                <article class="home-feature-card">
+                    <span class="home-feature-icon">🤖</span>
+                    <h3>Portal y asistente</h3>
+                    <p>Consulta de estado, gastos y servicios desde el portal del cliente.</p>
+                </article>
             </div>
         </section>
 
         <section id="beneficios" class="home-section home-section-alt">
-            <div class="container">
-            <div class="home-benefits row g-4 align-items-center">
-                <div class="col-lg-6 home-benefits-copy">
+            <div class="home-benefits">
+                <div class="home-benefits-copy">
                     <p class="home-eyebrow">Por qué AutoGest</p>
                     <h2>Diseño profesional pensado en personas</h2>
                     <p>Interfaz clara, tonos suaves y flujos intuitivos para reducir errores y acelerar el trabajo del equipo.</p>
@@ -134,7 +119,7 @@
                         <li>Base de datos centralizada (MySQL)</li>
                     </ul>
                 </div>
-                <div class="col-lg-6 home-benefits-panel">
+                <div class="home-benefits-panel">
                     <div class="home-benefit-item">
                         <strong>−40%</strong>
                         <span>menos tiempo buscando información</span>
@@ -149,11 +134,9 @@
                     </div>
                 </div>
             </div>
-            </div>
         </section>
 
         <section id="institucion" class="home-section home-istae-section">
-            <div class="container">
             <div class="home-istae-banner">
                 <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-banner-logo">
                 <div>
@@ -166,12 +149,11 @@
                     </p>
                 </div>
             </div>
-            </div>
         </section>
     </main>
 
     <footer class="home-footer">
-        <div class="home-footer-inner container">
+        <div class="home-footer-inner">
             <div class="home-footer-brand">
                 <img src="{{ asset('images/logo-istae.png') }}" alt="ISTAE" class="home-footer-istae">
                 <div>

@@ -1799,11 +1799,6 @@ body.home-page {
     gap: 1.25rem;
 }
 
-.home-features-grid.row,
-.home-benefits.row {
-    display: flex;
-}
-
 .home-feature-card {
     padding: 1.35rem;
     border-radius: var(--radius-lg);
