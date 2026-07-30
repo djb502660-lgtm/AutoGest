@@ -56,9 +56,19 @@
         try {
             const res = await fetch('{{ route('client.chatbot.message') }}', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
                 body: JSON.stringify({ message: text })
             });
+            if (!res.ok) {
+                appendMsg('Error del servidor (' + res.status + ').', 'bot');
+                return;
+            }
             const data = await res.json();
             appendMsg(data.reply || 'Sin respuesta.', 'bot');
         } catch { appendMsg('Error de conexión.', 'bot'); }

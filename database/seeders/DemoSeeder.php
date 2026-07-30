@@ -12,6 +12,7 @@ use App\Models\ServiceOrder;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleModelTemplate;
 use Illuminate\Database\Seeder;
 
 class DemoSeeder extends Seeder
@@ -75,6 +76,16 @@ class DemoSeeder extends Seeder
             'password' => 'password',
             'role' => UserRole::Client,
             'phone' => '0996789012',
+            'status' => 'activo',
+        ]);
+
+        $advisor1 = User::updateOrCreate(
+            ['email' => 'asesor1@autogest.test'],
+            [
+            'name' => 'Laura Mendieta',
+            'password' => 'password',
+            'role' => UserRole::Advisor,
+            'phone' => '0997890123',
             'status' => 'activo',
         ]);
 
@@ -178,12 +189,30 @@ class DemoSeeder extends Seeder
             'vehicle_id' => $vehicles[2]->id,
             'client_id' => $client2->id,
             'mechanic_id' => $mechanic1->id,
-            'created_by' => $admin->id,
+            'advisor_id' => $advisor1->id,
+            'created_by' => $advisor1->id,
+            'source' => 'manual',
             'status' => 'recibida',
             'priority' => 'urgente',
             'description' => 'Alerta suspensión',
             'scheduled_at' => now()->addDay(),
             'estimated_cost' => 450.00,
+            'total_cost' => 0,
+        ]);
+
+        ServiceOrder::create([
+            'order_number' => 'OS-2026-0005',
+            'vehicle_id' => $vehicles[4]->id,
+            'client_id' => $client3->id,
+            'mechanic_id' => null,
+            'advisor_id' => $advisor1->id,
+            'created_by' => $advisor1->id,
+            'source' => 'manual',
+            'status' => 'recibida',
+            'priority' => 'normal',
+            'description' => 'Revisión general programada por asesoría',
+            'scheduled_at' => now()->addDays(2),
+            'estimated_cost' => 120.00,
             'total_cost' => 0,
         ]);
 
@@ -371,5 +400,36 @@ class DemoSeeder extends Seeder
             'keywords' => 'servicios,mantenimiento,preventivo,correctivo',
             'sort_order' => 3,
         ]);
+
+        ChatbotFaq::create([
+            'category' => 'Citas',
+            'question' => '¿Cómo agendo una cita?',
+            'answer' => 'Escribe por ejemplo: "Quiero agendar cita para ABC-123 el viernes" o "Solicitar cita mañana cambio de aceite". Un asesor confirmará tu solicitud.',
+            'keywords' => 'agendar,cita,reservar,solicitar',
+            'sort_order' => 4,
+        ]);
+
+        $modelTemplates = [
+            ['Toyota', 'Corolla', 'preventivo', 'Cambio de aceite 10.000 km', 'Filtro de aceite y revisión de fluidos.', 10000, 6],
+            ['Toyota', 'Corolla', 'preventivo', 'Revisión de frenos', 'Inspección de pastillas y discos.', 20000, 12],
+            ['Hyundai', 'Tucson', 'preventivo', 'Servicio 5.000 km SUV', 'Aceite sintético y rotación de neumáticos.', 5000, 4],
+            ['Chevrolet', 'Onix', 'preventivo', 'Mantenimiento básico', 'Aceite, filtros y chequeo general.', 10000, 6],
+            ['Kia', 'Rio', 'preventivo', 'Revisión 15.000 km', 'Bujías, filtros y alineación.', 15000, 9],
+            ['Nissan', 'Sentra', 'preventivo', 'Cambio de aceite y filtros', 'Servicio estándar sedán.', 10000, 6],
+        ];
+
+        foreach ($modelTemplates as $index => [$brand, $model, $type, $title, $desc, $km, $months]) {
+            VehicleModelTemplate::updateOrCreate(
+                ['brand' => $brand, 'model' => $model, 'title' => $title],
+                [
+                    'maintenance_type' => $type,
+                    'description' => $desc,
+                    'interval_km' => $km,
+                    'interval_months' => $months,
+                    'is_active' => true,
+                    'sort_order' => $index + 1,
+                ],
+            );
+        }
     }
 }

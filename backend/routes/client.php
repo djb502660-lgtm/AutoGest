@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Client\ChatbotController;
 use App\Http\Controllers\Client\DashboardController;
 use App\Http\Controllers\Client\ExpenseController;
 use App\Http\Controllers\Client\MaintenanceController;
@@ -26,6 +25,5 @@ Route::middleware(['auth', 'role:cliente'])
         Route::put('/notificaciones/{alert}/leer', [NotificationController::class, 'markRead'])->name('notifications.read');
         Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
-        Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot.index');
-        Route::post('/chatbot/mensaje', [ChatbotController::class, 'message'])->name('chatbot.message');
+        // Chatbot routes moved to module: app/Modules/Chatbot/routes.php
     });

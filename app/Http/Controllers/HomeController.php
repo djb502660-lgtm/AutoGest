@@ -13,6 +13,7 @@ class HomeController extends Controller
         if (auth()->check()) {
             return redirect(match (auth()->user()->role) {
                 UserRole::Admin => route('dashboard'),
+                UserRole::Advisor => route('advisor.dashboard'),
                 UserRole::Mechanic => route('mechanic.dashboard'),
                 UserRole::Client => route('client.dashboard'),
             });

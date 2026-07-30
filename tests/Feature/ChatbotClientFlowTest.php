@@ -1,0 +1,470 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\AppointmentRequest;
+use App\Models\ServiceOrder;
+use App\Models\User;
+use App\Models\Vehicle;
+use Carbon\Carbon;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class ChatbotClientFlowTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_chatbot_can_consult_vehicle_status_with_plate_without_separator(): void
+    {
+        $client = User::factory()->client()->create();
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'en_taller',
+        ]);
+
+        ServiceOrder::create([
+            'order_number' => 'OS-2026-0401',
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'created_by' => $client->id,
+            'source' => 'manual',
+            'status' => 'en_proceso',
+            'progress' => 65,
+            'priority' => 'normal',
+            'description' => 'Diagnóstico eléctrico',
+        ]);
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'Quiero consultar el estado del ABC123',
+            ])
+            ->assertOk()
+            ->assertJsonPath('reply', 'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.');
+    }
+
+    public function test_chatbot_can_consult_vehicle_status_without_plate_when_client_has_single_vehicle(): void
+    {
+        $client = User::factory()->client()->create();
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'en_taller',
+        ]);
+
+        ServiceOrder::create([
+            'order_number' => 'OS-2026-0401',
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'created_by' => $client->id,
+            'source' => 'manual',
+            'status' => 'en_proceso',
+            'progress' => 65,
+            'priority' => 'normal',
+            'description' => 'Diagnóstico eléctrico',
+        ]);
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'Quiero consultar el estado de mi auto',
+            ])
+            ->assertOk()
+            ->assertJsonPath('reply', 'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.');
+    }
+
+    public function test_chatbot_provides_open_vehicle_information_when_client_has_multiple_vehicles_and_no_plate(): void
+    {
+        $client = User::factory()->client()->create();
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'en_taller',
+        ]);
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'XYZ-987',
+            'brand' => 'Nissan',
+            'model' => 'Sentra',
+            'year' => 2022,
+            'mileage' => 18000,
+            'status' => 'activo',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'Quiero consultar el estado de mi vehículo',
+            ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('Tienes 2 vehículos registrados', $response->json('reply'));
+        $this->assertStringContainsString('(ABC-123) está En taller', $response->json('reply'));
+        $this->assertStringContainsString('(XYZ-987) está Activo', $response->json('reply'));
+    }
+
+    public function test_chatbot_can_create_appointment_with_plate_without_separator(): void
+    {
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'Quiero agendar cita para ABC123 mañana a las 10 cambio de aceite',
+            ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('Solicitud #', $response->json('reply'));
+        $this->assertStringContainsString('registrada para el', $response->json('reply'));
+
+        $this->assertDatabaseCount('appointment_requests', 1);
+
+        $appointment = AppointmentRequest::query()->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame('chatbot', $appointment->source);
+        $this->assertSame('pendiente', $appointment->status);
+        $this->assertSame('Cambio de aceite', $appointment->service_type);
+    }
+
+    public function test_chatbot_understands_natural_vehicle_query_phrase(): void
+    {
+        $client = User::factory()->client()->create();
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'XYZ-987',
+            'brand' => 'Nissan',
+            'model' => 'Sentra',
+            'year' => 2022,
+            'mileage' => 18000,
+            'status' => 'activo',
+        ]);
+
+        ServiceOrder::create([
+            'order_number' => 'OS-2026-0402',
+            'vehicle_id' => $vehicle->id,
+            'client_id' => $client->id,
+            'created_by' => $client->id,
+            'source' => 'manual',
+            'status' => 'recibida',
+            'progress' => 0,
+            'priority' => 'normal',
+            'description' => 'Chequeo general',
+        ]);
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'consulta mi auto xyz987',
+            ])
+            ->assertOk()
+            ->assertJsonPath('reply', 'Tu Nissan Sentra (XYZ-987) está Activo. Última orden: Chequeo general — Recibida.');
+    }
+
+    public function test_chatbot_answers_plate_only_vehicle_status_after_general_query(): void
+    {
+        $client = User::factory()->client()->create();
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        $secondVehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'DEF-456',
+            'brand' => 'Hyundai',
+            'model' => 'Tucson',
+            'year' => 2020,
+            'mileage' => 51000,
+            'status' => 'en_taller',
+        ]);
+
+        ServiceOrder::create([
+            'order_number' => 'OS-2026-0403',
+            'vehicle_id' => $secondVehicle->id,
+            'client_id' => $client->id,
+            'created_by' => $client->id,
+            'source' => 'manual',
+            'status' => 'en_proceso',
+            'progress' => 20,
+            'priority' => 'normal',
+            'description' => 'Revisión frenos',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'quiero consultar el estado de mi auto'])
+            ->assertOk();
+
+        $this->assertStringContainsString('DEF-456', $response->json('reply'));
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'DEF-456'])
+            ->assertOk()
+            ->assertJsonPath('reply', 'Tu Hyundai Tucson (DEF-456) está En taller. Última orden: Revisión frenos — En proceso.');
+    }
+
+    public function test_chatbot_suggests_next_available_date_when_day_is_full(): void
+    {
+        Carbon::setTestNow('2026-07-20 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        foreach (range(1, 5) as $i) {
+            AppointmentRequest::create([
+                'client_id' => $client->id,
+                'vehicle_id' => $vehicle->id,
+                'requested_date' => '2026-08-05',
+                'requested_time' => '10:00:00',
+                'service_type' => 'Cambio de aceite',
+                'description' => 'Prueba',
+                'status' => 'pendiente',
+                'source' => 'chatbot',
+            ]);
+        }
+
+        $response = $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), ['message' => 'quiero agendar cita para ABC123 el 5 de agosto'])
+            ->assertOk();
+
+        $this->assertStringContainsString('ya está lleno', $response->json('reply'));
+        $this->assertStringContainsString('siguiente día disponible', $response->json('reply'));
+        Carbon::setTestNow();
+    }
+
+    public function test_chatbot_uses_current_year_for_day_month_and_requests_future_date_if_already_passed(): void
+    {
+        Carbon::setTestNow('2026-07-29 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), ['message' => 'quiero agendar cita para ABC123 el 04/07 cambio de aceite'])
+            ->assertOk();
+
+        $this->assertStringContainsString('Esa fecha ya pasó', $response->json('reply'));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_chatbot_respects_explicit_full_year_date_and_uses_the_same_year(): void
+    {
+        Carbon::setTestNow('2026-06-01 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'quiero agendar cita para ABC123 el 04/07/2026 a las 13 cambio de aceite',
+            ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('Solicitud #', $response->json('reply'));
+
+        $appointment = AppointmentRequest::query()->latest('id')->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame('2026-07-04', $appointment->requested_date->toDateString());
+        $this->assertSame('13:00:00', $appointment->requested_time);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_chatbot_can_schedule_using_weekday_and_simple_hour_phrase(): void
+    {
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'JKL-456',
+            'brand' => 'Hyundai',
+            'model' => 'Tucson',
+            'year' => 2020,
+            'mileage' => 51000,
+            'status' => 'activo',
+        ]);
+
+        $response = $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'quiero cita para jkl456 el viernes a las 10 cambio de aceite',
+            ]);
+
+        $response->assertOk();
+        $this->assertStringContainsString('Solicitud #', $response->json('reply'));
+
+        $appointment = AppointmentRequest::query()->latest('id')->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame($vehicle->id, $appointment->vehicle_id);
+        $this->assertSame('10:00:00', $appointment->requested_time);
+        $this->assertSame('Cambio de aceite', $appointment->service_type);
+    }
+
+    public function test_chatbot_understands_this_friday_phrase(): void
+    {
+        Carbon::setTestNow('2026-07-22 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'MNO-321',
+            'brand' => 'Chevrolet',
+            'model' => 'Onix',
+            'year' => 2023,
+            'mileage' => 12000,
+            'status' => 'activo',
+        ]);
+
+        $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'quiero cita para mno321 este viernes a las 10 cambio de aceite',
+            ])
+            ->assertOk();
+
+        $appointment = AppointmentRequest::query()->latest('id')->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame($vehicle->id, $appointment->vehicle_id);
+        $this->assertSame('2026-07-24', $appointment->requested_date->toDateString());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_chatbot_understands_next_monday_phrase(): void
+    {
+        Carbon::setTestNow('2026-07-22 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'PQR-654',
+            'brand' => 'Kia',
+            'model' => 'Rio',
+            'year' => 2020,
+            'mileage' => 33000,
+            'status' => 'activo',
+        ]);
+
+        $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'agendar cita para pqr654 próximo lunes a las 10 revisión general',
+            ])
+            ->assertOk();
+
+        $appointment = AppointmentRequest::query()->latest('id')->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame($vehicle->id, $appointment->vehicle_id);
+        $this->assertSame('2026-07-27', $appointment->requested_date->toDateString());
+
+        Carbon::setTestNow();
+    }
+
+    public function test_chatbot_assigns_afternoon_default_time_when_user_says_tomorrow_in_afternoon(): void
+    {
+        Carbon::setTestNow('2026-07-22 08:00:00');
+
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        $vehicle = Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'STU-111',
+            'brand' => 'Toyota',
+            'model' => 'Yaris',
+            'year' => 2021,
+            'mileage' => 28000,
+            'status' => 'activo',
+        ]);
+
+        $this->actingAs($client)
+            ->withSession([])
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'quiero cita para stu111 mañana en la tarde cambio de aceite',
+            ])
+            ->assertOk();
+
+        $appointment = AppointmentRequest::query()->latest('id')->first();
+
+        $this->assertNotNull($appointment);
+        $this->assertSame($vehicle->id, $appointment->vehicle_id);
+        $this->assertSame('2026-07-23', $appointment->requested_date->toDateString());
+        $this->assertSame('15:00:00', $appointment->requested_time);
+
+        Carbon::setTestNow();
+    }
+}

@@ -15,6 +15,7 @@ class ResetDemoPasswords extends Command
     {
         $emails = [
             'admin@autogest.test',
+            'asesor1@autogest.test',
             'mecanico1@autogest.test',
             'mecanico2@autogest.test',
             'cliente1@autogest.test',

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureUserRole
 {
     /**
-     * @param  string  ...$roles  Valores de UserRole: admin, mecanico, cliente
+     * @param  string  ...$roles  Valores de UserRole: admin, asesor, mecanico, cliente
      */
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {

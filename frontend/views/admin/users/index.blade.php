@@ -49,6 +49,7 @@
                             @php
                                 $roleClass = match ($user->role->value) {
                                     'admin' => 'blue',
+                                    'asesor' => 'blue',
                                     'mecanico' => 'yellow',
                                     default => 'green',
                                 };

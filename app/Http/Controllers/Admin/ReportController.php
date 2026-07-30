@@ -77,6 +77,42 @@ class ReportController extends Controller
             ->with('success', "Reporte enviado correctamente a {$admin->email}. Revisa tu bandeja de entrada.");
     }
 
+    public function downloadCsv(Request $request)
+    {
+        $validated = $this->validateFilters($request);
+        $report = $this->buildReportData($validated);
+
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="'.$report['type'].'-'.now()->format('Y-m-d-His').'.csv"',
+        ];
+
+        $callback = function () use ($report) {
+            $file = fopen('php://output', 'w');
+            
+            // Add BOM for UTF-8 Excel compatibility
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            // Write headers
+            fputcsv($file, $report['columns'], ';');
+            
+            // Write rows
+            foreach ($report['rows'] as $row) {
+                fputcsv($file, $row, ';');
+            }
+            
+            fclose($file);
+        };
+
+        ActivityLog::record(
+            'report.downloaded',
+            "Se descargó el reporte «{$report['title']}» en CSV.",
+            user: $request->user(),
+        );
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     private function validateFilters(Request $request): array
     {
         return $request->validate([

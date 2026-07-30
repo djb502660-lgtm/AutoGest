@@ -7,6 +7,7 @@
 @section('top-actions')
     <a href="{{ route('reports.index') }}" class="btn btn-secondary">← Nuevo reporte</a>
     <a href="{{ route('reports.pdf', $filters) }}" class="btn btn-primary">Descargar PDF</a>
+    <a href="{{ route('reports.csv', $filters) }}" class="btn btn-success">Descargar CSV</a>
     <form method="POST" action="{{ route('reports.email') }}" style="display:inline;margin:0;">
         @csrf
         @foreach ($filters as $key => $value)

@@ -49,6 +49,11 @@ class User extends Authenticatable
         return $this->role === UserRole::Mechanic;
     }
 
+    public function isAdvisor(): bool
+    {
+        return $this->role === UserRole::Advisor;
+    }
+
     public function isClient(): bool
     {
         return $this->role === UserRole::Client;
@@ -72,6 +77,11 @@ class User extends Authenticatable
     public function assignedOrders(): HasMany
     {
         return $this->hasMany(ServiceOrder::class, 'mechanic_id');
+    }
+
+    public function advisorOrders(): HasMany
+    {
+        return $this->hasMany(ServiceOrder::class, 'advisor_id');
     }
 
     public function maintenances(): HasMany

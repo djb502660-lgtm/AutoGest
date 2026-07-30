@@ -3,15 +3,22 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-
+use App\Enums\UserRole;
+use App\Jobs\NotifyAdvisorsOfChatbotQuery;
 use App\Models\ChatbotFaq;
 use App\Models\ChatbotMessage;
+use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\ChatbotAppointmentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ChatbotController extends Controller
 {
+    public function __construct(
+        private ChatbotAppointmentService $appointments,
+    ) {}
+
     public function index(Request $request)
     {
         $messages = ChatbotMessage::where('user_id', $request->user()->id)
@@ -56,10 +63,20 @@ class ChatbotController extends Controller
     {
         $lower = Str::lower($text);
 
-        if (Str::contains($lower, ['estado', 'placa', 'vehículo', 'vehiculo', 'como esta', 'cómo está'])) {
+        if (Str::contains($lower, ['cancelar cita', 'cancelar solicitud'])) {
+            $this->appointments->cancelDraft();
+
+            return 'Solicitud de cita cancelada. Si necesitas otra cosa, escríbeme.';
+        }
+
+        if ($this->appointments->shouldHandle($text)) {
+            return $this->appointments->handle($user, $text);
+        }
+
+        if ($this->looksLikeVehicleQuery($lower, $text)) {
             $plate = $this->extractPlate($text);
             if ($plate) {
-                $vehicle = $user->vehicles()->where('plate', 'like', "%{$plate}%")->first();
+                $vehicle = $this->resolveUserVehicle($user, $plate);
                 if ($vehicle) {
                     $order = $vehicle->serviceOrders()->latest()->first();
 
@@ -88,7 +105,7 @@ class ChatbotController extends Controller
             return 'En los últimos 12 meses has invertido $'.number_format($total, 2).' en mantenimientos. Consulta la sección Gastos para el detalle.';
         }
 
-        if (Str::contains($lower, ['proximo', 'próximo', 'programad', 'cita', 'mantenimiento'])) {
+        if (Str::contains($lower, ['proximo', 'próximo', 'programad', 'proxima cita', 'próxima cita', 'siguiente cita'])) {
             $next = $user->vehicles()
                 ->join('maintenance_schedules', 'vehicles.id', '=', 'maintenance_schedules.vehicle_id')
                 ->where('maintenance_schedules.status', 'programado')
@@ -121,15 +138,61 @@ class ChatbotController extends Controller
             return $faq->answer;
         }
 
-        return 'Puedo ayudarte con el estado de tu vehículo, próximos mantenimientos, gastos y preguntas frecuentes. ¿Qué necesitas saber?';
+        NotifyAdvisorsOfChatbotQuery::dispatch($user, $text);
+
+        return 'No encontré una respuesta directa para eso. Un asesor de servicio revisará tu consulta y te contactará pronto.';
     }
 
     private function extractPlate(string $text): ?string
     {
         if (preg_match('/[A-Z]{2,3}[-\s]?\d{2,4}/i', $text, $matches)) {
-            return strtoupper(str_replace(' ', '-', $matches[0]));
+            return $this->normalizePlate($matches[0]);
         }
 
         return null;
+    }
+
+    private function resolveUserVehicle($user, string $plate)
+    {
+        $normalizedPlate = $this->normalizePlate($plate);
+
+        return $user->vehicles()
+            ->get()
+            ->first(fn (Vehicle $vehicle) => $this->normalizePlate($vehicle->plate) === $normalizedPlate);
+    }
+
+    private function normalizePlate(string $plate): string
+    {
+        return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $plate) ?? '');
+    }
+
+    private function looksLikeVehicleQuery(string $lower, string $text): bool
+    {
+        if ($this->extractPlate($text) === null) {
+            return false;
+        }
+
+        return Str::contains($lower, [
+            'estado',
+            'placa',
+            'vehículo',
+            'vehiculo',
+            'auto',
+            'carro',
+            'coche',
+            'consulta',
+            'consultar',
+            'revisa',
+            'revisar',
+            'como esta',
+            'cómo está',
+            'como va',
+            'cómo va',
+            'mi auto',
+            'mi carro',
+            'mi coche',
+            'mi vehiculo',
+            'mi vehículo',
+        ]);
     }
 }

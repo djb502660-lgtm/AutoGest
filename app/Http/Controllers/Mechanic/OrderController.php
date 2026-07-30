@@ -140,6 +140,12 @@ class OrderController extends Controller
             ]);
         }
 
+        ActivityLog::record(
+            'order.progress_updated',
+            "Mecánico actualizó el avance de la orden {$order->order_number} a {$order->progress}%.",
+            $order,
+        );
+
         return redirect()
             ->route('mechanic.orders.show', $order)
             ->with('success', 'Avance actualizado correctamente.');

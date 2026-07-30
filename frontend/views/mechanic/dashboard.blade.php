@@ -46,4 +46,8 @@
             @endforelse
         </div>
     </div>
+
+    <div style="margin-top:1rem;">
+        @include('components.dashboard-calendar', ['calendar' => $calendarWidget])
+    </div>
 @endsection

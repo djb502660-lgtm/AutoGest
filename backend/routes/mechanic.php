@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Mechanic\CalendarController;
 use App\Http\Controllers\Mechanic\DashboardController;
 use App\Http\Controllers\Mechanic\MaintenanceController;
 use App\Http\Controllers\Mechanic\OrderController;
@@ -21,4 +22,5 @@ Route::middleware(['auth', 'role:mecanico'])
         Route::get('/vehiculos', [VehicleController::class, 'index'])->name('vehicles.index');
         Route::get('/vehiculos/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
         Route::get('/historial', [OrderController::class, 'history'])->name('history');
+        Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
     });

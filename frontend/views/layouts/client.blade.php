@@ -105,11 +105,23 @@
             appendMsg(text, 'user');
             input.value = '';
             try {
+                const csrfToken = document.querySelector('meta[name=csrf-token]')?.content
+                    || document.querySelector('input[name="_token"]')?.value;
                 const res = await fetch('{{ route('client.chatbot.message') }}', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
                     body: JSON.stringify({ message: text })
                 });
+                if (!res.ok) {
+                    appendMsg('Error del servidor (' + res.status + '). ¿Ejecutaste las migraciones?', 'bot');
+                    return;
+                }
                 const data = await res.json();
                 appendMsg(data.reply || 'No pude procesar tu mensaje.', 'bot');
             } catch { appendMsg('Error de conexión. Intenta de nuevo.', 'bot'); }

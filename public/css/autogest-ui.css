@@ -50,6 +50,14 @@
     --bg-accent: #f0f9ff;
 }
 
+[data-theme="advisor"] {
+    --accent: #7c3aed;
+    --accent-hover: #6d28d9;
+    --accent-soft: #ede9fe;
+    --accent-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    --bg-accent: #f5f3ff;
+}
+
 * { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
@@ -146,6 +154,7 @@ body {
 
 [data-theme="mechanic"] .brand-mark { box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35); }
 [data-theme="client"] .brand-mark { box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35); }
+[data-theme="advisor"] .brand-mark { box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35); }
 
 .brand h1 {
     margin: 0;

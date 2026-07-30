@@ -13,7 +13,9 @@ class ServiceOrder extends Model
         'vehicle_id',
         'client_id',
         'mechanic_id',
+        'advisor_id',
         'created_by',
+        'source',
         'status',
         'progress',
         'priority',
@@ -51,6 +53,11 @@ class ServiceOrder extends Model
     public function mechanic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'mechanic_id');
+    }
+
+    public function advisor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'advisor_id');
     }
 
     public function creator(): BelongsTo

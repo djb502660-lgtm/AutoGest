@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Models\VehicleModelTemplate;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -52,6 +53,10 @@ class VehicleController extends Controller
         $validated = $request->validate($this->rules());
 
         $vehicle = Vehicle::create($validated);
+
+        VehicleModelTemplate::forVehicle($vehicle)->each(
+            fn (VehicleModelTemplate $template) => $template->createScheduleFor($vehicle),
+        );
 
         ActivityLog::record(
             'vehicle.created',

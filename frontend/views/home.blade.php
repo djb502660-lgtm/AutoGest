@@ -17,12 +17,14 @@
                 <span class="home-logo-inst">ISTAE · San Lorenzo</span>
             </span>
         </a>
-        <nav class="home-nav" aria-label="Principal">
-            <a href="#funciones">Funciones</a>
-            <a href="#beneficios">Beneficios</a>
-            <a href="#institucion">Institución</a>
-        </nav>
-        <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
+        <div class="home-header-actions">
+            <nav class="home-nav" aria-label="Principal">
+                <a href="#funciones">Funciones</a>
+                <a href="#beneficios">Beneficios</a>
+                <a href="#institucion">Institución</a>
+            </nav>
+            <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
+        </div>
     </header>
 
     <main>
