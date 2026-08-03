@@ -7,6 +7,7 @@
 @endsection
 
 @section('top-actions')
+    <a href="{{ route('advisor.orders.invoice', $order) }}" class="btn btn-primary">Factura</a>
     <a href="{{ route('advisor.orders.edit', $order) }}" class="btn btn-secondary">Editar</a>
     <a href="{{ route('advisor.orders.index') }}" class="btn btn-secondary">← Lista</a>
 @endsection

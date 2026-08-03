@@ -14,9 +14,16 @@ class Maintenance extends Model
         'type',
         'description',
         'mileage_at_service',
+        'fuel_level',
+        'inventory_spare_wheel',
+        'inventory_tools',
+        'inventory_radio',
+        'inventory_documents',
         'parts_used',
         'technical_notes',
         'cost',
+        'parts_cost',
+        'labor_cost',
         'status',
         'performed_at',
     ];
@@ -25,6 +32,8 @@ class Maintenance extends Model
     {
         return [
             'cost' => 'decimal:2',
+            'parts_cost' => 'decimal:2',
+            'labor_cost' => 'decimal:2',
             'performed_at' => 'datetime',
         ];
     }
@@ -70,6 +79,7 @@ class Maintenance extends Model
         return match ($this->type) {
             'preventivo' => 'Preventivo',
             'correctivo' => 'Correctivo',
+            'garantia' => 'Garantía',
             default => ucfirst($this->type),
         };
     }

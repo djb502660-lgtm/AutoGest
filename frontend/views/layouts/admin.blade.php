@@ -6,6 +6,38 @@
     <title>AutoGest • @yield('title', 'Panel')</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notification-btn {
+            position: relative;
+            background: white;
+            border: 1px solid var(--border, #e2e8f0);
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text, #1e293b);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .notification-btn:hover {
+            background: #f1f5f9;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
     @stack('styles')
 </head>
 <body data-theme="admin">
@@ -49,13 +81,52 @@
                         <h2>@yield('heading')</h2>
                         <p>@yield('subheading')</p>
                     </div>
-                    <div class="top-actions">
-                        @yield('top-actions')
-                        <a href="{{ route('profile.edit') }}" class="btn btn-secondary btn-sm d-none d-lg-inline-flex">Mi perfil</a>
-                        <form method="POST" action="{{ route('logout') }}" class="d-inline m-0">
-                            @csrf
-                            <button type="submit" class="btn btn-outline-secondary btn-sm logout">Cerrar sesión</button>
-                        </form>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="top-actions">
+                            @yield('top-actions')
+                            <a href="{{ route('profile.edit') }}" class="btn btn-secondary btn-sm d-none d-lg-inline-flex">Mi perfil</a>
+                            <form method="POST" action="{{ route('logout') }}" class="d-inline m-0">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-secondary btn-sm logout">Cerrar sesión</button>
+                            </form>
+                        </div>
+                        <!-- Campanita con dropdown admin -->
+                        <div class="dropdown">
+                            <a href="#" class="notification-btn" title="Notificaciones" id="adminNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-bell"></i>
+                                @php
+                                    $adminPendingChatbot = \App\Models\AppointmentRequest::where('status', 'pendiente')->count();
+                                    $adminRecibidas = \App\Models\ServiceOrder::where('status', 'recibida')->count();
+                                    $adminTotalNotifs = $adminPendingChatbot + $adminRecibidas;
+                                @endphp
+                                @if($adminTotalNotifs > 0)
+                                    <span class="notification-badge"></span>
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="adminNotifDropdown" style="min-width: 280px;">
+                                <li><h6 class="dropdown-header">Notificaciones del Sistema</h6></li>
+                                @if($adminTotalNotifs > 0)
+                                    @if($adminPendingChatbot > 0)
+                                        <li>
+                                            <a class="dropdown-item d-flex flex-column py-2 border-bottom" href="{{ route('dashboard') }}">
+                                                <strong class="text-primary"><i class="fa-solid fa-comments me-1"></i> Solicitudes Chatbot</strong>
+                                                <span class="text-muted small">Tienes {{ $adminPendingChatbot }} cita(s) pendiente(s).</span>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($adminRecibidas > 0)
+                                        <li>
+                                            <a class="dropdown-item d-flex flex-column py-2" href="{{ route('admin.orders.index') }}">
+                                                <strong class="text-warning"><i class="fa-solid fa-wrench me-1"></i> Órdenes Recibidas</strong>
+                                                <span class="text-muted small">Tienes {{ $adminRecibidas }} orden(es) en estado recibida.</span>
+                                            </a>
+                                        </li>
+                                    @endif
+                                @else
+                                    <li><span class="dropdown-item text-muted text-center py-3">Sin notificaciones</span></li>
+                                @endif
+                            </ul>
+                        </div>
                     </div>
                 </header>
 

@@ -11,7 +11,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Fecha</th>
+                    <th>Entrada</th>
+                    <th>Salida</th>
                     <th>Vehículo</th>
                     <th>Orden</th>
                     <th>Servicio</th>
@@ -21,18 +22,19 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse ($maintenances as $m)
+                @forelse ($maintenances as $order)
                     <tr>
-                        <td>{{ $m->performed_at?->format('d/m/Y') ?? '—' }}</td>
-                        <td>{{ $m->vehicle->plate }}</td>
-                        <td>{{ $m->serviceOrder?->order_number ?? '—' }}</td>
-                        <td>{{ $m->description }}</td>
-                        <td>{{ $m->typeLabel() }}</td>
-                        <td>${{ number_format($m->cost, 2) }}</td>
-                        <td><span class="badge {{ $m->statusBadgeClass() }}">{{ $m->statusLabel() }}</span></td>
+                        <td>{{ $order->created_at?->format('d/m/Y') ?? '—' }}</td>
+                        <td>{{ $order->completed_at?->format('d/m/Y') ?? '—' }}</td>
+                        <td>{{ $order->vehicle->plate }}</td>
+                        <td>{{ $order->order_number }}</td>
+                        <td>{{ \Illuminate\Support\Str::limit($order->description, 40) }}</td>
+                        <td>Servicio</td>
+                        <td>${{ number_format($order->total_cost ?? $order->estimated_cost ?? 0, 2) }}</td>
+                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
                     </tr>
                 @empty
-                    <tr><td colspan="7">No has registrado mantenimientos aún.</td></tr>
+                    <tr><td colspan="8">No has registrado mantenimientos aún.</td></tr>
                 @endforelse
             </tbody>
         </table>

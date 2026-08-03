@@ -14,7 +14,7 @@
     <div class="panel">
         <form method="POST" action="{{ route('calendar.update', $schedule) }}">
             @csrf @method('PUT')
-            @include('admin.calendar._form', ['schedule' => $schedule, 'vehicles' => $vehicles, 'mechanics' => $mechanics])
+            @include('admin.calendar._form', ['schedule' => $schedule, 'clients' => $clients, 'vehicles' => $vehicles, 'mechanics' => $mechanics])
             <div class="actions">
                 <button type="submit" class="btn btn-primary">Actualizar evento</button>
                 <a href="{{ route('calendar.index', ['month' => $schedule->scheduled_date->month, 'year' => $schedule->scheduled_date->year]) }}" class="btn btn-secondary">Cancelar</a>

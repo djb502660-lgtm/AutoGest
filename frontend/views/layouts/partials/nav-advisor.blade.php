@@ -2,5 +2,4 @@
     <a class="menu-item nav-link {{ request()->routeIs('advisor.dashboard') ? 'active' : '' }}" href="{{ route('advisor.dashboard') }}">📊 Dashboard</a>
     <a class="menu-item nav-link {{ request()->routeIs('advisor.orders.*') ? 'active' : '' }}" href="{{ route('advisor.orders.index') }}">📋 Órdenes de trabajo</a>
     <a class="menu-item nav-link {{ request()->routeIs('advisor.appointments.*') ? 'active' : '' }}" href="{{ route('advisor.appointments.index') }}">🤖 Solicitudes chatbot</a>
-    <a class="menu-item nav-link {{ request()->routeIs('advisor.orders.create') ? 'active' : '' }}" href="{{ route('advisor.orders.create') }}">➕ Nueva orden</a>
 </nav>

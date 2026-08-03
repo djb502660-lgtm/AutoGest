@@ -1,21 +1,29 @@
 <?php
 
 use App\Http\Controllers\Admin\CalendarController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MaintenanceController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\ProfileController;
+use App\Http\Controllers\Admin\PurchaseController;
 use App\Http\Controllers\Admin\ReportController;
+use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\VehicleModelTemplateController;
 use App\Http\Controllers\Admin\VehicleController;
+use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\SupplierController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('vehicles', VehicleController::class)->except(['show']);
-    Route::resource('model-templates', VehicleModelTemplateController::class)->except(['show']);
     Route::resource('maintenances', MaintenanceController::class)->except(['show']);
+    Route::get('/ordenes', [OrderController::class, 'index'])->name('admin.orders.index');
+    Route::get('/ordenes/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
+    Route::get('/ordenes/{order}/factura', [OrderController::class, 'invoice'])->name('admin.orders.invoice');
     Route::get('/reportes', [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reportes/generar', [ReportController::class, 'generate'])->name('reports.generate');
     Route::get('/reportes/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
@@ -30,4 +38,17 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Inventory Management
+    Route::get('/inventario', [App\Http\Controllers\Admin\InventoryController::class, 'index'])->name('inventory.index');
+    Route::resource('categories', CategoryController::class)->except(['show']);
+    Route::resource('brands', BrandController::class)->except(['show']);
+    Route::resource('products', ProductController::class)->except(['show']);
+    Route::resource('suppliers', SupplierController::class)->except(['show']);
+    Route::resource('purchases', PurchaseController::class)->except(['show']);
+    Route::post('/purchases/{purchase}/recibir', [PurchaseController::class, 'receive'])->name('purchases.receive');
+    Route::get('/stock', [StockController::class, 'index'])->name('stock.index');
+    Route::get('/stock/crear', [StockController::class, 'create'])->name('stock.create');
+    Route::post('/stock', [StockController::class, 'store'])->name('stock.store');
+    Route::get('/stock/bajo', [StockController::class, 'lowStock'])->name('stock.low');
 });

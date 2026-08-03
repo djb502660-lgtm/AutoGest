@@ -39,15 +39,13 @@ class VehicleController extends Controller
             abort(403, 'No tienes acceso a este vehículo.');
         }
 
-        $vehicle->load('client');
+        $vehicle->load(['client', 'serviceOrders.mechanic']);
 
-        $maintenances = Maintenance::with('mechanic', 'serviceOrder')
-            ->where('vehicle_id', $vehicle->id)
-            ->orderByDesc('performed_at')
-            ->get();
+        // Cargar todas las órdenes de servicio del vehículo, con mecánico y cliente asociados
+        $orders = $vehicle->serviceOrders()->with(['mechanic', 'client'])->orderByDesc('created_at')->get();
 
         $tab = $request->string('tab', 'info')->toString();
 
-        return view('mechanic.vehicles.show', compact('vehicle', 'maintenances', 'tab'));
+        return view('mechanic.vehicles.show', compact('vehicle', 'orders', 'tab'));
     }
 }

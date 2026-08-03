@@ -58,6 +58,7 @@ class AppointmentRequest extends Model
             'confirmada' => 'Confirmada',
             'rechazada' => 'Rechazada',
             'convertida' => 'Convertida a orden',
+            'cancelada' => 'Cancelada',
             default => ucfirst($this->status),
         };
     }
@@ -66,7 +67,7 @@ class AppointmentRequest extends Model
     {
         return match ($this->status) {
             'convertida', 'confirmada' => 'green',
-            'rechazada' => 'red',
+            'rechazada', 'cancelada' => 'red',
             default => 'yellow',
         };
     }

@@ -12,7 +12,7 @@
     <div class="panel">
         <form method="POST" action="{{ route('calendar.store') }}">
             @csrf
-            @include('admin.calendar._form', compact('vehicles', 'mechanics', 'selectedDate'))
+            @include('admin.calendar._form', compact('clients', 'vehicles', 'mechanics', 'selectedDate'))
             <div class="actions">
                 <button type="submit" class="btn btn-primary">Guardar evento</button>
                 <a href="{{ route('calendar.index') }}" class="btn btn-secondary">Cancelar</a>

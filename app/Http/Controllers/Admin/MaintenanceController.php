@@ -139,14 +139,21 @@ class MaintenanceController extends Controller
             'service_order_id' => ['nullable', 'exists:service_orders,id'],
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'mechanic_id' => ['required', 'exists:users,id'],
-            'type' => ['required', Rule::in(['preventivo', 'correctivo'])],
+            'type' => ['required', Rule::in(['preventivo', 'correctivo', 'garantia'])],
             'description' => ['required', 'string', 'max:255'],
-            'mileage_at_service' => ['nullable', 'integer', 'min:0'],
+            'mileage_at_service' => ['required', 'integer', 'min:0'],
+            'fuel_level' => ['required', 'string', 'in:Reserva,1/4,1/2,3/4,Lleno'],
+            'inventory_spare_wheel' => ['nullable', 'boolean'],
+            'inventory_tools' => ['nullable', 'boolean'],
+            'inventory_radio' => ['nullable', 'boolean'],
+            'inventory_documents' => ['nullable', 'boolean'],
             'parts_used' => ['nullable', 'string'],
             'technical_notes' => ['nullable', 'string'],
-            'cost' => ['required', 'numeric', 'min:0'],
+            'cost' => ['nullable', 'numeric', 'min:0'],
+            'parts_cost' => ['nullable', 'numeric', 'min:0'],
+            'labor_cost' => ['nullable', 'numeric', 'min:0'],
             'status' => ['required', Rule::in(['pendiente', 'en_proceso', 'completado', 'cancelado'])],
-            'performed_at' => ['nullable', 'date'],
+            'performed_at' => ['required', 'date'],
         ];
     }
 
@@ -157,6 +164,6 @@ class MaintenanceController extends Controller
         }
 
         $order = ServiceOrder::find($serviceOrderId);
-        $order?->update(['total_cost' => $order->maintenances()->sum('cost')]);
+        $order?->update(['total_cost' => $order->maintenances()->sum('cost') + $order->maintenances()->sum('parts_cost') + $order->maintenances()->sum('labor_cost')]);
     }
 }

@@ -14,44 +14,28 @@
         <div class="stat"><span>Gastos totales</span><strong>${{ number_format($stats['gastos_totales'], 0) }}</strong></div>
     </div>
 
-    <div class="grid-2">
-        <div class="panel">
-            <h3 style="margin:0 0 12px;font-size:1rem;">Estado de mis vehículos</h3>
-            @forelse ($vehicles as $vehicle)
-                @php $next = $vehicle->maintenanceSchedules->first(); @endphp
-                <div class="vehicle-card">
-                    <div class="vehicle-thumb">🚗</div>
-                    <div>
-                        <h4>{{ $vehicle->brand }} {{ $vehicle->model }} {{ $vehicle->year }}</h4>
-                        <p>{{ $vehicle->plate }} · {{ number_format($vehicle->mileage) }} km</p>
-                        <p>
-                            <span class="badge {{ $vehicle->statusBadgeClass() }}">{{ $vehicle->statusLabel() }}</span>
-                            @if ($next)
-                                · Próximo: {{ $next->scheduled_date->format('d/m/Y') }}
-                            @endif
-                        </p>
-                    </div>
-                    <a href="{{ route('client.vehicles.show', $vehicle) }}" class="btn btn-secondary btn-sm" style="margin-left:auto;align-self:center;">Ver</a>
+    <div class="panel">
+        <h3 style="margin:0 0 12px;font-size:1rem;">Estado de mis vehículos</h3>
+        @forelse ($vehicles as $vehicle)
+            @php $next = $vehicle->maintenanceSchedules->first(); @endphp
+            <div class="vehicle-card">
+                <div class="vehicle-thumb">🚗</div>
+                <div>
+                    <h4>{{ $vehicle->brand }} {{ $vehicle->model }} {{ $vehicle->year }}</h4>
+                    <p>{{ $vehicle->plate }} · {{ number_format($vehicle->mileage) }} km</p>
+                    <p>
+                        <span class="badge {{ $vehicle->statusBadgeClass() }}">{{ $vehicle->statusLabel() }}</span>
+                        @if ($next)
+                            · Próximo: {{ $next->scheduled_date->format('d/m/Y') }}
+                        @endif
+                    </p>
                 </div>
-            @empty
-                <p style="color:var(--muted);font-size:0.84rem;">No tienes vehículos registrados.</p>
-            @endforelse
-            <a href="{{ route('client.vehicles.index') }}" class="btn btn-secondary btn-sm">Ver todos</a>
-        </div>
-
-        <div class="panel">
-            <h3 style="margin:0 0 12px;font-size:1rem;">Alertas recientes</h3>
-            @forelse ($alerts as $alert)
-                <div class="notif-item {{ $alert->is_read ? '' : 'unread' }}">
-                    <strong>{{ $alert->title }}</strong>
-                    <span style="font-size:0.82rem;color:var(--muted);">{{ $alert->message }}</span>
-                    <small>{{ $alert->created_at->diffForHumans() }}</small>
-                </div>
-            @empty
-                <p style="color:var(--muted);font-size:0.84rem;">Sin alertas pendientes.</p>
-            @endforelse
-            <a href="{{ route('client.notifications.index') }}" class="btn btn-secondary btn-sm" style="margin-top:8px;">Ver notificaciones</a>
-        </div>
+                <a href="{{ route('client.vehicles.show', $vehicle) }}" class="btn btn-secondary btn-sm" style="margin-left:auto;align-self:center;">Ver</a>
+            </div>
+        @empty
+            <p style="color:var(--muted);font-size:0.84rem;">No tienes vehículos registrados.</p>
+        @endforelse
+        <a href="{{ route('client.vehicles.index') }}" class="btn btn-secondary btn-sm">Ver todos</a>
     </div>
 
     <div class="panel">

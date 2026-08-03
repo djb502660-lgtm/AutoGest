@@ -13,14 +13,22 @@ class Vehicle extends Model
         'plate',
         'brand',
         'model',
+        'sub_model',
         'year',
         'color',
         'mileage',
         'vin',
+        'engine_number',
+        'transmission_type',
+        'tire_size',
         'photo',
         'status',
         'insurance_expiry',
         'inspection_expiry',
+        'registration_date',
+        'paint_reference',
+        'transponder',
+        'radio_code',
         'notes',
     ];
 
@@ -29,6 +37,7 @@ class Vehicle extends Model
         return [
             'insurance_expiry' => 'date',
             'inspection_expiry' => 'date',
+            'registration_date' => 'date',
         ];
     }
 

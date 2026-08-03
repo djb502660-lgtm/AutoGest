@@ -7,23 +7,30 @@
 @endsection
 
 @section('top-actions')
-    <a href="{{ route('advisor.orders.create') }}" class="btn btn-primary">Nueva orden</a>
+    <a href="{{ route('advisor.orders.create') }}" class="btn btn-primary">
+        + Nueva orden
+    </a>
 @endsection
 
 @section('content')
     <div class="panel">
-        <form method="GET" class="filters">
-            <input type="text" name="search" value="{{ $search }}" placeholder="Buscar orden o placa...">
-            <select name="status">
-                <option value="">Todos los estados</option>
-                <option value="recibida" @selected($status === 'recibida')>Recibida</option>
-                <option value="en_proceso" @selected($status === 'en_proceso')>En proceso</option>
-                <option value="completada" @selected($status === 'completada')>Completada</option>
-                <option value="entregada" @selected($status === 'entregada')>Entregada</option>
-                <option value="cancelada" @selected($status === 'cancelada')>Cancelada</option>
-            </select>
-            <button type="submit" class="btn btn-secondary">Filtrar</button>
-        </form>
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <form method="GET" class="filters mb-0">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Buscar orden o placa...">
+                <select name="status">
+                    <option value="">Todos los estados</option>
+                    <option value="recibida" @selected($status === 'recibida')>Recibida</option>
+                    <option value="en_proceso" @selected($status === 'en_proceso')>En proceso</option>
+                    <option value="completada" @selected($status === 'completada')>Completada</option>
+                    <option value="entregada" @selected($status === 'entregada')>Entregada</option>
+                    <option value="cancelada" @selected($status === 'cancelada')>Cancelada</option>
+                </select>
+                <button type="submit" class="btn btn-secondary">Filtrar</button>
+            </form>
+            <a href="{{ route('advisor.orders.create') }}" class="btn btn-primary d-md-none">
+                + Nueva orden
+            </a>
+        </div>
 
         <table class="table">
             <thead>

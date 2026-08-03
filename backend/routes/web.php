@@ -10,3 +10,4 @@ require __DIR__.'/admin.php';
 require __DIR__.'/advisor.php';
 require __DIR__.'/mechanic.php';
 require __DIR__.'/client.php';
+require __DIR__.'/../../app/Modules/Chatbot/routes.php';

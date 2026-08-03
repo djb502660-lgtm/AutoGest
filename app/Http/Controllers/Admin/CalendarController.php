@@ -148,21 +148,25 @@ class CalendarController extends Controller
     private function formData(): array
     {
         return [
+            'clients' => User::where('role', UserRole::Client)->where('status', 'activo')->orderBy('name')->get(),
             'vehicles' => Vehicle::orderBy('plate')->get(),
-            'mechanics' => User::where('role', UserRole::Mechanic)->where('status', 'activo')->orderBy('name')->get(),
+            'mechanics' => User::whereIn('role', [UserRole::Mechanic, UserRole::Advisor])->where('status', 'activo')->orderBy('name')->get(),
         ];
     }
 
     private function rules(): array
     {
         return [
+            'client_id' => ['nullable', 'exists:users,id'],
             'vehicle_id' => ['required', 'exists:vehicles,id'],
             'title' => ['required', 'string', 'max:255'],
-            'maintenance_type' => ['nullable', 'string', 'max:100'],
+            'service_type' => ['required', Rule::in(['preventivo', 'correctivo', 'diagnostico', 'garantia'])],
             'scheduled_date' => ['required', 'date'],
+            'start_time' => ['nullable', 'date_format:H:i'],
+            'duration_minutes' => ['nullable', 'integer', 'min:15', 'max:480'],
             'mileage_target' => ['nullable', 'integer', 'min:0'],
             'assigned_mechanic_id' => ['nullable', 'exists:users,id'],
-            'status' => ['required', Rule::in(['programado', 'completado', 'vencido', 'cancelado'])],
+            'status' => ['required', Rule::in(['programado', 'confirmado', 'en_taller', 'cancelado'])],
             'notes' => ['nullable', 'string'],
         ];
     }
@@ -170,6 +174,14 @@ class CalendarController extends Controller
     private function normalize(array $data): array
     {
         $data['assigned_mechanic_id'] = $data['assigned_mechanic_id'] ?: null;
+        $data['client_id'] = $data['client_id'] ?: null;
+
+        // Calculate end time based on start time and duration
+        if (!empty($data['start_time']) && !empty($data['duration_minutes'])) {
+            $startTime = \Carbon\Carbon::createFromFormat('H:i', $data['start_time']);
+            $endTime = $startTime->addMinutes($data['duration_minutes']);
+            $data['end_time'] = $endTime->format('H:i');
+        }
 
         return $data;
     }

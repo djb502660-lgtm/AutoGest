@@ -137,7 +137,20 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
-        if ($user->clientOrders()->exists() || $user->vehicles()->exists() || $user->assignedOrders()->exists()) {
+        // Proteger al usuario autenticado actual
+        if ($user->id === auth()->id()) {
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'No puedes eliminar tu propio usuario.');
+        }
+
+        // Verificar si tiene registros críticos vinculados
+        $hasCriticalRelations = $user->clientOrders()->exists() 
+            || $user->vehicles()->exists() 
+            || $user->assignedOrders()->exists()
+            || $user->advisorOrders()->exists();
+
+        if ($hasCriticalRelations) {
             $user->update(['status' => 'inactivo']);
 
             ActivityLog::record(
@@ -153,16 +166,33 @@ class UserController extends Controller
         }
 
         $email = $user->email;
-        $user->delete();
+        
+        try {
+            $user->delete();
 
-        ActivityLog::record(
-            'user.deleted',
-            "Se eliminó el usuario {$email}.",
-            user: auth()->user(),
-        );
+            ActivityLog::record(
+                'user.deleted',
+                "Se eliminó el usuario {$email}.",
+                user: auth()->user(),
+            );
 
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'Usuario eliminado correctamente.');
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'Usuario eliminado correctamente.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Si hay error de foreign key, desactivar en su lugar
+            $user->update(['status' => 'inactivo']);
+
+            ActivityLog::record(
+                'user.deactivated',
+                "Se desactivó el usuario {$user->email} (error al eliminar: restricción de base de datos).",
+                model: $user,
+                user: auth()->user(),
+            );
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'El usuario fue desactivado debido a restricciones de base de datos.');
+        }
     }
 }

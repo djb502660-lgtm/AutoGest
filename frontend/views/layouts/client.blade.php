@@ -7,6 +7,38 @@
     <title>AutoGest • @yield('title', 'Cliente')</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notification-btn {
+            position: relative;
+            background: white;
+            border: 1px solid var(--border, #e2e8f0);
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text, #1e293b);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .notification-btn:hover {
+            background: #f1f5f9;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
     @stack('styles')
 </head>
 <body data-theme="client">
@@ -62,7 +94,42 @@
                         <h2>@yield('heading')</h2>
                         @hasSection('subheading')<p>@yield('subheading')</p>@endif
                     </div>
-                    <div class="top-actions">@yield('top-actions')</div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="top-actions">@yield('top-actions')</div>
+                        <!-- Campanita con dropdown cliente -->
+                        <div class="dropdown">
+                            <a href="#" class="notification-btn" title="Notificaciones" id="clientNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-bell"></i>
+                                @php
+                                    $clientAlerts = auth()->user()->alerts()->where('is_read', false)->latest()->take(5)->get();
+                                    $unreadCount = auth()->user()->alerts()->where('is_read', false)->count();
+                                @endphp
+                                @if($unreadCount > 0)
+                                    <span class="notification-badge"></span>
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="clientNotifDropdown" style="min-width: 280px; max-width: 320px;">
+                                <li><h6 class="dropdown-header">Notificaciones</h6></li>
+                                @if($unreadCount > 0)
+                                    @foreach($clientAlerts as $alert)
+                                        <li>
+                                            <a class="dropdown-item d-flex flex-column py-2 border-bottom" href="{{ route('client.notifications.index') }}">
+                                                <strong class="text-primary" style="font-size:0.85rem;">{{ $alert->title }}</strong>
+                                                <span class="text-muted small" style="font-size:0.78rem;">{{ Str::limit($alert->message, 50) }}</span>
+                                            </a>
+                                        </li>
+                                    @endforeach
+                                    <li>
+                                        <a class="dropdown-item text-center text-primary fw-bold small py-2" href="{{ route('client.notifications.index') }}">
+                                            Ver todas las notificaciones ({{ $unreadCount }})
+                                        </a>
+                                    </li>
+                                @else
+                                    <li><span class="dropdown-item text-muted text-center py-3">Sin notificaciones</span></li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
                 </header>
                 <section class="content flex-grow-1">
                     @if (session('success'))

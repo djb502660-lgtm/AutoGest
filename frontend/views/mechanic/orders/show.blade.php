@@ -1,127 +1,185 @@
 @extends('layouts.mechanic')
 
-@section('title', 'Orden '.$order->order_number)
-@section('heading', 'Detalle de orden de servicio')
-@section('subheading')
-    {{ $order->vehicle->brand }} {{ $order->vehicle->model }} {{ $order->vehicle->year }} · {{ $order->vehicle->plate }}
-@endsection
+@section('title', 'Editar Orden de Servicio')
+@section('heading', 'ORDEN DE SERVICIO ' . $order->order_number)
+@section('subheading', 'Creado el ' . $order->created_at->format('d-m-Y H:i'))
 
 @section('top-actions')
-    <a href="{{ route('mechanic.vehicles.show', $order->vehicle) }}" class="btn btn-secondary">Ver vehículo</a>
-    <a href="{{ route('mechanic.maintenances.create', ['order_id' => $order->id]) }}" class="btn btn-primary">Registrar mantenimiento</a>
+    <a href="{{ route('mechanic.orders.index') }}" class="btn-back" style="display:inline-flex; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:0.9rem;">
+        <i class="fa-solid fa-arrow-left"></i> Volver a órdenes
+    </a>
+    <span class="badge-status {{ $order->statusBadgeClass() }}" style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-weight:bold; font-size:0.8rem; margin-left:12px;">{{ $order->statusLabel() }}</span>
 @endsection
 
+@push('styles')
+<style>
+    /* Tarjetas de Información */
+    .card-info { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+    .card-title-bar { background: #334155; color: white; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+
+    .read-field { margin-bottom: 10px; }
+    .read-field label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .read-field div { background: #f1f5f9; padding: 8px 12px; border-radius: 6px; font-weight: 600; font-size: 0.88rem; border: 1px solid #e2e8f0; color: #1e293b; }
+
+    /* Campos Editables */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+    .form-control { width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.9rem; background: white; outline: none; }
+    .form-control:focus { border-color: var(--primary); }
+    textarea.form-control { min-height: 85px; resize: vertical; }
+
+    /* Slider Progreso */
+    .progress-box { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .progress-val { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+    .range-slider { width: 100%; height: 8px; border-radius: 4px; background: #e2e8f0; accent-color: var(--primary); cursor: pointer; }
+
+    /* Botón Guardar */
+    .btn-submit { width: 100%; background: var(--accent); color: white; border: none; padding: 14px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-submit:hover { background: #d97706; }
+    
+    .btn-back:hover { color: var(--primary) !important; }
+
+    @media (max-width: 768px) { .grid-2col, .grid-3col { grid-template-columns: 1fr; } }
+</style>
+@endpush
+
 @section('content')
-    <div class="grid-2">
-        <div class="panel">
-            <h3 style="margin:0 0 12px;">Información del vehículo</h3>
-            <p><strong>Placa:</strong> {{ $order->vehicle->plate }}</p>
-            <p><strong>Marca / Modelo:</strong> {{ $order->vehicle->brand }} {{ $order->vehicle->model }}</p>
-            <p><strong>Kilometraje:</strong> {{ number_format($order->vehicle->mileage) }} km</p>
-            <p><strong>Cliente:</strong> {{ $order->client->name }}</p>
-        </div>
-        <div class="panel">
-            <h3 style="margin:0 0 12px;">Información del servicio</h3>
-            <p><strong>Orden:</strong> {{ $order->order_number }}</p>
-            <p><strong>Servicio:</strong> {{ $order->description }}</p>
-            <p><strong>Estado:</strong> <span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></p>
-            <p><strong>Progreso:</strong> {{ $order->progress ?? 0 }}%</p>
-            <div class="progress-bar"><span style="width:{{ $order->progress ?? 0 }}%"></span></div>
-            @if ($order->diagnosis)
-                <p style="margin-top:12px;"><strong>Diagnóstico:</strong> {{ $order->diagnosis }}</p>
-            @endif
-            @if ($order->recommendations)
-                <p><strong>Recomendaciones:</strong> {{ $order->recommendations }}</p>
-            @endif
-        </div>
-    </div>
+    <form action="{{ route('mechanic.orders.status', $order) }}" method="POST">
+      @csrf @method('PUT')
 
-    <div class="grid-2">
-        <div class="panel">
-            <h3 style="margin:0 0 12px;">Actualizar estado</h3>
-            <form method="POST" action="{{ route('mechanic.orders.status', $order) }}">
-                @csrf @method('PUT')
-                <div class="field">
-                    <label>Nuevo estado</label>
-                    <select name="status" required>
-                        @foreach (['recibida','en_proceso','completada','entregada'] as $st)
-                            <option value="{{ $st }}" @selected(old('status', $order->status) === $st)>{{ ucfirst(str_replace('_',' ',$st)) }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="field">
-                    <label>Progreso (%)</label>
-                    <input type="number" name="progress" min="0" max="100" value="{{ old('progress', $order->progress ?? 0) }}" required>
-                </div>
-                <div class="field">
-                    <label>Diagnóstico técnico</label>
-                    <textarea name="diagnosis" rows="3">{{ old('diagnosis', $order->diagnosis) }}</textarea>
-                </div>
-                <div class="field">
-                    <label>Recomendaciones</label>
-                    <textarea name="recommendations" rows="2">{{ old('recommendations', $order->recommendations) }}</textarea>
-                </div>
-                <button type="submit" class="btn btn-primary">Guardar cambios</button>
-            </form>
-        </div>
-
-        <div class="panel">
-            <h3 style="margin:0 0 12px;">Informar avance</h3>
-            <form method="POST" action="{{ route('mechanic.orders.progress', $order) }}">
-                @csrf @method('PUT')
-                <div class="field">
-                    <label>Progreso del trabajo (%)</label>
-                    <input type="range" name="progress" min="0" max="100" value="{{ $order->progress ?? 0 }}" oninput="this.nextElementSibling.value=this.value">
-                    <output style="color:var(--muted);font-size:0.82rem;">{{ $order->progress ?? 0 }}%</output>
-                </div>
-                <div class="field">
-                    <label>Comentario de avance</label>
-                    <textarea name="comment" rows="3" placeholder="Describe el avance del trabajo..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-warning">Actualizar avance</button>
-            </form>
-
-            <hr style="border-color:rgba(148,163,184,0.12);margin:16px 0;">
-
-            <h3 style="margin:0 0 12px;">Observación técnica</h3>
-            <form method="POST" action="{{ route('mechanic.orders.comments', $order) }}">
-                @csrf
-                <div class="field">
-                    <textarea name="comment" rows="3" required placeholder="Registra una observación técnica..."></textarea>
-                </div>
-                <button type="submit" class="btn btn-secondary">Guardar observación</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="panel">
-        <h3 style="margin:0 0 12px;">Observaciones y comentarios</h3>
-        @forelse ($order->comments as $comment)
-            <div class="comment">
-                {{ $comment->comment }}
-                <small>{{ $comment->user->name }} · {{ $comment->created_at->format('d/m/Y H:i') }}</small>
+      <!-- SECCIÓN 1: DATOS DEL CLIENTE Y VEHÍCULO -->
+      <div class="grid-2col">
+        <!-- BLOQUE CLIENTE -->
+        <div class="card-info">
+          <div class="card-title-bar"><i class="fa-solid fa-user"></i> Datos del Cliente</div>
+          <div class="grid-3col">
+            <div class="read-field">
+              <label>Identificación / NIF</label>
+              <div>{{ $order->client->identification_number ?? 'N/A' }}</div>
             </div>
-        @empty
-            <p style="color:var(--muted);font-size:0.84rem;">Sin observaciones registradas.</p>
-        @endforelse
-    </div>
+            <div class="read-field" style="grid-column: span 2;">
+              <label>Nombre Completo</label>
+              <div>{{ $order->client->name }}</div>
+            </div>
+          </div>
+          <div class="grid-2col">
+            <div class="read-field">
+              <label>Teléfono / Móvil</label>
+              <div>{{ $order->client->phone ?? 'N/A' }}</div>
+            </div>
+            <div class="read-field">
+              <label>Correo Electrónico</label>
+              <div>{{ $order->client->email ?? 'N/A' }}</div>
+            </div>
+          </div>
+          <div class="read-field">
+            <label>Dirección / Municipio</label>
+            <div>{{ $order->client->address ?? 'N/A' }}</div>
+          </div>
+        </div>
 
-    @if ($order->maintenances->isNotEmpty())
-    <div class="panel">
-        <h3 style="margin:0 0 12px;">Mantenimientos vinculados</h3>
-        <table class="table">
-            <thead><tr><th>Fecha</th><th>Descripción</th><th>Costo</th><th>Estado</th></tr></thead>
-            <tbody>
-                @foreach ($order->maintenances as $m)
-                    <tr>
-                        <td>{{ $m->performed_at?->format('d/m/Y') ?? '—' }}</td>
-                        <td>{{ $m->description }}</td>
-                        <td>${{ number_format($m->cost, 2) }}</td>
-                        <td><span class="badge {{ $m->statusBadgeClass() }}">{{ $m->statusLabel() }}</span></td>
-                    </tr>
+        <!-- BLOQUE VEHÍCULO -->
+        <div class="card-info">
+          <div class="card-title-bar"><i class="fa-solid fa-car"></i> Datos del Vehículo</div>
+          <div class="grid-3col">
+            <div class="read-field">
+              <label>Matrícula / Placa</label>
+              <div>{{ $order->vehicle->plate }}</div>
+            </div>
+            <div class="read-field">
+              <label>Marca</label>
+              <div>{{ $order->vehicle->brand }}</div>
+            </div>
+            <div class="read-field">
+              <label>Modelo</label>
+              <div>{{ $order->vehicle->model }} {{ $order->vehicle->year }}</div>
+            </div>
+          </div>
+          <div class="grid-3col">
+            <div class="read-field">
+              <label>Kilometraje</label>
+              <div>{{ number_format($order->vehicle->mileage) }} km</div>
+            </div>
+            <div class="read-field">
+              <label>Motor</label>
+              <div>{{ $order->vehicle->engine_number ?? 'N/A' }}</div>
+            </div>
+            <div class="read-field">
+              <label>Chasis</label>
+              <div>{{ $order->vehicle->chassis_number ?? 'N/A' }}</div>
+            </div>
+          </div>
+          <div class="read-field">
+            <label>Detalle del Servicio</label>
+            <div>{{ $order->description }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: REGISTRO OPERATIVO Y AVANCE -->
+      <div class="card-info">
+        <div class="card-title-bar" style="background: #0284c7;"><i class="fa-solid fa-wrench"></i> Registro de Mantenimiento y Avance</div>
+        
+        <div class="grid-2col">
+          <!-- Columna Izquierda -->
+          <div>
+            <div class="form-group">
+              <label for="nuevo_estado">Actualizar Estado</label>
+              <select id="nuevo_estado" name="status" class="form-control">
+                @foreach (['recibida' => 'En Espera', 'en_proceso' => 'En Proceso de Reparación', 'pausado' => 'Pausado (Esperando Repuestos)', 'completada' => 'Trabajo Terminado'] as $val => $label)
+                    <option value="{{ $val }}" @selected(old('status', $order->status) === $val)>{{ $label }}</option>
                 @endforeach
-            </tbody>
-        </table>
-    </div>
-    @endif
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="diagnostico">Diagnóstico Técnico</label>
+              <textarea id="diagnostico" name="diagnosis" class="form-control" placeholder="Escribe las novedades encontradas en la revisión...">{{ old('diagnosis', $order->diagnosis) }}</textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="recomendaciones">Recomendaciones para el Cliente</label>
+              <textarea id="recomendaciones" name="recommendations" class="form-control" placeholder="Escribe sugerencias de mantenimiento preventivo...">{{ old('recommendations', $order->recommendations) }}</textarea>
+            </div>
+          </div>
+
+          <!-- Columna Derecha -->
+          <div>
+            <div class="form-group">
+              <div class="progress-box">
+                <label>Informar Avance del Trabajo (%)</label>
+                <span class="progress-val" id="progresoTexto">{{ old('progress', $order->progress ?? 0) }}%</span>
+              </div>
+              <input 
+                type="range" 
+                name="progress"
+                min="0" 
+                max="100" 
+                value="{{ old('progress', $order->progress ?? 0) }}" 
+                class="range-slider" 
+                id="progresoSlider"
+                oninput="document.getElementById('progresoTexto').innerText = this.value + '%'"
+              >
+            </div>
+
+            <div class="form-group">
+              <label for="comentario_avance">Comentario de Avance (Opcional)</label>
+              <textarea id="comentario_avance" name="comment" class="form-control" placeholder="Describe brevemente las tareas realizadas hasta ahora..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="observacion_tecnica">Observación Técnica (Opcional)</label>
+              <textarea id="observacion_tecnica" name="technical_observation" class="form-control" placeholder="Piezas cambiadas, calibraciones hechas, etc..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios y Actualizar Orden
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
 @endsection

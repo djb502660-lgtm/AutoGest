@@ -6,6 +6,38 @@
     <title>AutoGest • @yield('title', 'Asesor')</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notification-btn {
+            position: relative;
+            background: white;
+            border: 1px solid var(--border, #e2e8f0);
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text, #1e293b);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .notification-btn:hover {
+            background: #f1f5f9;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 10px;
+            height: 10px;
+            background: #ef4444;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
     @stack('styles')
 </head>
 <body data-theme="advisor">
@@ -61,7 +93,46 @@
                         <h2>@yield('heading')</h2>
                         @hasSection('subheading')<p>@yield('subheading')</p>@endif
                     </div>
-                    <div class="top-actions">@yield('top-actions')</div>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="top-actions">@yield('top-actions')</div>
+                        <!-- Campanita con dropdown -->
+                        <div class="dropdown">
+                            <a href="#" class="notification-btn" title="Notificaciones" id="advisorNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-regular fa-bell"></i>
+                                @php
+                                    $pendingChatbot = \App\Models\AppointmentRequest::where('status', 'pendiente')->count();
+                                    $unassignedOrders = \App\Models\ServiceOrder::whereNull('mechanic_id')->whereIn('status', ['recibida', 'en_proceso'])->count();
+                                    $totalNotifs = $pendingChatbot + $unassignedOrders;
+                                @endphp
+                                @if($totalNotifs > 0)
+                                    <span class="notification-badge"></span>
+                                @endif
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="advisorNotifDropdown" style="min-width: 280px;">
+                                <li><h6 class="dropdown-header">Notificaciones</h6></li>
+                                @if($totalNotifs > 0)
+                                    @if($pendingChatbot > 0)
+                                        <li>
+                                            <a class="dropdown-item d-flex flex-column py-2 border-bottom" href="{{ route('advisor.appointments.index') }}">
+                                                <strong class="text-primary"><i class="fa-solid fa-comments me-1"></i> Nueva solicitud chatbot</strong>
+                                                <span class="text-muted small">Tienes {{ $pendingChatbot }} solicitud(es) de cita por revisar.</span>
+                                            </a>
+                                        </li>
+                                    @endif
+                                    @if($unassignedOrders > 0)
+                                        <li>
+                                            <a class="dropdown-item d-flex flex-column py-2" href="{{ route('advisor.orders.index') }}">
+                                                <strong class="text-warning"><i class="fa-solid fa-wrench me-1"></i> Nueva orden / Sin mecánico</strong>
+                                                <span class="text-muted small">Tienes {{ $unassignedOrders }} orden(es) pendientes por asignar o revisar.</span>
+                                            </a>
+                                        </li>
+                                    @endif
+                                @else
+                                    <li><span class="dropdown-item text-muted text-center py-3">Sin notificaciones</span></li>
+                                @endif
+                            </ul>
+                        </div>
+                    </div>
                 </header>
                 <section class="content flex-grow-1">
                     @if (session('success'))

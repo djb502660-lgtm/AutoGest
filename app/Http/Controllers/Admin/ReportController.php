@@ -16,8 +16,54 @@ class ReportController extends Controller
 {
     public function index()
     {
+        $maintenances = Maintenance::with(['vehicle', 'mechanic', 'serviceOrder'])->orderByDesc('performed_at')->get();
+        $vehicles = Vehicle::orderBy('plate')->get();
+        $schedules = \App\Models\MaintenanceSchedule::with('vehicle')->orderBy('scheduled_date')->get();
+
+        // Preparar datos para los reportes
+        $reportData = [
+            'mantenimientos' => $maintenances->map(function ($m) {
+                return [
+                    $m->serviceOrder->reference ?? 'N/A',
+                    $m->vehicle->plate . ' — ' . $m->vehicle->brand . ' ' . $m->vehicle->model,
+                    $m->typeLabel(),
+                    $m->mechanic->name ?? 'N/A',
+                    $m->performed_at?->format('Y-m-d') ?? 'N/A'
+                ];
+            })->toArray(),
+            'gastos' => $maintenances->where('status', 'completado')->map(function ($m) {
+                return [
+                    'Repuestos',
+                    $m->description,
+                    $m->vehicle->plate,
+                    '$' . number_format($m->cost, 2)
+                ];
+            })->toArray(),
+            'vehiculos' => $vehicles->map(function ($v) {
+                return [
+                    $v->plate,
+                    $v->brand . ' ' . $v->model,
+                    $v->year,
+                    number_format($v->mileage) . ' km',
+                    $v->statusLabel()
+                ];
+            })->toArray(),
+            'pendientes' => $schedules->map(function ($s) {
+                return [
+                    $s->id,
+                    $s->vehicle->plate . ' — ' . $s->vehicle->brand,
+                    $s->title,
+                    'Media',
+                    $s->scheduled_date?->format('Y-m-d') ?? 'N/A'
+                ];
+            })->toArray(),
+        ];
+
         return view('admin.reports.index', [
-            'vehicles' => Vehicle::orderBy('plate')->get(),
+            'vehicles' => $vehicles,
+            'maintenances' => $maintenances,
+            'schedules' => $schedules,
+            'reportData' => $reportData,
         ]);
     }
 

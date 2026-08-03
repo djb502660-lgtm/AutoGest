@@ -21,6 +21,7 @@ class OrderController extends Controller
 
         $orders = $user->assignedOrders()
             ->with('vehicle', 'client')
+            ->whereHas('vehicle', fn ($v) => $v->where('status', 'en_taller'))
             ->when($search->isNotEmpty(), function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
                     $query->where('order_number', 'like', "%{$search}%")
@@ -155,9 +156,10 @@ class OrderController extends Controller
     {
         $user = $request->user();
 
-        $maintenances = Maintenance::with('vehicle', 'serviceOrder')
+        $maintenances = ServiceOrder::with('vehicle')
             ->where('mechanic_id', $user->id)
-            ->orderByDesc('performed_at')
+            ->whereIn('status', ['completada', 'entregada'])
+            ->orderByDesc('completed_at')
             ->paginate(12);
 
         return view('mechanic.history', compact('maintenances'));
