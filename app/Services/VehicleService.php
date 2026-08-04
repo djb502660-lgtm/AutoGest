@@ -4,12 +4,18 @@ namespace App\Services;
 
 use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\DTOs\VehicleDTO;
+use Illuminate\Database\Eloquent\Model;
 
 class VehicleService
 {
     public function __construct(
         protected VehicleRepositoryInterface $vehicleRepository
     ) {}
+
+    public function getClientVehiclesPaginated($userId, $search = null, $perPage = 10)
+    {
+        return $this->vehicleRepository->getClientVehicles($userId);
+    }
 
     public function getClientVehicles($clientId)
     {

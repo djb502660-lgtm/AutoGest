@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Client;
 
-use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use App\Services\VehicleService;
@@ -10,14 +9,10 @@ use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
-    private VehicleRepositoryInterface $vehicleRepository;
     private VehicleService $vehicleService;
 
-    public function __construct(
-        VehicleRepositoryInterface $vehicleRepository,
-        VehicleService $vehicleService
-    ) {
-        $this->vehicleRepository = $vehicleRepository;
+    public function __construct(VehicleService $vehicleService)
+    {
         $this->vehicleService = $vehicleService;
     }
 

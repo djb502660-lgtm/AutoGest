@@ -26,6 +26,16 @@ class ServiceOrderService
         return $this->serviceOrderRepository->delete($id);
     }
 
+    public function reassignMechanic($orderId, $mechanicId)
+    {
+        return $this->serviceOrderRepository->update($orderId, ['mechanic_id' => $mechanicId]);
+    }
+
+    public function updateStatus($orderId, $status)
+    {
+        return $this->serviceOrderRepository->update($orderId, ['status' => $status]);
+    }
+
     public function findByStatus($status)
     {
         return $this->serviceOrderRepository->findByStatus($status);

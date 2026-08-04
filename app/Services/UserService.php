@@ -26,6 +26,11 @@ class UserService
         return $this->userRepository->delete($id);
     }
 
+    public function updateStatus($id, $status)
+    {
+        return $this->userRepository->update($id, ['status' => $status]);
+    }
+
     public function findByRole($role)
     {
         return $this->userRepository->findByRole($role);

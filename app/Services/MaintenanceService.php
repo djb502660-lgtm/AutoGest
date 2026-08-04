@@ -26,6 +26,11 @@ class MaintenanceService
         return $this->maintenanceRepository->delete($id);
     }
 
+    public function updateStatus($id, $status)
+    {
+        return $this->maintenanceRepository->update($id, ['status' => $status]);
+    }
+
     public function findByServiceOrder($serviceOrderId)
     {
         return $this->maintenanceRepository->findByServiceOrder($serviceOrderId);
