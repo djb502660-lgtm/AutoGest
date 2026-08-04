@@ -20,6 +20,9 @@ class ChatbotService
 
     public function __construct(
         private ChatbotAppointmentService $appointments,
+        private VehicleService $vehicleService,
+        private ServiceOrderService $serviceOrderService,
+        private MaintenanceService $maintenanceService,
     ) {}
 
     public function processMessage($user, string $message): string
@@ -116,7 +119,7 @@ class ChatbotService
                 .'(Inicia sesión para acceder a la información de tus vehículos.)';
         }
 
-        $vehicles = $user->vehicles()->get();
+        $vehicles = $this->vehicleService->getClientVehicles($user->id);
 
         if ($vehicles->isEmpty()) {
             return $intro."Aún no tienes vehículos registrados. Contacta al taller para registrarlos.\n\n"
@@ -129,7 +132,7 @@ class ChatbotService
                 ."🚗 {$v->brand} {$v->model} {$v->year}\n"
                 ."Placa: {$v->plate}\n\n";
         } else {
-            $lista = $vehicles->map(fn (Vehicle $v) => "🚗 {$v->plate} — {$v->brand} {$v->model}")->join("\n");
+            $lista = $vehicles->map(fn ($v) => "🚗 {$v->plate} — {$v->brand} {$v->model}")->join("\n");
             $intro .= "Veo que tienes registrados:\n\n{$lista}\n\n";
         }
 
@@ -151,14 +154,16 @@ class ChatbotService
             return '🔒 Debes iniciar sesión para consultar el estado de tus vehículos.';
         }
 
-        $vehicles = $user->vehicles()->with([
-            'serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1),
-            'maintenances' => fn ($q) => $q->latest()->limit(3),
-        ])->get();
+        $vehicles = $this->vehicleService->getClientVehicles($user->id);
 
         if ($vehicles->isEmpty()) {
             return '🚗 No tienes vehículos registrados actualmente en AutoGest.';
         }
+
+        $vehicles = $vehicles->load([
+            'serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1),
+            'maintenances' => fn ($q) => $q->latest()->limit(3),
+        ]);
 
         if ($vehicles->count() === 1) {
             $reply = $this->buildVehicleStatusReply($vehicles->first(), detailed: false);
@@ -167,7 +172,7 @@ class ChatbotService
             return $reply;
         }
 
-        $lines = $vehicles->map(function (Vehicle $v) {
+        $lines = $vehicles->map(function ($v) {
             $order = $v->serviceOrders->first();
             $status = $this->vehicleStatusLabel($v);
             $line = "• {$v->brand} {$v->model} ({$v->plate}) está {$status}";
@@ -276,9 +281,9 @@ class ChatbotService
             return '🔒 Inicia sesión para ver tus órdenes de servicio.';
         }
 
-        $orders = ServiceOrder::where('client_id', $user->id)
-            ->with(['vehicle', 'mechanic'])
+        $orders = $this->serviceOrderService->getClientOrders($user->id)
             ->whereIn('status', ['recibida', 'en_proceso'])
+            ->with(['vehicle', 'mechanic'])
             ->latest()
             ->take(3)
             ->get();
