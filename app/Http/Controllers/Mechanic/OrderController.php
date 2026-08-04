@@ -8,11 +8,19 @@ use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\OrderComment;
 use App\Models\ServiceOrder;
+use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
+    private ServiceOrderService $serviceOrderService;
+
+    public function __construct(ServiceOrderService $serviceOrderService)
+    {
+        $this->serviceOrderService = $serviceOrderService;
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -58,17 +66,14 @@ class OrderController extends Controller
             'completed_at' => ['nullable', 'date'],
         ]);
 
-        if ($validated['status'] === 'en_proceso' && ! $order->started_at) {
-            $order->started_at = now();
-        }
-
-        if (in_array($validated['status'], ['completada', 'entregada'], true)) {
-            $order->completed_at = $validated['completed_at'] ?? now();
-            $validated['progress'] = 100;
-        }
-
-        $order->fill($validated);
-        $order->save();
+        $this->serviceOrderService->updateOrderStatusWithDetails(
+            $order->id,
+            $validated['status'],
+            $validated['progress'],
+            $validated['diagnosis'] ?? null,
+            $validated['recommendations'] ?? null,
+            $validated['completed_at'] ?? null
+        );
 
         ActivityLog::record(
             'order.status_updated',
@@ -119,19 +124,7 @@ class OrderController extends Controller
             'comment' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $order->progress = $validated['progress'];
-
-        if ($validated['progress'] > 0 && $order->status === 'recibida') {
-            $order->status = 'en_proceso';
-            $order->started_at = $order->started_at ?? now();
-        }
-
-        if ($validated['progress'] >= 100) {
-            $order->status = 'completada';
-            $order->completed_at = now();
-        }
-
-        $order->save();
+        $this->serviceOrderService->updateProgress($order->id, $validated['progress'], $validated['comment'] ?? null);
 
         if (! empty($validated['comment'])) {
             OrderComment::create([

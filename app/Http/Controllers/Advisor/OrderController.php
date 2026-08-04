@@ -9,11 +9,19 @@ use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModelTemplate;
+use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
+    private ServiceOrderService $serviceOrderService;
+
+    public function __construct(ServiceOrderService $serviceOrderService)
+    {
+        $this->serviceOrderService = $serviceOrderService;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', ServiceOrder::class);
@@ -58,21 +66,17 @@ class OrderController extends Controller
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
         $user = $request->user();
 
-        $order = ServiceOrder::create([
-            'order_number' => ServiceOrder::generateOrderNumber(),
+        $orderData = [
             'vehicle_id' => $vehicle->id,
             'client_id' => $vehicle->client_id,
             'mechanic_id' => $validated['mechanic_id'] ?? null,
-            'advisor_id' => $user->id,
-            'created_by' => $user->id,
-            'source' => 'manual',
-            'status' => 'recibida',
-            'progress' => 0,
             'priority' => $validated['priority'],
             'description' => $validated['description'],
             'scheduled_at' => $validated['scheduled_at'] ?? null,
             'estimated_cost' => $validated['estimated_cost'] ?? null,
-        ]);
+        ];
+
+        $order = $this->serviceOrderService->createOrderFromAdvisor($orderData, $user->id);
 
         ActivityLog::record(
             'order.created',
@@ -167,7 +171,7 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $previousMechanic = $order->mechanic;
-        $order->update(['mechanic_id' => $mechanic->id]);
+        $this->serviceOrderService->reassignMechanic($order->id, $mechanic->id);
 
         $description = $previousMechanic && $previousMechanic->isNot($mechanic)
             ? "Asesor reasignó la orden {$order->order_number} de {$previousMechanic->name} a {$mechanic->name}."
