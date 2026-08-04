@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\UserRepositoryInterface;
+use App\DTOs\UserDTO;
 
 class UserService
 {
@@ -10,14 +11,14 @@ class UserService
         protected UserRepositoryInterface $userRepository
     ) {}
 
-    public function createUser(array $data)
+    public function createUser(UserDTO $dto)
     {
-        return $this->userRepository->create($data);
+        return $this->userRepository->create($dto->toArray());
     }
 
-    public function updateUser($id, array $data)
+    public function updateUser($id, UserDTO $dto)
     {
-        return $this->userRepository->update($id, $data);
+        return $this->userRepository->update($id, $dto->toArray());
     }
 
     public function deleteUser($id)

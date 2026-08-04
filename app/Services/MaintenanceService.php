@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\MaintenanceRepositoryInterface;
+use App\DTOs\MaintenanceDTO;
 
 class MaintenanceService
 {
@@ -10,14 +11,14 @@ class MaintenanceService
         protected MaintenanceRepositoryInterface $maintenanceRepository
     ) {}
 
-    public function createMaintenance(array $data)
+    public function createMaintenance(MaintenanceDTO $dto)
     {
-        return $this->maintenanceRepository->create($data);
+        return $this->maintenanceRepository->create($dto->toArray());
     }
 
-    public function updateMaintenance($id, array $data)
+    public function updateMaintenance($id, MaintenanceDTO $dto)
     {
-        return $this->maintenanceRepository->update($id, $data);
+        return $this->maintenanceRepository->update($id, $dto->toArray());
     }
 
     public function deleteMaintenance($id)

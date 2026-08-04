@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\VehicleRepositoryInterface;
+use App\DTOs\VehicleDTO;
 
 class VehicleService
 {
@@ -15,14 +16,14 @@ class VehicleService
         return $this->vehicleRepository->findByClient($clientId);
     }
 
-    public function createVehicle(array $data)
+    public function createVehicle(VehicleDTO $dto)
     {
-        return $this->vehicleRepository->create($data);
+        return $this->vehicleRepository->create($dto->toArray());
     }
 
-    public function updateVehicle($id, array $data)
+    public function updateVehicle($id, VehicleDTO $dto)
     {
-        return $this->vehicleRepository->update($id, $data);
+        return $this->vehicleRepository->update($id, $dto->toArray());
     }
 
     public function deleteVehicle($id)

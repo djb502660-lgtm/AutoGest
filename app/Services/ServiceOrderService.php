@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
+use App\DTOs\ServiceOrderDTO;
 
 class ServiceOrderService
 {
@@ -10,14 +11,14 @@ class ServiceOrderService
         protected ServiceOrderRepositoryInterface $serviceOrderRepository
     ) {}
 
-    public function createOrder(array $data)
+    public function createOrder(ServiceOrderDTO $dto)
     {
-        return $this->serviceOrderRepository->create($data);
+        return $this->serviceOrderRepository->create($dto->toArray());
     }
 
-    public function updateOrder($id, array $data)
+    public function updateOrder($id, ServiceOrderDTO $dto)
     {
-        return $this->serviceOrderRepository->update($id, $data);
+        return $this->serviceOrderRepository->update($id, $dto->toArray());
     }
 
     public function deleteOrder($id)
