@@ -5,7 +5,6 @@ namespace App\Repositories\Eloquent;
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\Models\User;
 use App\Repositories\BaseRepository;
-use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository extends BaseRepository implements UserRepositoryInterface
 {
@@ -14,12 +13,12 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
         parent::__construct($model);
     }
 
-    public function findByRole(string $role): Collection
+    public function findByRole($role)
     {
         return $this->model->where('role', $role)->get();
     }
 
-    public function findActiveUsers(): Collection
+    public function findActiveUsers()
     {
         return $this->model->where('status', 'activo')->get();
     }
@@ -32,5 +31,10 @@ class UserRepository extends BaseRepository implements UserRepositoryInterface
     public function findWithVehicles($id)
     {
         return $this->model->with('vehicles')->find($id);
+    }
+
+    public function count()
+    {
+        return $this->model->count();
     }
 }

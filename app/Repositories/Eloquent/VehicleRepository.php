@@ -5,7 +5,6 @@ namespace App\Repositories\Eloquent;
 use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Models\Vehicle;
 use App\Repositories\BaseRepository;
-use Illuminate\Database\Eloquent\Collection;
 
 class VehicleRepository extends BaseRepository implements VehicleRepositoryInterface
 {
@@ -14,12 +13,12 @@ class VehicleRepository extends BaseRepository implements VehicleRepositoryInter
         parent::__construct($model);
     }
 
-    public function findByPlate(string $plate)
+    public function findByPlate($plate)
     {
         return $this->model->where('plate', $plate)->first();
     }
 
-    public function findByClient(int $clientId): Collection
+    public function findByClient($clientId)
     {
         return $this->model->where('client_id', $clientId)->get();
     }
@@ -27,5 +26,10 @@ class VehicleRepository extends BaseRepository implements VehicleRepositoryInter
     public function findWithVehicles($id)
     {
         return $this->model->with(['client', 'serviceOrders'])->find($id);
+    }
+
+    public function count()
+    {
+        return $this->model->count();
     }
 }

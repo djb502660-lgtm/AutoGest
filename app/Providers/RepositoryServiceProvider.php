@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use App\Contracts\Repositories\BaseRepositoryInterface;
 use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
 use App\Contracts\Repositories\MaintenanceRepositoryInterface;
@@ -16,6 +17,10 @@ class RepositoryServiceProvider extends ServiceProvider
 {
     public function register()
     {
+        $this->app->bind(BaseRepositoryInterface::class, function ($app) {
+            // This will be implemented by concrete repositories
+        });
+
         $this->app->bind(VehicleRepositoryInterface::class, VehicleRepository::class);
         $this->app->bind(ServiceOrderRepositoryInterface::class, ServiceOrderRepository::class);
         $this->app->bind(MaintenanceRepositoryInterface::class, MaintenanceRepository::class);

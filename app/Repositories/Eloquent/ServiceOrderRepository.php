@@ -5,7 +5,6 @@ namespace App\Repositories\Eloquent;
 use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
 use App\Models\ServiceOrder;
 use App\Repositories\BaseRepository;
-use Illuminate\Database\Eloquent\Collection;
 
 class ServiceOrderRepository extends BaseRepository implements ServiceOrderRepositoryInterface
 {
@@ -14,17 +13,17 @@ class ServiceOrderRepository extends BaseRepository implements ServiceOrderRepos
         parent::__construct($model);
     }
 
-    public function findByStatus(string $status): Collection
+    public function findByStatus($status)
     {
         return $this->model->where('status', $status)->get();
     }
 
-    public function findByMechanic(int $mechanicId): Collection
+    public function findByMechanic($mechanicId)
     {
         return $this->model->where('mechanic_id', $mechanicId)->get();
     }
 
-    public function findByVehicle(int $vehicleId): Collection
+    public function findByVehicle($vehicleId)
     {
         return $this->model->where('vehicle_id', $vehicleId)->get();
     }
@@ -32,5 +31,10 @@ class ServiceOrderRepository extends BaseRepository implements ServiceOrderRepos
     public function findWithRelations($id)
     {
         return $this->model->with(['vehicle', 'mechanic', 'client', 'maintenances'])->find($id);
+    }
+
+    public function count()
+    {
+        return $this->model->count();
     }
 }
