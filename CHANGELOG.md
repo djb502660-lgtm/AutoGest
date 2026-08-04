@@ -1,5 +1,36 @@
 # Release Notes
 
+## [Sprint 2A - Repository Pattern](https://github.com/laravel/laravel/compare/v0.1.5-sprint1.5-revision-tecnica...sprint2a-repository-pattern) - 2026-08-04
+
+### Architecture
+- ✅ Repository Pattern implementado para 4 modelos núcleo
+- ✅ BaseRepository con métodos estándar (CRUD + utilidades)
+- ✅ Interfaces desacopladas para cada repository
+- ✅ RepositoryServiceProvider con bindings registrados
+- ✅ Guías de implementación (REPOSITORY_GUIDELINES.md)
+
+### Models with Repositories
+- VehicleRepository
+- ServiceOrderRepository
+- MaintenanceRepository
+- UserRepository
+
+### Migration
+- ✅ Controller migrado: Client\VehicleController
+- ✅ Inyección de dependencias implementada
+- ✅ Compatible con Laravel DI Container
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Build: Exitoso - Sin degradación
+- ✅ ADR-001 actualizado con decisión final
+
+### Documentation
+- ✅ REPOSITORY_GUIDELINES.md (468 líneas de guías)
+- ✅ ADR-001 actualizado con estado "Aprobada e Implementada"
+
+---
+
 ## [Sprint 1.5 - Revisión Técnica Rápida](https://github.com/laravel/laravel/compare/v0.1-sprint1-estabilizacion...sprint1.5-revision-tecnica) - 2026-08-04
 
 ### Quality
