@@ -55,4 +55,43 @@ class UserService
     {
         return $this->userRepository->count();
     }
+
+    public function getUsersPaginated($search = null, $role = null, $status = null, $perPage = 10)
+    {
+        // Esta función será implementada por el repository
+        // Por ahora, delegamos a una consulta directa que se migrará después
+        $query = \App\Models\User::query();
+
+        if ($search !== null && $search !== '') {
+            $query = $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($role !== null && $role !== '') {
+            $query = $query->where('role', $role);
+        }
+
+        if ($status !== null && $status !== '') {
+            $query = $query->where('status', $status);
+        }
+
+        return $query->orderBy('name')->paginate($perPage);
+    }
+
+    public function updateUserStatus($userId, $status)
+    {
+        return $this->userRepository->update($userId, ['status' => $status]);
+    }
+
+    public function updateUserRole($userId, $role)
+    {
+        return $this->userRepository->update($userId, ['role' => $role]);
+    }
+
+    public function deactivateUserWithRelations($userId)
+    {
+        return $this->userRepository->update($userId, ['status' => 'inactivo']);
+    }
 }

@@ -7,12 +7,20 @@ use App\Http\Controllers\Controller;
 use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
+    private UserService $userService;
+
+    public function __construct(UserService $userService)
+    {
+        $this->userService = $userService;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', User::class);
@@ -21,18 +29,11 @@ class UserController extends Controller
         $role = $request->string('role')->toString();
         $status = $request->string('status')->toString();
 
-        $users = User::query()
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
-            ->when($role !== '', fn ($q) => $q->where('role', $role))
-            ->when($status !== '', fn ($q) => $q->where('status', $status))
-            ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+        $users = $this->userService->getUsersPaginated(
+            $search->isNotEmpty() ? $search->toString() : null,
+            $role !== '' ? $role : null,
+            $status !== '' ? $status : null
+        );
 
         return view('admin.users.index', [
             'users' => $users,
@@ -65,14 +66,14 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
         ]);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-            'role' => $validated['role'],
-            'phone' => $validated['phone'] ?? null,
-            'status' => $validated['status'],
-        ]);
+        $user = $this->userService->createUser(new \App\DTOs\UserDTO(
+            name: $validated['name'],
+            email: $validated['email'],
+            password: $validated['password'],
+            role: $validated['role'],
+            phone: $validated['phone'] ?? null,
+            status: $validated['status']
+        ));
 
         ActivityLog::record(
             'user.created',
@@ -109,17 +110,26 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
         ]);
 
-        $user->name = $validated['name'];
-        $user->email = $validated['email'];
-        $user->role = $validated['role'];
-        $user->phone = $validated['phone'] ?? null;
-        $user->status = $validated['status'];
+        $updateData = [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+            'phone' => $validated['phone'] ?? null,
+            'status' => $validated['status'],
+        ];
 
         if (! empty($validated['password'])) {
-            $user->password = $validated['password'];
+            $updateData['password'] = $validated['password'];
         }
 
-        $user->save();
+        $this->userService->updateUser($user->id, new \App\DTOs\UserDTO(
+            name: $validated['name'],
+            email: $validated['email'],
+            password: $validated['password'] ?? '',
+            role: $validated['role'],
+            phone: $validated['phone'] ?? null,
+            status: $validated['status']
+        ));
 
         ActivityLog::record(
             'user.updated',
@@ -145,13 +155,13 @@ class UserController extends Controller
         }
 
         // Verificar si tiene registros críticos vinculados
-        $hasCriticalRelations = $user->clientOrders()->exists() 
-            || $user->vehicles()->exists() 
+        $hasCriticalRelations = $user->clientOrders()->exists()
+            || $user->vehicles()->exists()
             || $user->assignedOrders()->exists()
             || $user->advisorOrders()->exists();
 
         if ($hasCriticalRelations) {
-            $user->update(['status' => 'inactivo']);
+            $this->userService->updateUserStatus($user->id, 'inactivo');
 
             ActivityLog::record(
                 'user.deactivated',
@@ -166,9 +176,9 @@ class UserController extends Controller
         }
 
         $email = $user->email;
-        
+
         try {
-            $user->delete();
+            $this->userService->deleteUser($user->id);
 
             ActivityLog::record(
                 'user.deleted',
@@ -181,7 +191,7 @@ class UserController extends Controller
                 ->with('success', 'Usuario eliminado correctamente.');
         } catch (\Illuminate\Database\QueryException $e) {
             // Si hay error de foreign key, desactivar en su lugar
-            $user->update(['status' => 'inactivo']);
+            $this->userService->updateUserStatus($user->id, 'inactivo');
 
             ActivityLog::record(
                 'user.deactivated',
