@@ -1,5 +1,38 @@
 # Release Notes
 
+## [Sprint 1 - Estabilización](https://github.com/laravel/laravel/compare/v0.0-baseline...sprint1-estabilizacion) - 2026-08-04
+
+### Security
+- ✅ Corregido bypass CSRF del chatbot
+- ✅ Implementado Rate Limiting para rutas críticas
+  - Login: 5 intentos por minuto
+  - Chatbot: 60 mensajes por minuto
+- ✅ Protección CSRF activa en todas las rutas POST
+
+### Quality
+- ✅ Corregido test ChatbotAppointmentManageTest
+- ✅ Alcanzado 56/56 tests (100% de éxito)
+- ✅ Verificada autenticación para los 4 roles (Admin, Advisor, Mechanic, Client)
+- ✅ Revisadas rutas (181 rutas funcionando, sin duplicadas)
+
+### Documentation
+- ✅ Sistema de ADRs (Architecture Decision Records) implementado
+- ✅ Dashboard técnico de salud del sistema creado
+- ✅ Política de refactorización establecida
+- ✅ Estrategias arquitectónicas definidas (Chatbot, Fotos, WebView)
+- ✅ Baseline de base de datos congelado
+
+### Technical Improvements
+- ✅ Baseline Git congelado (v0.0-baseline)
+- ✅ Baseline de base de datos congelado
+- ✅ Controles técnicos adicionales implementados
+- ✅ Políticas de desarrollo establecidas
+
+### Breaking Changes
+- None (Sprint de estabilización sin funcionalidades nuevas)
+
+---
+
 ## [Unreleased](https://github.com/laravel/laravel/compare/v12.12.2...12.x)
 
 ## [v12.12.2](https://github.com/laravel/laravel/compare/v12.12.1...v12.12.2) - 2026-03-14

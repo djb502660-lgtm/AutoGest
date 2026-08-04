@@ -9,9 +9,9 @@
 
 | Indicador | Estado | Valor Actual | Objetivo | Última Verificación | Observaciones |
 |-----------|--------|--------------|----------|---------------------|---------------|
-| **Tests** | ⚠️ | 55/56 (98.2%) | 56/56 (100%) | 2026-08-04 | 1 test fallido en ChatbotAppointmentManageTest |
+| **Tests** | ✅ | 56/56 (100%) | 56/56 (100%) | 2026-08-04 (Sprint 1) | Todos los tests pasando después de correcciones |
 | **Cobertura** | ⚠️ | ~40% estimado | >80% | 2026-08-04 | Cobertura de tests funcional, requiere mejora |
-| **Vulnerabilidades Críticas** | ✅ | 0 | 0 | 2026-08-04 | npm audit: 0 vulnerabilidades |
+| **Vulnerabilidades Críticas** | ✅ | 0 | 0 | 2026-08-04 (Sprint 1) | CSRF bypass corregido, npm audit: 0 vulnerabilidades |
 | **Consultas N+1** | ⚠️ | No verificado | 0 | 2026-08-04 | Requiere profiling con Laravel Debug Bar |
 | **Rutas Rotas** | ✅ | 0 | 0 | 2026-08-04 | 181 rutas web funcionando |
 | **Errores JavaScript** | ✅ | 0 | 0 | 2026-08-04 | Build sin errores, assets compilados |
@@ -90,8 +90,8 @@
 | Configuración | Estado | Observaciones |
 |--------------|--------|---------------|
 | APP_DEBUG | true | ⚠️ Debe ser false en producción |
-| CSRF Protection | Parcial | ⚠️ Bypass en chatbot |
-| Rate Limiting | No implementado | ⚠️ Pendiente Sprint 1 |
+| CSRF Protection | ✅ | ✅ Bypass corregido |
+| Rate Limiting | ✅ | ✅ Login: 5/min, Chatbot: 60/min |
 | Force HTTPS | No configurado | ⚠️ Pendiente configuración |
 | Password Hashing | ✅ | Bcrypt/Argon2 |
 
@@ -152,9 +152,9 @@
 - Ninguna
 
 ### 🟡 ALTAS (Atención Sprint 1)
-- Corregir bypass CSRF del chatbot
-- Implementar Rate Limiting
-- Resolver test ChatbotAppointmentManageTest
+- ✅ Corregir bypass CSRF del chatbot (COMPLETADO)
+- ✅ Implementar Rate Limiting (COMPLETADO)
+- ✅ Resolver test ChatbotAppointmentManageTest (COMPLETADO)
 - Verificar y optimizar consultas N+1
 
 ### 🟢 MEDIAS (Mejora Continua)
