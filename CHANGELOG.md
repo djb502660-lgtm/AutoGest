@@ -1,5 +1,35 @@
 # Release Notes
 
+## [Sprint 3C - Módulo Administrativo AutoGest](https://github.com/laravel/laravel/compare/v0.7-sprint3b-chatbot-service-integration...v0.8-sprint3c-admin-module) - 2026-08-04
+
+### Architecture
+- ✅ Sprint 3C.1 - Gestión de Usuarios y Roles
+- ✅ Sprint 3C.2 - Dashboard Administrativo
+- ✅ Sprint 3C.3 - Inventario y Repuestos
+- ✅ Sprint 3C.4 - Reportes Administrativos
+
+### Services Created
+- UserService: getUsersPaginated(), updateUserStatus(), updateUserRole()
+- DashboardService: getAdminSummary(), getHealthSummary(), getRecentOrders()
+- InventoryService: getInventorySummary(), getRecentPurchases(), updateStock()
+- ReportService: getMaintenanceReport(), getExpensesReport(), getVehiclesReport(), getPendingReport()
+
+### Controllers Migrated
+- Admin\UserController → UserService
+- Admin\DashboardController → DashboardService
+- Admin\InventoryController → InventoryService
+- Admin\ReportController → ReportService
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Todos los Controllers del módulo administrativo migrados
+- ✅ Arquitectura por capas aplicada completamente
+
+### Versioning
+- ✅ Tag creado: v0.8
+
+---
+
 ## [Sprint 3B - Chatbot Inteligente AutoGest](https://github.com/laravel/laravel/compare/v0.6-sprint3a-service-order-flow...v0.7-sprint3b-chatbot-service-integration) - 2026-08-04
 
 ### Architecture
