@@ -1,6 +1,35 @@
 # Release Notes
 
-## [Sprint 2D - Simplificación de Controllers](https://github.com/laravel/laravel/compare/v0.4-sprint2c-dto-layer...v0.5-sprint2d-controller-refactor) - 2026-08-04
+## [Sprint 3B - Chatbot Inteligente AutoGest](https://github.com/laravel/laravel/compare/v0.6-sprint3a-service-order-flow...v0.7-sprint3b-chatbot-service-integration) - 2026-08-04
+
+### Architecture
+- ✅ ChatbotService refactorizado para usar Services existentes
+- ✅ Eliminadas consultas directas a Modelos de dominio
+- ✅ ChatbotService alineado con arquitectura por capas
+- ✅ MaintenanceService mejorado con métodos de consulta
+
+### ChatbotService Migrated Methods
+- greeting() → VehicleService
+- vehicleStatus() → VehicleService
+- orderStatus() → ServiceOrderService
+- expenseSummary() → MaintenanceService
+- buildVehicleStatusReply() → MaintenanceService
+
+### Services Enhanced
+- MaintenanceService: getClientExpensesSummary()
+- MaintenanceService: getOrderMaintenancesSummary()
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Cero acceso directo a Modelos de dominio
+- ✅ Chatbot completamente alineado con arquitectura
+
+### Versioning
+- ✅ Tags creados: v0.6, v0.7
+
+---
+
+## [Sprint 3A - Gestión del Ciclo Vehicular](https://github.com/laravel/laravel/compare/v0.5-sprint2d-controller-refactor...v0.6-sprint3a-service-order-flow) - 2026-08-04
 
 ### Architecture
 - ✅ Controllers simplificados para delegar lógica a Services
