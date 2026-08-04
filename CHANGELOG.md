@@ -1,5 +1,88 @@
 # Release Notes
 
+## [Sprint 2D - Simplificación de Controllers](https://github.com/laravel/laravel/compare/v0.4-sprint2c-dto-layer...v0.5-sprint2d-controller-refactor) - 2026-08-04
+
+### Architecture
+- ✅ Controllers simplificados para delegar lógica a Services
+- ✅ Métodos de negocio agregados a Services (reassignMechanic, updateStatus)
+- ✅ Eliminación de dependencias directas de Repository en Controllers
+- ✅ Arquitectura por capas completamente implementada
+
+### Services Enhanced
+- VehicleService: métodos de negocio centralizados
+- ServiceOrderService: reassignMechanic(), updateStatus()
+- MaintenanceService: updateStatus()
+- UserService: updateStatus()
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Controllers: Simplificados y enfocados en Request/Response
+- ✅ Lógica negocio: Centralizada en Services
+- ✅ Arquitectura: Request → DTO → Service → Repository → Database
+
+### Versioning
+- ✅ Tags creados: v0.2.1, v0.3, v0.4, v0.5
+
+---
+
+## [Sprint 2C - DTO Layer](https://github.com/laravel/laravel/compare/v0.3-sprint2b-service-layer...v0.4-sprint2c-dto-layer) - 2026-08-04
+
+### Architecture
+- ✅ DTO Layer implementado para 4 modelos núcleo
+- ✅ Type hints fuertes en Services
+- ✅ Control de entrada/salida de datos
+- ✅ fromArray() y toArray() en cada DTO
+
+### DTOs Created
+- VehicleDTO (piloto validado)
+- ServiceOrderDTO
+- MaintenanceDTO
+- UserDTO
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ DTOs con validación de datos
+- ✅ Services con type hints fuertes
+
+---
+
+## [Sprint 2B - Service Layer](https://github.com/laravel/laravel/compare/v0.2.1-sprint2a.1-interface-fix...v0.3-sprint2b-service-layer) - 2026-08-04
+
+### Architecture
+- ✅ Service Layer implementado para 4 modelos núcleo
+- ✅ Dependency injection en Controllers
+- ✅ Arquitectura: Controller → Service → Repository → Database
+
+### Services Created
+- VehicleService
+- ServiceOrderService
+- MaintenanceService
+- UserService
+
+### Quality
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Servicios inyectados con dependency injection
+- ✅ Funcionalidad existente mantenida
+
+---
+
+## [Sprint 2A.1 - Corrección de Interfaces](https://github.com/laravel/laravel/compare/v0.2-sprint2a-repository-pattern...v0.2.1-sprint2a.1-interface-fix) - 2026-08-04
+
+### Architecture
+- ✅ BaseRepositoryInterface creado con métodos genéricos estándar
+- ✅ Interfaces específicas actualizadas para extender BaseRepositoryInterface
+- ✅ Tipos estrictos eliminados de interfaces
+- ✅ BaseRepository implementando BaseRepositoryInterface
+- ✅ Repositorios Eloquent actualizados
+- ✅ Método count() agregado a todos los repositorios
+
+### Quality
+- ✅ composer dump-autoload exitoso
+- ✅ Tests: 56/56 (100%) - Sin regresiones
+- ✅ Arquitectura de interfaces correcta y escalable
+
+---
+
 ## [Sprint 2A - Repository Pattern](https://github.com/laravel/laravel/compare/v0.1.5-sprint1.5-revision-tecnica...sprint2a-repository-pattern) - 2026-08-04
 
 ### Architecture
