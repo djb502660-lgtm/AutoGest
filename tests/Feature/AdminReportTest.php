@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\ActivityLog;
 use App\Models\Maintenance;
+use App\Models\MaintenanceSchedule;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -141,17 +142,13 @@ class AdminReportTest extends TestCase
             'status' => 'en_taller',
         ]);
 
-        ServiceOrder::create([
-            'order_number' => 'OS-RPT-001',
+        MaintenanceSchedule::create([
             'vehicle_id' => $vehicle->id,
-            'client_id' => $client->id,
-            'mechanic_id' => $mechanic->id,
-            'created_by' => $admin->id,
-            'source' => 'manual',
-            'status' => 'recibida',
-            'priority' => 'normal',
-            'description' => 'Diagnóstico',
-            'progress' => 0,
+            'assigned_mechanic_id' => $mechanic->id,
+            'scheduled_date' => now()->addDays(7)->toDateString(),
+            'title' => 'Cambio de aceite programado',
+            'status' => 'programado',
+            'priority' => 'media',
         ]);
 
         $response = $this->actingAs($admin)
@@ -161,7 +158,7 @@ class AdminReportTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Reporte de pendientes');
-        $response->assertSee('OS-RPT-001');
+        $response->assertSee('Cambio de aceite programado');
     }
 
     public function test_admin_can_download_pdf_report(): void
