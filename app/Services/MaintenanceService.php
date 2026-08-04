@@ -50,4 +50,29 @@ class MaintenanceService
     {
         return $this->maintenanceRepository->count();
     }
+
+    public function getClientExpensesSummary($clientId, $year = null)
+    {
+        $year = $year ?? (int) now()->year;
+        $startOfYear = \Carbon\Carbon::create($year, 1, 1)->startOfDay();
+
+        $maintenances = $this->getRecentMaintenances(1000);
+
+        $maintenances = $maintenances->filter(function ($m) use ($clientId, $startOfYear) {
+            return $m->vehicle && $m->vehicle->client_id === $clientId
+                && $m->status === 'completado'
+                && $m->performed_at >= $startOfYear;
+        });
+
+        $count = $maintenances->count();
+        $total = $maintenances->sum('cost');
+        $mostExpensive = $maintenances->sortByDesc('cost')->first();
+
+        return [
+            'count' => $count,
+            'total' => $total,
+            'most_expensive' => $mostExpensive,
+            'year' => $year,
+        ];
+    }
 }

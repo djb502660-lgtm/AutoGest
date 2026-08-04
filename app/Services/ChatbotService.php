@@ -312,35 +312,13 @@ class ChatbotService
             return '🔒 Inicia sesión para ver tu resumen de gastos.';
         }
 
-        $year = (int) now()->year;
-        $startOfYear = Carbon::create($year, 1, 1)->startOfDay();
+        $summary = $this->maintenanceService->getClientExpensesSummary($user->id);
 
-        $maintenances = Maintenance::query()
-            ->whereHas('vehicle', fn ($q) => $q->where('client_id', $user->id))
-            ->where('status', 'completado')
-            ->where('performed_at', '>=', $startOfYear)
-            ->get();
-
-        $count = $maintenances->count();
-        $total = $maintenances->sum('cost');
-
-        if ($count === 0) {
-            $total = ServiceOrder::where('client_id', $user->id)
-                ->whereIn('status', ['completada', 'entregada'])
-                ->where('completed_at', '>=', $startOfYear)
-                ->sum('total_cost');
-
-            $count = ServiceOrder::where('client_id', $user->id)
-                ->whereIn('status', ['completada', 'entregada'])
-                ->where('completed_at', '>=', $startOfYear)
-                ->count();
-        }
-
-        if ($count === 0) {
+        if ($summary['count'] === 0) {
             return '💰 Aún no tienes servicios completados registrados este año en AutoGest.';
         }
 
-        $mostExpensive = $maintenances->sortByDesc('cost')->first();
+        $mostExpensive = $summary['most_expensive'];
         $expensiveLine = '';
 
         if ($mostExpensive && $mostExpensive->cost > 0) {
@@ -352,8 +330,8 @@ class ChatbotService
 
         return "Revisando tu historial...\n\n"
             ."Durante este año has realizado:\n\n"
-            ."✔️ **{$count}** mantenimientos.\n"
-            .'💲 Total invertido: **$'.number_format((float) $total, 2)."**"
+            ."✔️ **{$summary['count']}** mantenimientos.\n"
+            .'💲 Total invertido: **$'.number_format((float) $summary['total'], 2)."**"
             .$expensiveLine
             ."\n\nSi deseas, puedo mostrarte el detalle de cada servicio o ayudarte a agendar uno nuevo.";
     }
