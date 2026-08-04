@@ -1,0 +1,4 @@
+APP_URL: http://autogest.test
+
+Estado: ✅ CORRECTO (no localhost)
+Fecha verificación: 2026-08-04

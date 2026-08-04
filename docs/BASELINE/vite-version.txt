@@ -1,0 +1,4 @@
+vite@7.3.6
+
+Estado: ✅ CUMPLE requisito (Vite >= 7.0)
+Fecha verificación: 2026-08-04

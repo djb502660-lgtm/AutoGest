@@ -1,0 +1,4 @@
+public/storage: ✅ ENLACE SIMBÓLICO CONFIGURADO
+Contenido: service-photos/, .gitignore
+Estado: ✅ STORAGE:LINK YA EJECUTADO
+Fecha verificación: 2026-08-04

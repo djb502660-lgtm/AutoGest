@@ -1,0 +1,5 @@
+Archivo .env: ✅ EXISTE (tamaño: 1174 bytes)
+Archivo .env.example: ✅ EXISTE (tamaño: 681 bytes)
+
+NOTA: Contenido sensible protegido por .gitignore - no se leerá contenido
+Fecha verificación: 2026-08-04

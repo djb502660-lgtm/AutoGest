@@ -7,6 +7,7 @@ use App\Http\Controllers\Advisor\DashboardController;
 use App\Http\Controllers\Advisor\OrderController;
 use App\Http\Controllers\Advisor\PreOrderController;
 use App\Http\Controllers\Advisor\VehicleController;
+use App\Http\Controllers\ServicePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:asesor'])
@@ -69,6 +70,11 @@ Route::middleware(['auth', 'role:asesor'])
         Route::get('/citas/{appointment}/editar', [AppointmentController::class, 'edit'])->name('appointments.edit');
         Route::put('/citas/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
         Route::post('/citas/{appointment}/reprogramar', [AppointmentController::class, 'reschedule'])->name('appointments.reschedule');
-        Route::post('/citas/{appointment}/cancelar', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
+        Route::get('/citas/{appointment}/cancelar', [AppointmentController::class, 'cancel'])->name('appointments.cancel');
         Route::get('/citas/calendario', [AppointmentController::class, 'calendar'])->name('appointments.calendar');
+
+        // Service Photos
+        Route::get('/ordenes/{order}/fotos', [ServicePhotoController::class, 'index'])->name('orders.photos.index');
+        Route::post('/ordenes/{order}/fotos', [ServicePhotoController::class, 'store'])->name('orders.photos.store');
+        Route::delete('/fotos/{photo}', [ServicePhotoController::class, 'destroy'])->name('photos.destroy');
     });

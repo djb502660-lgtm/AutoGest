@@ -1,0 +1,56 @@
+TOTAL VISTAS BLADE: 104
+
+Admin (40):
+- brands/ (3: create, edit, index)
+- calendar/ (4: _form, create, edit, index)
+- categories/ (3: create, edit, index)
+- dashboard/ (1: index)
+- inventory/ (1: index)
+- invoices/ (1: show)
+- maintenances/ (5: _form, create, edit, index, show)
+- orders/ (2: index, show)
+- products/ (3: create, edit, index)
+- profile/ (1: edit)
+- purchases/ (3: create, index, show)
+- reports/ (3: index, pdf, result)
+- stock/ (3: create, index, low)
+- suppliers/ (3: create, edit, index)
+- users/ (4: _form, create, edit, index)
+- vehicles/ (4: _form, create, edit, index)
+
+Advisor (24):
+- appointments/ (6: agenda, calendar, create, edit, index, show)
+- clients/ (4: create, edit, index, show)
+- dashboard/ (1: dashboard)
+- orders/ (7: _form, _templates_panel, create, edit, index, invoice, show)
+- pre-orders/ (4: create, edit, index, show)
+- vehicles/ (4: create, edit, index, show)
+
+Client (9):
+- chatbot/ (1: index)
+- dashboard/ (1: dashboard)
+- expenses/ (1: index)
+- maintenances/ (2: history, upcoming)
+- notifications/ (1: index)
+- orders/ (2: index, show)
+- profile/ (1: edit)
+- vehicles/ (2: index, show)
+
+Mechanic (3):
+- calendar/ (1: index)
+- dashboard/ (1: dashboard)
+- history/ (1: history)
+
+Auth (1):
+- login/ (1: login)
+
+Chatbot (1):
+- client/chatbot/ (1: index)
+
+Shared (19):
+- home/ (1: home)
+- layouts/ (9: admin, advisor, client, mechanic, bootstrap-head, bootstrap-scripts, nav-admin, nav-advisor, nav-client, nav-mechanic, panel-brand)
+- components/ (1: dashboard-calendar)
+- mail/ (1: admin-report)
+
+Fecha verificación: 2026-08-04

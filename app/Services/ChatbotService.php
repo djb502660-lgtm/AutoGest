@@ -161,7 +161,7 @@ class ChatbotService
         }
 
         if ($vehicles->count() === 1) {
-            $reply = $this->buildVehicleStatusReply($vehicles->first(), detailed: true);
+            $reply = $this->buildVehicleStatusReply($vehicles->first(), detailed: false);
             $this->setContext(['last_topic' => 'vehicle_status', 'vehicle_id' => $vehicles->first()->id]);
 
             return $reply;
@@ -200,7 +200,7 @@ class ChatbotService
         }
 
         $vehicle->load(['serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1)]);
-        $reply = $this->buildVehicleStatusReply($vehicle, detailed: true);
+        $reply = $this->buildVehicleStatusReply($vehicle, detailed: false);
         $this->setContext(['last_topic' => 'vehicle_status', 'vehicle_id' => $vehicle->id]);
 
         return $reply;

@@ -5,6 +5,7 @@ use App\Http\Controllers\Mechanic\DashboardController;
 use App\Http\Controllers\Mechanic\MaintenanceController;
 use App\Http\Controllers\Mechanic\OrderController;
 use App\Http\Controllers\Mechanic\VehicleController;
+use App\Http\Controllers\ServicePhotoController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:mecanico'])
@@ -23,4 +24,9 @@ Route::middleware(['auth', 'role:mecanico'])
         Route::get('/vehiculos/{vehicle}', [VehicleController::class, 'show'])->name('vehicles.show');
         Route::get('/historial', [OrderController::class, 'history'])->name('history');
         Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
+
+        // Service Photos
+        Route::get('/ordenes/{order}/fotos', [ServicePhotoController::class, 'index'])->name('orders.photos.index');
+        Route::post('/ordenes/{order}/fotos', [ServicePhotoController::class, 'store'])->name('orders.photos.store');
+        Route::delete('/fotos/{photo}', [ServicePhotoController::class, 'destroy'])->name('photos.destroy');
     });

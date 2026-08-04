@@ -1,0 +1,17 @@
+Generating optimized autoload files
+> Illuminate\Foundation\ComposerScripts::postAutoloadDump
+> @php artisan package:discover --ansi
+
+  INFO  Discovering packages.  
+  barryvdh/laravel-dompdf DONE
+  laravel/pail DONE
+  laravel/sail DONE
+  laravel/tinker DONE
+  nesbot/carbon DONE
+  nunomaduro/collision DONE
+  nunomaduro/termwind DONE
+
+Generated optimized autoload files containing 6862 classes
+
+Estado: ✅ EXITOSO
+Fecha verificación: 2026-08-04

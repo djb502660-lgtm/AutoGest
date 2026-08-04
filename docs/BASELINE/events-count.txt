@@ -1,0 +1,5 @@
+TOTAL EVENTOS: 0
+
+No events found in app/Events directory.
+
+Fecha verificación: 2026-08-04

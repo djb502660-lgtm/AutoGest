@@ -1,0 +1,27 @@
+TOTAL MODELOS: 22
+
+Core Models:
+- ActivityLog.php
+- Alert.php
+- AppointmentRequest.php
+- Brand.php
+- Category.php
+- ChatbotConfiguration.php
+- ChatbotFaq.php
+- ChatbotMessage.php
+- Maintenance.php
+- MaintenanceSchedule.php
+- OrderComment.php
+- Product.php
+- Purchase.php
+- PurchaseItem.php
+- ServiceOrder.php
+- ServicePhoto.php
+- StockMovement.php
+- Supplier.php
+- SystemSetting.php
+- User.php
+- Vehicle.php
+- VehicleModelTemplate.php
+
+Fecha verificación: 2026-08-04

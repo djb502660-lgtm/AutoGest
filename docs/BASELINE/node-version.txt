@@ -1,0 +1,4 @@
+v24.18.0
+
+Estado: ✅ CUMPLE requisito (Node.js >= 18)
+Fecha verificación: 2026-08-04

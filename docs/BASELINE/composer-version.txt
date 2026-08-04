@@ -1,0 +1,6 @@
+Composer version: 2.9.4 2026-01-22 14:08:50
+PHP version: 8.0.30 (C:\xampp\php\php.exe)
+
+NOTA: Composer requiere actualización a 2.10.2 por vulnerabilidades de seguridad
+Estado: ⚠️ ACTUALIZACIÓN RECOMENDADA (2.9.4 → 2.10.2)
+Fecha verificación: 2026-08-04

@@ -1,0 +1,11 @@
+TOTAL POLICIES: 6
+
+Policies:
+- AlertPolicy.php
+- MaintenancePolicy.php
+- ServiceOrderPolicy.php
+- UserPolicy.php
+- VehicleModelTemplatePolicy.php
+- VehiclePolicy.php
+
+Fecha verificación: 2026-08-04

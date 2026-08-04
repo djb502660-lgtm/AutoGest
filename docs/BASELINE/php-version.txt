@@ -1,0 +1,7 @@
+PHP 8.3.30 (cli) (built: Jan 13 2026 22:50:40) (ZTS Visual C++ 2019 x64)
+Copyright (c) The PHP Group
+Zend Engine v4.3.30, Copyright (c) Zend Technologies
+
+NOTA: PHP 8.3.30 disponible en C:\laragon\bin\php\php-8.3.30-Win32-vs16-x64\php.exe
+Estado: ✅ CUMPLE requisito (PHP >= 8.2.0)
+Fecha verificación: 2026-08-04

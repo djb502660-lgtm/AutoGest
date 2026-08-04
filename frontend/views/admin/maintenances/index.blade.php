@@ -59,6 +59,7 @@
                         <td><span class="badge {{ $maintenance->statusBadgeClass() }}">{{ $maintenance->statusLabel() }}</span></td>
                         <td>
                             <div class="actions-inline">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="viewMaintenanceDetails({{ $maintenance->id }})">Ver</button>
                                 <a href="{{ route('maintenances.edit', $maintenance) }}" class="btn btn-secondary btn-sm">Editar</a>
                                 <form method="POST" action="{{ route('maintenances.destroy', $maintenance) }}" onsubmit="return confirm('¿Eliminar este mantenimiento?')">
                                     @csrf @method('DELETE')
@@ -75,4 +76,47 @@
 
         <div class="pagination">{{ $maintenances->links('pagination.simple') }}</div>
     </div>
+
+    <!-- Modal de detalles de mantenimiento -->
+    <div id="maintenanceModal" class="modal" style="display:none;">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header">
+                <h3>Detalles del mantenimiento</h3>
+                <button type="button" class="modal-close" onclick="closeMaintenanceModal()">×</button>
+            </div>
+            <div class="modal-body" id="maintenanceDetails">
+                <!-- Contenido dinámico -->
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('scripts')
+<script>
+    async function viewMaintenanceDetails(maintenanceId) {
+        try {
+            const res = await fetch(`{{ url('/mantenimientos') }}/${maintenanceId}`);
+            const html = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const details = doc.querySelector('.panel')?.innerHTML || '';
+            document.getElementById('maintenanceDetails').innerHTML = details;
+            document.getElementById('maintenanceModal').style.display = 'flex';
+        } catch (error) {
+            console.error('Error loading maintenance details:', error);
+            alert('Error al cargar los detalles del mantenimiento');
+        }
+    }
+
+    function closeMaintenanceModal() {
+        document.getElementById('maintenanceModal').style.display = 'none';
+    }
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('maintenanceModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeMaintenanceModal();
+        }
+    });
+</script>
+@endpush

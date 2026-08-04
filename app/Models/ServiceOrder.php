@@ -75,6 +75,11 @@ class ServiceOrder extends Model
         return $this->hasMany(OrderComment::class);
     }
 
+    public function photos(): HasMany
+    {
+        return $this->hasMany(ServicePhoto::class);
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {

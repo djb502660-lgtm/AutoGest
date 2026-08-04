@@ -1,0 +1,54 @@
+TOTAL CONTROLADORES: 39
+
+Admin (16):
+- Admin\BrandController.php
+- Admin\CalendarController.php
+- Admin\CategoryController.php
+- Admin\DashboardController.php
+- Admin\InventoryController.php
+- Admin\MaintenanceController.php
+- Admin\OrderController.php
+- Admin\ProductController.php
+- Admin\ProfileController.php
+- Admin\PurchaseController.php
+- Admin\ReportController.php
+- Admin\StockController.php
+- Admin\SupplierController.php
+- Admin\UserController.php
+- Admin\VehicleController.php
+
+Advisor (7):
+- Advisor\AppointmentController.php
+- Advisor\AppointmentRequestController.php
+- Advisor\ClientController.php
+- Advisor\DashboardController.php
+- Advisor\OrderController.php
+- Advisor\PreOrderController.php
+- Advisor\VehicleController.php
+
+Client (7):
+- Client\DashboardController.php
+- Client\ExpenseController.php
+- Client\MaintenanceController.php
+- Client\NotificationController.php
+- Client\OrderController.php
+- Client\ProfileController.php
+- Client\VehicleController.php
+
+Mechanic (5):
+- Mechanic\CalendarController.php
+- Mechanic\DashboardController.php
+- Mechanic\MaintenanceController.php
+- Mechanic\OrderController.php
+- Mechanic\VehicleController.php
+
+Shared (4):
+- Auth\AuthController.php
+- HomeController.php
+- ServicePhotoController.php
+- Controller.php
+
+Chatbot (1):
+- Chatbot\Http\Controllers\Client\ChatbotController.php
+
+Fecha verificación: 2026-08-04

@@ -1,0 +1,8 @@
+TOTAL SERVICIOS: 3
+
+Services:
+- ChatbotAppointmentService.php
+- ChatbotService.php
+- DashboardCalendarService.php
+
+Fecha verificación: 2026-08-04

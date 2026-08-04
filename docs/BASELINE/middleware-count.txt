@@ -1,0 +1,6 @@
+TOTAL MIDDLEWARE: 1
+
+Custom Middleware:
+- EnsureUserRole.php (role-based access control)
+
+Fecha verificación: 2026-08-04

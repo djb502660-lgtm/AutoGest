@@ -36,7 +36,11 @@ class ChatbotAppointmentService
             return true;
         }
 
-        return $this->wantsAppointment($text);
+        if ($this->wantsAppointment($text)) {
+            return true;
+        }
+
+        return $this->parseDate($text) !== null || $this->parseTime($text) !== null;
     }
 
     public function wantsManage(string $text): bool
@@ -49,10 +53,11 @@ class ChatbotAppointmentService
         $phrases = [
             'mis citas', 'ver citas', 'ver mis citas', 'listar citas', 'consultar citas',
             'cancelar cita', 'cancelar mi cita', 'cancelar solicitud', 'anular cita',
+            'quiero cancelar', 'quiero eliminar', 'eliminar cita', 'eliminar mi cita',
             'editar cita', 'editar mi cita', 'modificar cita', 'modificar mi cita',
-            'cambiar cita', 'reprogramar cita', 'reprogramar mi cita', 'reprogramar',
-            'tengo alguna cita', 'tengo cita', 'citas esta semana', 'historial de citas',
-            'eliminar cita', 'eliminar mi cita', 'mover cita', 'mover mi cita',
+            'quiero editar', 'quiero modificar', 'cambiar cita', 'reprogramar cita',
+            'reprogramar mi cita', 'reprogramar', 'tengo alguna cita', 'tengo cita',
+            'citas esta semana', 'historial de citas', 'mover cita', 'mover mi cita',
             'pasala', 'pásala', 'moverla', 'cambiarla',
         ];
 
@@ -76,6 +81,9 @@ class ChatbotAppointmentService
             'necesito cita', 'necesito una cita', 'generar cita', 'hacer cita',
             'cita para', 'cita el', 'cita mañana', 'cita manana',
             'turno para', 'turno el', 'sacar cita', 'agendar turno',
+            'quiero que le hagan', 'quiero que me hagan', 'necesito que le hagan',
+            'necesito que me hagan', 'quiero una revision', 'quiero revision',
+            'necesito una revision', 'necesito revision',
         ];
 
         foreach ($phrases as $phrase) {
@@ -90,7 +98,18 @@ class ChatbotAppointmentService
     public function handle(User $client, string $text): string
     {
         try {
-            if ($this->shouldManage($text)) {
+            // Limpiar sesión completamente si el usuario inicia una nueva intención de gestión
+            if ($this->wantsCancel($text) || $this->wantsEdit($text) || $this->wantsManage($text)) {
+                session()->forget(self::SESSION_KEY);
+                session()->forget(self::SESSION_MANAGE_KEY);
+            }
+
+            // Si hay sesión de gestión pero el usuario quiere cancelar/editar, limpiar
+            if (session()->has(self::SESSION_MANAGE_KEY) && ($this->wantsCancel($text) || $this->wantsEdit($text))) {
+                session()->forget(self::SESSION_MANAGE_KEY);
+            }
+
+            if ($this->shouldManage($client, $text)) {
                 return $this->processManage($client, $text);
             }
 
@@ -104,19 +123,34 @@ class ChatbotAppointmentService
         }
     }
 
-    private function shouldManage(string $text): bool
+    private function shouldManage(User $client, string $text): bool
     {
         if (session()->has(self::SESSION_MANAGE_KEY)) {
             return true;
         }
 
-        if (! $this->wantsManage($text)) {
-            return false;
+        if ($this->wantsManage($text)) {
+            session()->forget(self::SESSION_KEY);
+            session()->forget(self::SESSION_MANAGE_KEY);
+
+            return true;
         }
 
-        session()->forget(self::SESSION_KEY);
+        if (! $this->wantsAppointment($text) && ($this->parseDate($text) !== null || $this->parseTime($text) !== null)) {
+            $hasManageable = AppointmentRequest::query()
+                ->where('client_id', $client->id)
+                ->whereIn('status', self::MANAGEABLE_STATUSES)
+                ->exists();
 
-        return true;
+            if ($hasManageable) {
+                session()->forget(self::SESSION_KEY);
+                session()->forget(self::SESSION_MANAGE_KEY);
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function process(User $client, string $text): string
@@ -616,6 +650,19 @@ class ChatbotAppointmentService
         $manage = session(self::SESSION_MANAGE_KEY, []);
         $lower = Str::lower(trim($text));
 
+        // Limpiar sesión de agendar si el usuario quiere gestionar citas
+        if ($this->wantsManage($text) && session()->has(self::SESSION_KEY)) {
+            session()->forget(self::SESSION_KEY);
+        }
+
+        // Si el usuario quiere cancelar o editar, limpiar cualquier estado previo
+        if ($this->wantsCancel($text) || $this->wantsEdit($text)) {
+            if (!empty($manage) && !in_array($manage['step'] ?? '', ['cancel_confirm', 'edit_field', 'edit_date', 'edit_time', 'edit_reason'])) {
+                session()->forget(self::SESSION_MANAGE_KEY);
+                $manage = [];
+            }
+        }
+
         if ($this->isAffirmative($lower) && ($manage['step'] ?? '') === 'cancel_confirm') {
             return $this->confirmCancel($client, $manage);
         }
@@ -626,12 +673,17 @@ class ChatbotAppointmentService
             return 'Entendido, tu cita se mantiene sin cambios. ¿Hay algo más en lo que pueda ayudarte?';
         }
 
+        // Priorizar detección de cancelación sobre edición
         if (empty($manage)) {
             if ($this->wantsCancel($text)) {
                 return $this->startCancelFlow($client);
             }
 
             if ($this->wantsEdit($text) || $this->wantsReschedule($text)) {
+                return $this->startEditFlow($client, $text);
+            }
+
+            if ($this->parseDate($text) || $this->parseTime($text)) {
                 return $this->startEditFlow($client, $text);
             }
 
@@ -687,6 +739,7 @@ class ChatbotAppointmentService
         return Str::contains($lower, [
             'cancelar cita', 'cancelar mi cita', 'cancelar solicitud',
             'anular cita', 'eliminar cita', 'eliminar mi cita',
+            'quiero cancelar', 'quiero eliminar', 'quiero anular',
         ]);
     }
 
@@ -698,6 +751,7 @@ class ChatbotAppointmentService
             'editar cita', 'editar mi cita', 'modificar cita', 'modificar mi cita',
             'cambiar cita', 'cambiar mi cita', 'cambiar la cita', 'cambiar la fecha',
             'cambiar la hora', 'mover cita', 'mover mi cita',
+            'quiero editar', 'quiero modificar', 'quiero cambiar',
         ]);
     }
 
@@ -792,6 +846,9 @@ class ChatbotAppointmentService
 
     private function startCancelFlow(User $client): string
     {
+        session()->forget(self::SESSION_KEY);
+        session()->forget(self::SESSION_MANAGE_KEY);
+
         $appointment = $this->resolveManageableAppointment($client);
 
         if (! $appointment) {
@@ -822,29 +879,27 @@ class ChatbotAppointmentService
             return 'No encontré citas activas que puedas modificar.';
         }
 
-        if ($this->wantsReschedule($text)) {
-            if ($parsedDate = $this->parseDate($text)) {
-                session([
-                    self::SESSION_MANAGE_KEY => [
-                        'step' => 'edit_date',
-                        'appointment_id' => $appointment->id,
-                        'parsed_date' => $parsedDate->toDateString(),
-                    ],
-                ]);
+        if ($parsedDate = $this->parseDate($text)) {
+            session([
+                self::SESSION_MANAGE_KEY => [
+                    'step' => 'edit_date',
+                    'appointment_id' => $appointment->id,
+                    'parsed_date' => $parsedDate->toDateString(),
+                ],
+            ]);
 
-                return $this->handleEditDate($client, $text, session(self::SESSION_MANAGE_KEY));
-            }
+            return $this->handleEditDate($client, $text, session(self::SESSION_MANAGE_KEY));
+        }
 
-            if ($parsedTime = $this->parseTime($text)) {
-                session([
-                    self::SESSION_MANAGE_KEY => [
-                        'step' => 'edit_time',
-                        'appointment_id' => $appointment->id,
-                    ],
-                ]);
+        if ($parsedTime = $this->parseTime($text)) {
+            session([
+                self::SESSION_MANAGE_KEY => [
+                    'step' => 'edit_time',
+                    'appointment_id' => $appointment->id,
+                ],
+            ]);
 
-                return $this->applyTimeUpdate($client, $appointment, $parsedTime);
-            }
+            return $this->applyTimeUpdate($client, $appointment, $parsedTime);
         }
 
         session([
@@ -898,19 +953,19 @@ class ChatbotAppointmentService
         }
 
         if (Str::contains($lower, ['fecha', 'dia', 'día'])) {
-            session(array_merge($manage, ['step' => 'edit_date']));
+            session([self::SESSION_MANAGE_KEY => array_merge($manage, ['step' => 'edit_date'])]);
 
             return '¿Para qué fecha deseas reprogramar la cita? (ej: viernes, 15/08/2026)';
         }
 
         if (Str::contains($lower, ['hora', 'horario'])) {
-            session(array_merge($manage, ['step' => 'edit_time']));
+            session([self::SESSION_MANAGE_KEY => array_merge($manage, ['step' => 'edit_time'])]);
 
             return $this->promptAvailableSlots($appointment->requested_date);
         }
 
         if (Str::contains($lower, ['motivo', 'servicio', 'razon', 'razón'])) {
-            session(array_merge($manage, ['step' => 'edit_reason']));
+            session([self::SESSION_MANAGE_KEY => array_merge($manage, ['step' => 'edit_reason'])]);
 
             return 'Indícame el nuevo motivo o tipo de servicio para tu cita.';
         }
@@ -1015,11 +1070,11 @@ class ChatbotAppointmentService
             return 'No pude cancelar la cita. Es posible que ya haya sido procesada.';
         }
 
-        $appointment->update(['status' => 'cancelada']);
         $this->notifyAdvisorsOfChange($appointment->fresh(['client', 'vehicle']), 'cancelada');
+        $appointment->delete();
         session()->forget(self::SESSION_MANAGE_KEY);
 
-        return "Tu cita ha sido cancelada correctamente.\n\n"
+        return "Tu cita ha sido eliminada correctamente.\n\n"
             .'Si más adelante deseas agendar una nueva cita, estaré encantado de ayudarte.';
     }
 

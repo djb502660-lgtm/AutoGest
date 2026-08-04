@@ -20,7 +20,7 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('vehicles', VehicleController::class)->except(['show']);
-    Route::resource('maintenances', MaintenanceController::class)->except(['show']);
+    Route::resource('maintenances', MaintenanceController::class);
     Route::get('/ordenes', [OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/ordenes/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
     Route::get('/ordenes/{order}/factura', [OrderController::class, 'invoice'])->name('admin.orders.invoice');

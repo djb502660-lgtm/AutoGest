@@ -1,0 +1,12 @@
+Tests:    1 failed, 55 passed (178 assertions)
+Duration: 12.67s
+
+FAILED Tests:
+- Tests\Feature\ChatbotAppointmentManageTest > chatbot cancels appointment after confirmation
+  Expected: Tu cita ha sido eliminada correctamente.\n\nSi más tarde deseas agendar una nueva cita, estaré encantado de ayudarte.
+  To contain: cancelada correctamente
+  at tests\Feature\ChatbotAppointmentManageTest.php:72
+
+Estado: ⚠️ 1 TEST FALLIDO (de 56 totales)
+Porcentaje de éxito: 98.2%
+Fecha verificación: 2026-08-04

@@ -1,0 +1,4 @@
+C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin\mysql.exe  Ver 8.4.3 for Win64 on x86_64 (MySQL Community Server - GPL)
+
+Estado: ✅ CUMPLE requisito (MySQL >= 8.0)
+Fecha verificación: 2026-08-04
