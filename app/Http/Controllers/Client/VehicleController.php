@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers\Client;
 
+use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Http\Controllers\Controller;
-
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
+    private VehicleRepositoryInterface $vehicleRepository;
+
+    public function __construct(VehicleRepositoryInterface $vehicleRepository)
+    {
+        $this->vehicleRepository = $vehicleRepository;
+    }
+
     public function index(Request $request)
     {
         $search = $request->string('search')->trim()->toString();

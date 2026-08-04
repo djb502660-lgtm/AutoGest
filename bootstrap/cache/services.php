@@ -33,6 +33,7 @@
     29 => 'Termwind\\Laravel\\TermwindServiceProvider',
     30 => 'App\\Providers\\AppServiceProvider',
     31 => 'App\\Modules\\Chatbot\\ChatbotServiceProvider',
+    32 => 'App\\Providers\\RepositoryServiceProvider',
   ),
   'eager' => 
   array (
@@ -53,6 +54,7 @@
     14 => 'Termwind\\Laravel\\TermwindServiceProvider',
     15 => 'App\\Providers\\AppServiceProvider',
     16 => 'App\\Modules\\Chatbot\\ChatbotServiceProvider',
+    17 => 'App\\Providers\\RepositoryServiceProvider',
   ),
   'deferred' => 
   array (

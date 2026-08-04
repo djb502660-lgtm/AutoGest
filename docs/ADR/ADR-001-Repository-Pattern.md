@@ -1,7 +1,7 @@
 # ADR-001: Implementación de Repository Pattern
 
 ## Estado
-Propuesta
+Aprobada e Implementada (Sprint 2A)
 
 ## Contexto y Problema
 Actualmente, los controladores de AutoGest interactúan directamente con los modelos Eloquent, lo que crea:
@@ -77,21 +77,39 @@ Implementar Repository Pattern completo para todos los modelos principales del s
 
 ## Implementación
 
-### Archivos afectados
-- `app/Repositories/Contracts/` (nuevo)
-- `app/Repositories/Eloquent/` (nuevo)
-- `app/Http/Controllers/` (modificar para inyectar repositorios)
-- `app/Providers/RepositoryServiceProvider.php` (nuevo)
+### Estado Actual (Sprint 2A)
+- ✅ Documento de guías creado: `docs/REPOSITORY_GUIDELINES.md`
+- ✅ Interfaces implementadas para 4 modelos núcleo:
+  - `VehicleRepositoryInterface`
+  - `ServiceOrderRepositoryInterface`
+  - `MaintenanceRepositoryInterface`
+  - `UserRepositoryInterface`
+- ✅ BaseRepository implementado con métodos estándar
+- ✅ 4 repositorios Eloquent implementados
+- ✅ RepositoryServiceProvider creado y registrado
+- ✅ Controller migrado: `Client\VehicleController`
+- ✅ Quality Gate: 56/56 tests pasando
+- ✅ Build exitoso sin degradación
 
-### Esfuerzo estimado
-- Sprint 2 de FASE 1
-- 3-4 días de desarrollo
-- 1 día de testing y revisión
+### Archivos afectados
+- `app/Contracts/Repositories/` (nuevo - interfaces)
+- `app/Repositories/BaseRepository.php` (nuevo)
+- `app/Repositories/Eloquent/` (nuevo - implementaciones)
+- `app/Providers/RepositoryServiceProvider.php` (nuevo)
+- `bootstrap/providers.php` (modificado)
+- `app/Http/Controllers/Client/VehicleController.php` (migrado)
+- `docs/REPOSITORY_GUIDELINES.md` (nuevo)
+
+### Esfuerzo Real
+- Sprint 2A completado en 1 día
+- 56/56 tests manteniéndose
+- Sin degradación de performance
+- Enfoque incremental controlado
 
 ### Dependencias
-- Completar Sprint 1 (seguridad y consistencia)
-- Matriz de dependencias actualizada
-- Tests existentes pasando (56/56)
+- ✅ Sprint 1 completado (seguridad y consistencia)
+- ✅ Sprint 1.5 completado (revisión técnica)
+- ✅ Tests existentes pasando (56/56)
 
 ### Modelo de implementación
 ```php
@@ -129,7 +147,13 @@ class UserController extends Controller {
 - Baseline de dependencias: docs/BASELINE/dependency-matrix.md
 
 ## Fecha
-2026-08-04
+2026-08-04 (aprobada e implementada Sprint 2A)
 
 ## Autor
 Technical Lead - AutoGest Project
+
+## Lecciones Aprendidas
+- Implementación incremental es crucial para mantener estabilidad
+- Compatibilidad de tipos en interfaces requiere cuidado con PHP
+- Migración de un controlador a la vez minimiza riesgos
+- Documentación de guías antes de implementación evita inconsistencias
