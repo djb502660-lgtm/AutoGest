@@ -9,7 +9,8 @@ use App\Models\ServiceOrder;
 class ServiceOrderService
 {
     public function __construct(
-        protected ServiceOrderRepositoryInterface $serviceOrderRepository
+        protected ServiceOrderRepositoryInterface $serviceOrderRepository,
+        protected OrderStatusService $orderStatusService
     ) {}
 
     public function createOrderFromAdvisor(array $data, $advisorId)
@@ -48,9 +49,12 @@ class ServiceOrderService
         return $this->serviceOrderRepository->update($orderId, ['mechanic_id' => $mechanicId]);
     }
 
-    public function updateStatus($orderId, $status)
+    public function updateStatus($orderId, $status, ?string $reason = null)
     {
-        return $this->serviceOrderRepository->update($orderId, ['status' => $status]);
+        $order = $this->serviceOrderRepository->find($orderId);
+        if (!$order) return false;
+
+        return $this->orderStatusService->changeStatus($order, $status, $reason);
     }
 
     public function updateProgress($orderId, $progress, $comment = null)
@@ -121,5 +125,28 @@ class ServiceOrderService
     public function countOrders()
     {
         return $this->serviceOrderRepository->count();
+    }
+
+    public function getClientOrders($clientId, $search = null, $status = null, $perPage = 10)
+    {
+        $orders = $this->serviceOrderRepository->where('client_id', $clientId);
+
+        if ($search !== null && $search !== '') {
+            $orders = $orders->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status !== null && $status !== '') {
+            $orders = $orders->where('status', $status);
+        }
+
+        return $orders->latest()->paginate($perPage);
+    }
+
+    public function getOrderDetailsForClient($orderId)
+    {
+        return $this->serviceOrderRepository->findWithRelations($orderId);
     }
 }

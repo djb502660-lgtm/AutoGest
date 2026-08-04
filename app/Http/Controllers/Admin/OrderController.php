@@ -8,11 +8,19 @@ use App\Models\ActivityLog;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
+    private ServiceOrderService $serviceOrderService;
+
+    public function __construct(ServiceOrderService $serviceOrderService)
+    {
+        $this->serviceOrderService = $serviceOrderService;
+    }
+
     public function index(Request $request)
     {
         $this->authorize('viewAny', ServiceOrder::class);

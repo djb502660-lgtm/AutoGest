@@ -5,10 +5,18 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 
 use App\Models\ServiceOrder;
+use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    private ServiceOrderService $serviceOrderService;
+
+    public function __construct(ServiceOrderService $serviceOrderService)
+    {
+        $this->serviceOrderService = $serviceOrderService;
+    }
+
     public function index(Request $request)
     {
         $search = $request->string('search')->trim()->toString();
