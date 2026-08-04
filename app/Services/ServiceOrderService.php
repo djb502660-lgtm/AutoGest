@@ -10,7 +10,8 @@ class ServiceOrderService
 {
     public function __construct(
         protected ServiceOrderRepositoryInterface $serviceOrderRepository,
-        protected OrderStatusService $orderStatusService
+        protected OrderStatusService $orderStatusService,
+        protected AuditService $auditService
     ) {}
 
     public function createOrderFromAdvisor(array $data, $advisorId)
@@ -54,7 +55,20 @@ class ServiceOrderService
         $order = $this->serviceOrderRepository->find($orderId);
         if (!$order) return false;
 
-        return $this->orderStatusService->changeStatus($order, $status, $reason);
+        $oldStatus = $order->status;
+        $result = $this->orderStatusService->changeStatus($order, $status, $reason);
+
+        if ($result) {
+            $this->auditService->logOrderAction(
+                'update_status',
+                "Orden {$order->order_number} cambió estado de {$oldStatus} a {$status}",
+                auth()->id(),
+                ['status' => $oldStatus],
+                ['status' => $status, 'reason' => $reason]
+            );
+        }
+
+        return $result;
     }
 
     public function updateProgress($orderId, $progress, $comment = null)

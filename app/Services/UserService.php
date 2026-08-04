@@ -8,7 +8,8 @@ use App\DTOs\UserDTO;
 class UserService
 {
     public function __construct(
-        protected UserRepositoryInterface $userRepository
+        protected UserRepositoryInterface $userRepository,
+        protected AuditService $auditService
     ) {}
 
     public function createUser(UserDTO $dto)
@@ -82,12 +83,42 @@ class UserService
 
     public function updateUserStatus($userId, $status)
     {
-        return $this->userRepository->update($userId, ['status' => $status]);
+        $user = $this->userRepository->find($userId);
+        $oldStatus = $user->status;
+
+        $result = $this->userRepository->update($userId, ['status' => $status]);
+
+        if ($result) {
+            $this->auditService->logUserAction(
+                'update_status',
+                "Usuario {$user->email} cambió estado de {$oldStatus} a {$status}",
+                auth()->id(),
+                ['status' => $oldStatus],
+                ['status' => $status]
+            );
+        }
+
+        return $result;
     }
 
     public function updateUserRole($userId, $role)
     {
-        return $this->userRepository->update($userId, ['role' => $role]);
+        $user = $this->userRepository->find($userId);
+        $oldRole = $user->role;
+
+        $result = $this->userRepository->update($userId, ['role' => $role]);
+
+        if ($result) {
+            $this->auditService->logUserAction(
+                'update_role',
+                "Usuario {$user->email} cambió rol de {$oldRole} a {$role}",
+                auth()->id(),
+                ['role' => $oldRole],
+                ['role' => $role]
+            );
+        }
+
+        return $result;
     }
 
     public function deactivateUserWithRelations($userId)
