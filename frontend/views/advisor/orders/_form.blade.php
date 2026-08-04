@@ -90,7 +90,6 @@
         try {
             const res = await fetch(`{{ url('/asesor/ordenes') }}/${orderId}/fotos`);
             const photos = await res.json();
-            console.log('Photos loaded:', photos);
             renderPhotos(photos);
         } catch (error) {
             console.error('Error loading photos:', error);
@@ -203,7 +202,6 @@
                     body: formData,
                 });
                 const data = await res.json();
-                console.log('Upload response:', data);
                 
                 uploadStatus.remove();
                 
