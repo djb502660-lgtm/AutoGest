@@ -1,0 +1,11 @@
+SEEDERS DISPONIBLES - BASELINE FASE 0
+Fecha: 2026-08-04
+
+Seeders identificados:
+- DatabaseSeeder.php (seeder principal)
+- DemoSeeder.php (seeder de datos de demostración)
+
+Estado: Seeders identificados pero no ejecutados en baseline
+Nota: Se recomienda ejecutar seeders antes de producción
+
+Fecha verificación: 2026-08-04

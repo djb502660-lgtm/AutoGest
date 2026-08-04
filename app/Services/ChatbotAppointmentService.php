@@ -1071,10 +1071,10 @@ class ChatbotAppointmentService
         }
 
         $this->notifyAdvisorsOfChange($appointment->fresh(['client', 'vehicle']), 'cancelada');
-        $appointment->delete();
+        $appointment->update(['status' => 'cancelada']);
         session()->forget(self::SESSION_MANAGE_KEY);
 
-        return "Tu cita ha sido eliminada correctamente.\n\n"
+        return "Tu cita ha sido cancelada correctamente.\n\n"
             .'Si más adelante deseas agendar una nueva cita, estaré encantado de ayudarte.';
     }
 
