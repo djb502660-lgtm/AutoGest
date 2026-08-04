@@ -9,6 +9,7 @@ Route::middleware(['web', 'auth', 'role:cliente'])
     ->group(function () {
         Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot.index');
         Route::post('/chatbot/mensaje', [ChatbotController::class, 'message'])
+            ->middleware('throttle:60,1')
             ->name('chatbot.message');
     });
 
