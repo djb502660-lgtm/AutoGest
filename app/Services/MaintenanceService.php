@@ -75,4 +75,17 @@ class MaintenanceService
             'year' => $year,
         ];
     }
+
+    public function getOrderMaintenancesSummary($serviceOrderId)
+    {
+        $maintenances = $this->findByServiceOrder($serviceOrderId);
+
+        $completed = $maintenances->where('status', 'completado')->pluck('type')->take(5);
+        $pending = $maintenances->whereIn('status', ['pendiente', 'en_proceso'])->pluck('type')->take(5);
+
+        return [
+            'completed' => $completed,
+            'pending' => $pending,
+        ];
+    }
 }

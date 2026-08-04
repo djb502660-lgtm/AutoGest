@@ -239,24 +239,14 @@ class ChatbotService
             $detail .= "\nMecánico asignado: **{$order->mechanic->name}**.\n";
         }
 
-        $completed = Maintenance::query()
-            ->where('service_order_id', $order->id)
-            ->where('status', 'completado')
-            ->pluck('type')
-            ->take(5);
+        $maintenanceSummary = $this->maintenanceService->getOrderMaintenancesSummary($order->id);
 
-        if ($completed->isNotEmpty()) {
-            $detail .= "\nTrabajo realizado:\n".$completed->map(fn ($t) => "• {$t}")->join("\n");
+        if ($maintenanceSummary['completed']->isNotEmpty()) {
+            $detail .= "\nTrabajo realizado:\n".$maintenanceSummary['completed']->map(fn ($t) => "• {$t}")->join("\n");
         }
 
-        $pending = Maintenance::query()
-            ->where('service_order_id', $order->id)
-            ->whereIn('status', ['pendiente', 'en_proceso'])
-            ->pluck('type')
-            ->take(5);
-
-        if ($pending->isNotEmpty()) {
-            $detail .= "\n\nTrabajo pendiente:\n".$pending->map(fn ($t) => "• {$t}")->join("\n");
+        if ($maintenanceSummary['pending']->isNotEmpty()) {
+            $detail .= "\n\nTrabajo pendiente:\n".$maintenanceSummary['pending']->map(fn ($t) => "• {$t}")->join("\n");
         }
 
         if ($order->completed_at) {
