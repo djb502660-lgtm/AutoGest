@@ -28,6 +28,7 @@ class OrderController extends Controller
         $user = $request->user();
         $search = $request->string('search')->trim();
         $status = $request->string('status')->toString();
+        $priority = $request->string('priority')->toString();
 
         $orders = $user->assignedOrders()
             ->with('vehicle', 'client')
@@ -40,11 +41,13 @@ class OrderController extends Controller
                 });
             })
             ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($priority !== '', fn ($q) => $q->where('priority', $priority))
+            ->when($priority === 'alta' || $priority === 'urgente', fn ($q) => $q->orderByRaw("FIELD(priority, 'urgente', 'alta', 'normal', 'baja')"))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('mechanic.orders.index', compact('orders', 'search', 'status'));
+        return view('mechanic.orders.index', compact('orders', 'search', 'status', 'priority'));
     }
 
     public function show(ServiceOrder $order)

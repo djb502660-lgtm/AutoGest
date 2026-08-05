@@ -29,6 +29,8 @@ class OrderController extends Controller
         $user = $request->user();
         $search = $request->string('search')->trim();
         $status = $request->string('status')->toString();
+        $priority = $request->string('priority')->toString();
+        $mechanicId = $request->input('mechanic_id');
 
         $orders = ServiceOrder::query()
             ->where(function ($q) use ($user) {
@@ -40,15 +42,19 @@ class OrderController extends Controller
                 $q->where(function ($query) use ($search) {
                     $query->where('order_number', 'like', "%{$search}%")
                         ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('vehicle', fn ($v) => $v->where('plate', 'like', "%{$search}%"));
+                        ->orWhereHas('vehicle', fn ($v) => $v->where('plate', 'like', "%{$search}%"))
+                        ->orWhereHas('client', fn ($c) => $c->where('name', 'like', "%{$search}%"));
                 });
             })
             ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($priority !== '', fn ($q) => $q->where('priority', $priority))
+            ->when($mechanicId, fn ($q) => $q->where('mechanic_id', $mechanicId))
+            ->when($priority === 'alta' || $priority === 'urgente', fn ($q) => $q->orderByRaw("FIELD(priority, 'urgente', 'alta', 'normal', 'baja')"))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('advisor.orders.index', compact('orders', 'search', 'status'));
+        return view('advisor.orders.index', compact('orders', 'search', 'status', 'priority', 'mechanicId'));
     }
 
     public function create()

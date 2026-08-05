@@ -1,6 +1,43 @@
 # Release Notes
 
-## [Sprint 6A - Experiencia del Cliente y Seguimiento del Servicio](https://github.com/laravel/laravel/compare/v0.11-sprint5c-code-quality...HEAD) - 2026-08-05
+## [Sprint 7A - Gestión Operativa del Taller](https://github.com/laravel/laravel/compare/v0.12-sprint6a-client-experience...HEAD) - 2026-08-05
+
+### Workshop Operations Improvements
+- ✅ Sprint 7A.1 - Gestión avanzada de órdenes (APROBADO)
+  - Filtros por cliente, mecánico, prioridad en Admin OrderController
+  - Filtros por mecánico, prioridad en Advisor OrderController
+  - Filtros por prioridad en Mechanic OrderController
+  - Ordenamiento por prioridad (urgente, alta, normal, baja)
+  - Búsqueda mejorada con nombre de cliente
+  - Sin servicios nuevos, mejoras conservadoras en controladores
+
+- ✅ Sprint 7A.2 - Panel operativo del mecánico (AJUSTADO)
+  - Eliminado recordatorio de fotos sin evidencia (duplicación con ServicePhotoService)
+  - Mejor visualización de órdenes asignadas
+  - Carga de fotos en órdenes recientes del dashboard
+  - Sin funcionalidades nuevas, solo mejoras de visualización
+
+- ✅ Sprint 7A.3 - Flujo operativo Asesor → Mecánico
+  - Revisión del flujo existente
+  - Tests pasando (SprintThreeOperationsTest)
+  - Arquitectura correcta
+  - Sin cambios requeridos
+
+### Quality Gate Sprint 7A
+- ✅ Sprint 7A.1 APROBADO (filtros útiles sin duplicación)
+- ✅ Sprint 7A.2 Ajustado (eliminada duplicación, mejor visualización)
+- ✅ Sprint 7A.3 Revisado (sin cambios necesarios)
+- ✅ Tests: 50/50 pasando
+
+### Architecture Decisions
+- Filosofía aplicada: "Mejorar flujo operativo sin crear funcionalidades nuevas"
+- Sin servicios nuevos para evitar duplicación
+- Respeto a arquitectura por capas existente
+- Mejoras conservadoras en controladores
+
+---
+
+## [Sprint 6A - Experiencia del Cliente y Seguimiento del Servicio](https://github.com/laravel/laravel/compare/v0.11-sprint5c-code-quality...v0.12-sprint6a-client-experience) - 2026-08-05
 
 ### Client Experience Improvements
 - ✅ Sprint 6A.1 - Línea de tiempo del mantenimiento (ServiceTimelineService)

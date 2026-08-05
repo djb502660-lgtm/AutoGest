@@ -22,19 +22,27 @@ class OrderController extends Controller
 
         $search = $request->string('search')->trim();
         $status = $request->string('status')->toString();
+        $priority = $request->string('priority')->toString();
+        $clientId = $request->input('client_id');
+        $mechanicId = $request->input('mechanic_id');
 
         $orders = ServiceOrder::with(['vehicle', 'client', 'mechanic'])
             ->when($search->isNotEmpty(), function ($q) use ($search) {
                 $q->where('order_number', 'like', "%{$search}%")
                     ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('vehicle', fn ($query) => $query->where('plate', 'like', "%{$search}%"));
+                    ->orWhereHas('vehicle', fn ($query) => $query->where('plate', 'like', "%{$search}%"))
+                    ->orWhereHas('client', fn ($query) => $query->where('name', 'like', "%{$search}%"));
             })
             ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($priority !== '', fn ($q) => $q->where('priority', $priority))
+            ->when($clientId, fn ($q) => $q->where('client_id', $clientId))
+            ->when($mechanicId, fn ($q) => $q->where('mechanic_id', $mechanicId))
+            ->when($priority === 'alta' || $priority === 'urgente', fn ($q) => $q->orderByRaw("FIELD(priority, 'urgente', 'alta', 'normal', 'baja')"))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('admin.orders.index', compact('orders', 'search', 'status'));
+        return view('admin.orders.index', compact('orders', 'search', 'status', 'priority', 'clientId', 'mechanicId'));
     }
 
     public function show(ServiceOrder $order)

@@ -27,7 +27,7 @@ class DashboardController extends Controller
         ];
 
         $recentOrders = $user->assignedOrders()
-            ->with('vehicle', 'client')
+            ->with(['vehicle', 'client', 'photos'])
             ->latest()
             ->take(6)
             ->get();
