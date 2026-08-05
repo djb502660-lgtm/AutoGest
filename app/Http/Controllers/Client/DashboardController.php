@@ -16,6 +16,8 @@ class DashboardController extends Controller
 
         $stats = [
             'vehiculos' => $vehicleIds->count(),
+            'en_taller' => $user->vehicles()->where('status', 'en_taller')->count(),
+            'activos' => $user->vehicles()->where('status', 'activo')->count(),
             'proximo_servicio' => MaintenanceSchedule::whereIn('vehicle_id', $vehicleIds)
                 ->where('status', 'programado')
                 ->where('scheduled_date', '>=', now()->toDateString())
@@ -30,6 +32,7 @@ class DashboardController extends Controller
 
         $vehicles = $user->vehicles()
             ->with(['maintenanceSchedules' => fn ($q) => $q->where('status', 'programado')->orderBy('scheduled_date')])
+            ->with(['serviceOrders' => fn ($q) => $q->latest()->limit(1)])
             ->get();
 
         $recentOrders = $user->clientOrders()

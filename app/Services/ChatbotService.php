@@ -389,27 +389,33 @@ class ChatbotService
             'estado', 'mi auto', 'mi carro', 'mi vehiculo', 'mis autos',
             'como va', 'donde esta', 'donde está', 'consultar el estado',
             'consultar estado', 'estado del vehiculo', 'estado de mi',
+            'mi vehiculo', 'mi vehículo', 'como esta', 'cómo está',
+            'que pasa con', 'qué pasa con', 'situacion de', 'situación de',
         ]);
     }
 
     private function isExpenseQuery(string $normalized): bool
     {
-        return str()->contains($normalized, [
+        return Str::contains($normalized, [
             'gastos', 'cuanto he pagado', 'cuanto gaste', 'cuánto he gastado',
             'historial de pago', 'mis pagos', 'costo', 'invertido', 'gastado',
+            'cuanto dinero', 'cuánto dinero', 'dinero gastado', 'gasto total',
+            'mis gastos', 'costo total', 'cuanto he invertido', 'cuánto he invertido',
         ]);
     }
 
     private function isOrderQuery(string $normalized): bool
     {
-        return str()->contains($normalized, [
+        return Str::contains($normalized, [
             'orden de servicio', 'ordenes activas', 'mis ordenes', 'trabajo en el taller',
+            'orden actual', 'ordenes en proceso', 'que se esta haciendo', 'qué se está haciendo',
+            'avance del trabajo', 'progreso del trabajo', 'estado del trabajo',
         ]);
     }
 
     private function isCostFollowUp(string $normalized): bool
     {
-        return str()->contains($normalized, [
+        return Str::contains($normalized, [
             'cuanto cost', 'cuánto cost', 'que precio', 'qué precio',
             'cuanto sale', 'cuánto sale', 'cuanto cobr', 'cuánto cobr',
             'y el costo', 'y cuanto', 'y cuánto',

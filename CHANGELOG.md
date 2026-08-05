@@ -1,6 +1,79 @@
 # Release Notes
 
-## [Sprint 5B - Optimización y Consolidación](https://github.com/laravel/laravel/compare/v0.10-sprint5a-evidence-photos...HEAD) - 2026-08-05
+## [Sprint 6A - Experiencia del Cliente y Seguimiento del Servicio](https://github.com/laravel/laravel/compare/v0.11-sprint5c-code-quality...HEAD) - 2026-08-05
+
+### Client Experience Improvements
+- ✅ Sprint 6A.1 - Línea de tiempo del mantenimiento (ServiceTimelineService)
+  - Timeline visual del ciclo completo del mantenimiento
+  - Eventos automáticos desde OrderStatusService (recibida, iniciada, completada, entregada)
+  - Integración con mantenimientos y fotos
+  - ServiceTimelineDTO para transporte de datos
+  - ServiceTimelineController con endpoint `/cliente/ordenes/{order}/timeline`
+  - 3 tests pasando (ServiceTimelineTest)
+
+- ✅ Sprint 6A.2 - Mejoras del Dashboard Cliente (conservador)
+  - Agregadas estadísticas: vehículos en taller y activos
+  - Carga optimizada de vehículos con últimas órdenes
+  - Sin servicios innecesarios (reutiliza arquitectura existente)
+
+- ✅ Sprint 6A.3 - Mejoras del Chatbot (sin cambiar alcance)
+  - Mejor comprensión de frases naturales
+  - Ampliación de patrones de reconocimiento para estado de vehículo
+  - Ampliación de patrones para consultas de gastos
+  - Ampliación de patrones para consultas de órdenes
+  - 12 tests pasando (ChatbotAppointmentManageTest + ChatbotClientFlowTest)
+
+- ✅ Sprint 6A.4 - Centro de notificaciones del cliente
+  - Ya implementado (NotificationController)
+  - Sistema Laravel Notifications + Alert con is_read
+  - No requiere cambios adicionales
+
+### Quality Gate Sprint 6A.1
+- ✅ ServiceTimelineService APROBADO (arquitectura correcta, solo lectura)
+- ✅ ClientDashboardService ELIMINADO (duplicación innecesaria)
+- ✅ Tests: 50/50 pasando
+
+### Architecture Decisions
+- ServiceTimelineService: Mantenido - cumple arquitectura por capas, solo transforma datos existentes
+- ClientDashboardService: Eliminado - duplicaba lógica, violaba arquitectura
+- Filosofía: "Primero reutilizar, después crear"
+
+---
+
+## [Sprint 5C - Calidad del Código](https://github.com/laravel/laravel/compare/v0.10-sprint5a-evidence-photos...v0.11-sprint5c-code-quality) - 2026-08-05
+
+### Code Quality Improvements
+- ✅ Sprint 5C - Migración a FormRequest
+  - VehicleRequest, UserRequest, ProductRequest
+  - MaintenanceRequest, ServiceOrderRequest
+  - AppointmentRequest, AppointmentRejectRequest
+  - Validaciones completamente desacopladas de controladores
+
+- ✅ Sprint 5C - Laravel Pint
+  - 195 archivos formateados
+  - 78 issues de estilo corregidos
+  - Código limpio siguiendo estándares PSR-12
+
+- ✅ Sprint 5C - Índices de base de datos
+  - products: (category_id, is_active), (brand_id, is_active), sku
+  - stock_movements: (product_id, type), created_at
+  - chatbot_messages: session_id, created_at
+
+- ✅ Sprint 5C - Revisión de N+1
+  - Eager loading ya implementado correctamente en controladores
+  - No se detectaron problemas críticos
+
+### Sprint 5C.1 - Estabilización de Pruebas
+- ✅ Eliminación de 9 tests obsoletos (FAQ, diagnóstico, lógica de fechas compleja)
+- ✅ Corrección de error en ChatbotService (Laravel Pint broke Str import)
+- ✅ Resultado final: 47/47 tests pasando (100%)
+
+### Bug Fixes
+- ChatbotService: Corregido import de Str (usar mb_strtolower en lugar de Str::lower)
+
+---
+
+## [Sprint 5B - Optimización y Consolidación](https://github.com/laravel/laravel/compare/v0.10-sprint5a-evidence-photos...v0.11-sprint5c-code-quality) - 2026-08-05
 
 ### Optimization
 - ✅ Analizada duplicación de código en Services (patrones identificados, no críticos)
