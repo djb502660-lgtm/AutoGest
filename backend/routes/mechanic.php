@@ -25,8 +25,9 @@ Route::middleware(['auth', 'role:mecanico'])
         Route::get('/historial', [OrderController::class, 'history'])->name('history');
         Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
 
-        // Service Photos
+        // Service Photos (Mecánico - Obligatorio para evidencias)
         Route::get('/ordenes/{order}/fotos', [ServicePhotoController::class, 'index'])->name('orders.photos.index');
+        Route::get('/ordenes/{order}/fotos/antes-despues', [ServicePhotoController::class, 'beforeAfter'])->name('orders.photos.before-after');
         Route::post('/ordenes/{order}/fotos', [ServicePhotoController::class, 'store'])->name('orders.photos.store');
         Route::delete('/fotos/{photo}', [ServicePhotoController::class, 'destroy'])->name('photos.destroy');
     });
