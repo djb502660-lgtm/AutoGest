@@ -2,18 +2,18 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use App\Contracts\Repositories\BaseRepositoryInterface;
-use App\Contracts\Repositories\VehicleRepositoryInterface;
-use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
 use App\Contracts\Repositories\MaintenanceRepositoryInterface;
-use App\Contracts\Repositories\UserRepositoryInterface;
+use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
 use App\Contracts\Repositories\ServicePhotoRepositoryInterface;
-use App\Repositories\Eloquent\VehicleRepository;
-use App\Repositories\Eloquent\ServiceOrderRepository;
+use App\Contracts\Repositories\UserRepositoryInterface;
+use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\Repositories\Eloquent\MaintenanceRepository;
-use App\Repositories\Eloquent\UserRepository;
+use App\Repositories\Eloquent\ServiceOrderRepository;
 use App\Repositories\Eloquent\ServicePhotoRepository;
+use App\Repositories\Eloquent\UserRepository;
+use App\Repositories\Eloquent\VehicleRepository;
+use Illuminate\Support\ServiceProvider;
 
 class RepositoryServiceProvider extends ServiceProvider
 {

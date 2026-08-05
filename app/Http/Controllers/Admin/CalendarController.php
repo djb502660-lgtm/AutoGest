@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\MaintenanceSchedule;
 use App\Models\ServiceOrder;
@@ -177,8 +176,8 @@ class CalendarController extends Controller
         $data['client_id'] = $data['client_id'] ?: null;
 
         // Calculate end time based on start time and duration
-        if (!empty($data['start_time']) && !empty($data['duration_minutes'])) {
-            $startTime = \Carbon\Carbon::createFromFormat('H:i', $data['start_time']);
+        if (! empty($data['start_time']) && ! empty($data['duration_minutes'])) {
+            $startTime = Carbon::createFromFormat('H:i', $data['start_time']);
             $endTime = $startTime->addMinutes($data['duration_minutes']);
             $data['end_time'] = $endTime->format('H:i');
         }

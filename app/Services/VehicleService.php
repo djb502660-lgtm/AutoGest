@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Contracts\Repositories\VehicleRepositoryInterface;
 use App\DTOs\VehicleDTO;
-use Illuminate\Database\Eloquent\Model;
 
 class VehicleService
 {

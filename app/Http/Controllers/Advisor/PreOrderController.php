@@ -8,7 +8,6 @@ use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class PreOrderController extends Controller
 {
@@ -168,7 +167,7 @@ class PreOrderController extends Controller
                 ->with('error', 'Solo se pueden convertir preordenes confirmadas o pendientes.');
         }
 
-        $orderNumber = 'OS-' . date('Y') . '-' . str_pad(ServiceOrder::count() + 1, 4, '0', STR_PAD_LEFT);
+        $orderNumber = 'OS-'.date('Y').'-'.str_pad(ServiceOrder::count() + 1, 4, '0', STR_PAD_LEFT);
 
         $serviceOrder = ServiceOrder::create([
             'order_number' => $orderNumber,

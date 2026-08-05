@@ -42,7 +42,82 @@
     
     .btn-back:hover { color: var(--primary) !important; }
 
-    @media (max-width: 768px) { .grid-2col, .grid-3col { grid-template-columns: 1fr; } }
+    /* Galería de fotos organizada por tipo (Sprint 5A.3) */
+    .photo-gallery-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .photo-item {
+        position: relative;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        background: white;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .photo-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .photo-item img {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    .photo-info {
+        padding: 8px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .photo-desc {
+        display: block;
+        font-size: 0.75rem;
+        color: #475569;
+        margin-bottom: 4px;
+        font-style: italic;
+    }
+
+    .photo-user {
+        display: block;
+        font-size: 0.7rem;
+        color: #94a3b8;
+    }
+
+    .photo-delete {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        width: 28px;
+        height: 28px;
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+    .photo-delete:hover {
+        background: rgba(220, 38, 38, 1);
+    }
+
+    @media (max-width: 768px) { 
+        .grid-2col, .grid-3col { grid-template-columns: 1fr; }
+        .photo-gallery-row { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    }
 </style>
 @endpush
 
@@ -182,10 +257,49 @@
         </div>
       </div>
 
-      <!-- SECCIÓN 3: REGISTRO FOTOGRÁFICO -->
+      <!-- SECCIÓN 3: REGISTRO FOTOGRÁFICO INTEGRADO CON DIAGNÓSTICO (Sprint 5A.3) -->
       <div class="card-info">
-        <div class="card-title-bar" style="background: #7c3aed;"><i class="fa-solid fa-camera"></i> Registro Fotográfico</div>
+        <div class="card-title-bar" style="background: #7c3aed;"><i class="fa-solid fa-camera"></i> Evidencias Fotográficas del Diagnóstico</div>
 
+        <!-- Resumen de fotos -->
+        <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
+          <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Total Fotos</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#7c3aed;">{{ $photoSummary['total'] ?? 0 }}</div>
+          </div>
+          <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Recepción</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#0ea5e9;">{{ $photoSummary['by_type']['reception'] ?? 0 }}</div>
+          </div>
+          <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Antes</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;">{{ $photoSummary['by_type']['before'] ?? 0 }}</div>
+          </div>
+          <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Después</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#10b981;">{{ $photoSummary['by_type']['after'] ?? 0 }}</div>
+          </div>
+          <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Evidencia</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#8b5cf6;">{{ $photoSummary['by_type']['evidence'] ?? 0 }}</div>
+          </div>
+        </div>
+
+        <!-- Alertas de validación -->
+        @if(in_array($order->status, ['completada', 'entregada']))
+          @if(!($photoSummary['has_initial'] ?? false))
+            <div style="background:#fef3c7; border:1px solid #f59e0b; color:#92400e; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>Atención:</strong> Esta orden no tiene evidencias fotográficas iniciales (recepción o antes del trabajo).
+            </div>
+          @endif
+          @if(!($photoSummary['has_final'] ?? false))
+            <div style="background:#fef3c7; border:1px solid #f59e0b; color:#92400e; padding:12px; border-radius:8px; margin-bottom:16px; font-size:0.85rem;">
+              <i class="fa-solid fa-triangle-exclamation"></i> <strong>Atención:</strong> Esta orden no tiene evidencias fotográficas finales (después del trabajo).
+            </div>
+          @endif
+        @endif
+
+        <!-- Subir nuevas fotos -->
         <div class="form-group">
           <label>Subir Evidencia Fotográfica</label>
           <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
@@ -193,16 +307,53 @@
               <i class="fa-solid fa-upload"></i> Agregar Foto
             </button>
             <select id="photoType" class="form-control" style="width:auto; min-width:150px;">
+              <option value="reception">📷 Recepción</option>
               <option value="before">📷 Antes del trabajo</option>
               <option value="after">📷 Después del trabajo</option>
-              <option value="evidence">📷 Evidencia general</option>
+              <option value="evidence">📷 Evidencia de diagnóstico</option>
             </select>
+            <input type="text" id="photoDescription" class="form-control" style="flex:1; min-width:200px;" placeholder="Descripción técnica (opcional)">
           </div>
           <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
-          <span style="font-size:0.75rem; color:var(--text-muted);">Máximo 10MB por foto. Formatos: JPG, PNG, GIF</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Máximo 10MB por foto. Formatos: JPG, PNG, GIF. La descripción técnica ayuda a respaldar el diagnóstico.</span>
         </div>
 
-        <div id="photoGallery" class="photo-gallery"></div>
+        <!-- Galería organizada por tipo -->
+        <div class="form-group">
+          <label>Evidencias por Tipo</label>
+          
+          <!-- Recepción -->
+          <div style="margin-bottom:16px;">
+            <div style="background:#e0f2fe; color:#0369a1; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-clipboard-check"></i> Recepción ({{ $photoSummary['by_type']['reception'] ?? 0 }})
+            </div>
+            <div id="gallery-reception" class="photo-gallery-row"></div>
+          </div>
+
+          <!-- Antes del trabajo -->
+          <div style="margin-bottom:16px;">
+            <div style="background:#fef3c7; color:#92400e; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-wrench"></i> Antes del trabajo ({{ $photoSummary['by_type']['before'] ?? 0 }})
+            </div>
+            <div id="gallery-before" class="photo-gallery-row"></div>
+          </div>
+
+          <!-- Evidencia de diagnóstico -->
+          <div style="margin-bottom:16px;">
+            <div style="background:#f3e8ff; color:#7c3aed; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-stethoscope"></i> Evidencia de diagnóstico ({{ $photoSummary['by_type']['evidence'] ?? 0 }})
+            </div>
+            <div id="gallery-evidence" class="photo-gallery-row"></div>
+          </div>
+
+          <!-- Después del trabajo -->
+          <div style="margin-bottom:16px;">
+            <div style="background:#dcfce7; color:#15803d; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-check-circle"></i> Después del trabajo ({{ $photoSummary['by_type']['after'] ?? 0 }})
+            </div>
+            <div id="gallery-after" class="photo-gallery-row"></div>
+          </div>
+        </div>
       </div>
     </form>
 @endsection
@@ -210,39 +361,75 @@
 @push('scripts')
 <script>
     const photoInput = document.getElementById('photoInput');
-    const photoGallery = document.getElementById('photoGallery');
     const photoType = document.getElementById('photoType');
+    const photoDescription = document.getElementById('photoDescription');
     const orderId = {{ $order->id }};
+
+    // Galerías por tipo (Sprint 5A.3)
+    const galleries = {
+        'reception': document.getElementById('gallery-reception'),
+        'before': document.getElementById('gallery-before'),
+        'evidence': document.getElementById('gallery-evidence'),
+        'after': document.getElementById('gallery-after'),
+    };
 
     // Cargar fotos existentes
     async function loadPhotos() {
         try {
             const res = await fetch(`{{ url('/mecanico/ordenes') }}/${orderId}/fotos`);
             const photos = await res.json();
-            renderPhotos(photos);
+            renderPhotosByType(photos);
         } catch (error) {
             console.error('Error loading photos:', error);
         }
     }
 
-    function renderPhotos(photos) {
+    function renderPhotosByType(photos) {
+        // Limpiar todas las galerías
+        Object.values(galleries).forEach(gallery => {
+            if (gallery) gallery.innerHTML = '';
+        });
+
         if (!photos || photos.length === 0) {
-            photoGallery.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No hay fotos registradas.</p>';
+            Object.values(galleries).forEach(gallery => {
+                if (gallery) {
+                    gallery.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>';
+                }
+            });
             return;
         }
 
-        photoGallery.innerHTML = photos.map(photo => `
-            <div class="photo-item" data-id="${photo.id}" style="animation: fadeIn 0.3s ease-out;">
-                <img src="${photo.url}" alt="${photo.description || 'Foto'}" onclick="window.open('${photo.url}', '_blank')">
-                <div class="photo-info">
-                    <span class="photo-type">${photo.type_label}</span>
-                    ${photo.description ? `<span class="photo-desc">${photo.description}</span>` : ''}
-                    <span class="photo-user">${photo.user} - ${photo.created_at}</span>
+        // Agrupar fotos por tipo
+        const photosByType = {
+            'reception': photos.filter(p => p.type === 'reception'),
+            'before': photos.filter(p => p.type === 'before'),
+            'evidence': photos.filter(p => p.type === 'evidence'),
+            'after': photos.filter(p => p.type === 'after'),
+        };
+
+        // Renderizar cada galería
+        Object.keys(photosByType).forEach(type => {
+            const gallery = galleries[type];
+            if (!gallery) return;
+
+            const typePhotos = photosByType[type];
+            if (typePhotos.length === 0) {
+                gallery.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>';
+                return;
+            }
+
+            gallery.innerHTML = typePhotos.map(photo => `
+                <div class="photo-item" data-id="${photo.id}" style="animation: fadeIn 0.3s ease-out;">
+                    <img src="${photo.url}" alt="${photo.description || 'Foto'}" onclick="window.open('${photo.url}', '_blank')">
+                    <div class="photo-info">
+                        ${photo.description ? `<span class="photo-desc">${photo.description}</span>` : ''}
+                        <span class="photo-user">${photo.user} - ${photo.created_at}</span>
+                    </div>
+                    <button type="button" class="photo-delete" onclick="deletePhoto(${photo.id})">×</button>
                 </div>
-                <button type="button" class="photo-delete" onclick="deletePhoto(${photo.id})">×</button>
-            </div>
-        `).join('');
-        
+            `).join('');
+        });
+
         // Agregar animación de fade-in
         if (!document.getElementById('fadeInAnimation')) {
             const fadeStyle = document.createElement('style');
@@ -300,7 +487,7 @@
     `;
     document.head.appendChild(style);
 
-    // Subir fotos
+    // Subir fotos (Sprint 5A.3 - con descripción técnica)
     photoInput.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
         let successCount = 0;
@@ -333,7 +520,7 @@
             const formData = new FormData();
             formData.append('photo', file);
             formData.append('type', photoType.value);
-            formData.append('description', '');
+            formData.append('description', photoDescription.value || '');
 
             try {
                 const res = await fetch(`{{ url('/mecanico/ordenes') }}/${orderId}/fotos`, {
@@ -365,6 +552,7 @@
         }
         
         photoInput.value = '';
+        photoDescription.value = '';
         
         // Resumen final
         if (files.length > 1) {
@@ -402,94 +590,3 @@
     // Cargar fotos al inicio
     loadPhotos();
 </script>
-
-@push('styles')
-<style>
-    .photo-gallery {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 16px;
-        margin-top: 16px;
-    }
-
-    .photo-item {
-        position: relative;
-        border: 2px solid var(--border-color);
-        border-radius: 12px;
-        overflow: hidden;
-        aspect-ratio: 1;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .photo-item:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-    }
-
-    .photo-item img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        cursor: pointer;
-        transition: transform 0.2s;
-    }
-
-    .photo-item:hover img {
-        transform: scale(1.05);
-    }
-
-    .photo-info {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.6), transparent);
-        color: white;
-        padding: 12px 8px 8px;
-        font-size: 0.75rem;
-        display: none;
-    }
-
-    .photo-item:hover .photo-info {
-        display: block;
-    }
-
-    .photo-type {
-        font-weight: bold;
-        display: block;
-    }
-
-    .photo-desc {
-        display: block;
-        margin-top: 2px;
-    }
-
-    .photo-user {
-        display: block;
-        margin-top: 2px;
-        opacity: 0.8;
-        font-size: 0.7rem;
-    }
-
-    .photo-delete {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        background: rgba(255,0,0,0.8);
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 24px;
-        height: 24px;
-        cursor: pointer;
-        font-size: 16px;
-        line-height: 1;
-        display: none;
-    }
-
-    .photo-item:hover .photo-delete {
-        display: block;
-    }
-</style>
-@endpush

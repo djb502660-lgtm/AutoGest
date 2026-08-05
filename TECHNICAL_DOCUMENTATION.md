@@ -1,10 +1,10 @@
 # Documentación Técnica - AutoGest
 
 ## Versión
-v0.8-sprint3c-admin-module
+v0.10-sprint5a-evidence-photos
 
 ## Fecha
-2026-08-04
+2026-08-05
 
 ---
 

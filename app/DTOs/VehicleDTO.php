@@ -4,30 +4,58 @@ namespace App\DTOs;
 
 class VehicleDTO
 {
+    private $clientId;
+
+    private $brand;
+
+    private $model;
+
+    private $plate;
+
+    private $year;
+
+    private $subModel;
+
+    private $mileage;
+
+    private $color;
+
+    private $vin;
+
     public function __construct(
-        public ?int $clientId,
-        public string $brand,
-        public string $model,
-        public string $plate,
-        public int $year,
-        public ?string $subModel = null,
-        public ?int $mileage = null,
-        public ?string $color = null,
-        public ?string $vin = null
-    ) {}
+        ?int $clientId,
+        string $brand,
+        string $model,
+        string $plate,
+        int $year,
+        ?string $subModel = null,
+        ?int $mileage = null,
+        ?string $color = null,
+        ?string $vin = null
+    ) {
+        $this->clientId = $clientId;
+        $this->brand = $brand;
+        $this->model = $model;
+        $this->plate = $plate;
+        $this->year = $year;
+        $this->subModel = $subModel;
+        $this->mileage = $mileage;
+        $this->color = $color;
+        $this->vin = $vin;
+    }
 
     public static function fromArray(array $data): self
     {
         return new self(
-            clientId: $data['client_id'] ?? null,
-            brand: $data['brand'],
-            model: $data['model'],
-            plate: $data['plate'],
-            year: $data['year'],
-            subModel: $data['sub_model'] ?? null,
-            mileage: $data['mileage'] ?? null,
-            color: $data['color'] ?? null,
-            vin: $data['vin'] ?? null
+            $data['client_id'] ?? null,
+            $data['brand'],
+            $data['model'],
+            $data['plate'],
+            $data['year'],
+            $data['sub_model'] ?? null,
+            $data['mileage'] ?? null,
+            $data['color'] ?? null,
+            $data['vin'] ?? null
         );
     }
 
@@ -43,6 +71,8 @@ class VehicleDTO
             'mileage' => $this->mileage,
             'color' => $this->color,
             'vin' => $this->vin,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 }

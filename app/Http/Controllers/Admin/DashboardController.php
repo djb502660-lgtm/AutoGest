@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
+use App\Models\MaintenanceSchedule;
+use App\Models\ServiceOrder;
 use App\Services\DashboardCalendarService;
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
@@ -43,17 +44,17 @@ class DashboardController extends Controller
         $calendarWidget = $calendarService->makeWidget($period, [
             [
                 'items' => $calendarSchedules,
-                'date' => fn (\App\Models\MaintenanceSchedule $schedule) => $schedule->scheduled_date,
-                'label' => fn (\App\Models\MaintenanceSchedule $schedule) => $schedule->title,
-                'meta' => fn (\App\Models\MaintenanceSchedule $schedule) => $schedule->vehicle?->plate.' · '.($schedule->assignedMechanic?->name ?? 'Sin mecánico'),
-                'variant' => fn (\App\Models\MaintenanceSchedule $schedule) => $schedule->status === 'vencido' ? 'event-red' : 'event-green',
+                'date' => fn (MaintenanceSchedule $schedule) => $schedule->scheduled_date,
+                'label' => fn (MaintenanceSchedule $schedule) => $schedule->title,
+                'meta' => fn (MaintenanceSchedule $schedule) => $schedule->vehicle?->plate.' · '.($schedule->assignedMechanic?->name ?? 'Sin mecánico'),
+                'variant' => fn (MaintenanceSchedule $schedule) => $schedule->status === 'vencido' ? 'event-red' : 'event-green',
                 'url' => fn () => route('calendar.index'),
             ],
             [
                 'items' => $calendarOrders,
-                'date' => fn (\App\Models\ServiceOrder $order) => $order->scheduled_at,
-                'label' => fn (\App\Models\ServiceOrder $order) => $order->order_number,
-                'meta' => fn (\App\Models\ServiceOrder $order) => $order->vehicle?->plate.' · '.($order->mechanic?->name ?? 'Orden pendiente'),
+                'date' => fn (ServiceOrder $order) => $order->scheduled_at,
+                'label' => fn (ServiceOrder $order) => $order->order_number,
+                'meta' => fn (ServiceOrder $order) => $order->vehicle?->plate.' · '.($order->mechanic?->name ?? 'Orden pendiente'),
                 'variant' => fn () => 'event-blue',
             ],
         ], [

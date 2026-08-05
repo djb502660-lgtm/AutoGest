@@ -191,7 +191,7 @@ class ChatbotAppointmentService
         if ($date->endOfDay()->isPast()) {
             session([self::SESSION_KEY => array_merge($draft, ['step' => 'date'])]);
 
-            return "Esa fecha ya pasó. Indícame una fecha futura (ej: mañana, 15/08 o viernes).";
+            return 'Esa fecha ya pasó. Indícame una fecha futura (ej: mañana, 15/08 o viernes).';
         }
 
         $draft['requested_date'] = $date->toDateString();
@@ -271,7 +271,7 @@ class ChatbotAppointmentService
                 ."🕐 {$timeFormatted}\n"
                 ."📝 Motivo: {$serviceType}\n\n"
                 ."Estado: 🟡 Pendiente de confirmación.\n\n"
-                ."Un asesor revisará los trabajos adicionales y te confirmará la cita.";
+                .'Un asesor revisará los trabajos adicionales y te confirmará la cita.';
         }
 
         return "Solicitud #{$appointment->id} registrada para el {$date->format('d/m/Y')}.\n\n"
@@ -282,7 +282,7 @@ class ChatbotAppointmentService
             ."🕐 {$timeFormatted}\n"
             ."📝 Motivo: {$serviceType}\n\n"
             ."Estado: 🟡 Pendiente de confirmación.\n\n"
-            ."Un asesor revisará la disponibilidad y recibirás una notificación cuando la cita sea confirmada.";
+            .'Un asesor revisará la disponibilidad y recibirás una notificación cuando la cita sea confirmada.';
     }
 
     private function serviceReasonPrompt(Carbon $date, string $time): string
@@ -657,7 +657,7 @@ class ChatbotAppointmentService
 
         // Si el usuario quiere cancelar o editar, limpiar cualquier estado previo
         if ($this->wantsCancel($text) || $this->wantsEdit($text)) {
-            if (!empty($manage) && !in_array($manage['step'] ?? '', ['cancel_confirm', 'edit_field', 'edit_date', 'edit_time', 'edit_reason'])) {
+            if (! empty($manage) && ! in_array($manage['step'] ?? '', ['cancel_confirm', 'edit_field', 'edit_date', 'edit_time', 'edit_reason'])) {
                 session()->forget(self::SESSION_MANAGE_KEY);
                 $manage = [];
             }
@@ -841,7 +841,7 @@ class ChatbotAppointmentService
         ]);
 
         return "Este es tu historial de citas:\n\n{$lines}\n\n"
-            ."Si deseas modificar o cancelar alguna, indícame la fecha o el número de la cita.";
+            .'Si deseas modificar o cancelar alguna, indícame la fecha o el número de la cita.';
     }
 
     private function startCancelFlow(User $client): string

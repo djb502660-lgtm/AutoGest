@@ -50,7 +50,7 @@ class ServicePhotoController extends Controller
     {
         $result = $this->servicePhotoService->deletePhoto($photo);
 
-        if (!$result) {
+        if (! $result) {
             return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
         }
 

@@ -4,28 +4,53 @@ namespace App\DTOs;
 
 class ServiceOrderDTO
 {
+    private $vehicleId;
+
+    private $mechanicId;
+
+    private $clientId;
+
+    private $status;
+
+    private $description;
+
+    private $cost;
+
+    private $partsCost;
+
+    private $laborCost;
+
     public function __construct(
-        public ?int $vehicleId,
-        public ?int $mechanicId,
-        public ?int $clientId,
-        public string $status,
-        public ?string $description = null,
-        public ?float $cost = null,
-        public ?float $partsCost = null,
-        public ?float $laborCost = null
-    ) {}
+        ?int $vehicleId,
+        ?int $mechanicId,
+        ?int $clientId,
+        string $status,
+        ?string $description = null,
+        ?float $cost = null,
+        ?float $partsCost = null,
+        ?float $laborCost = null
+    ) {
+        $this->vehicleId = $vehicleId;
+        $this->mechanicId = $mechanicId;
+        $this->clientId = $clientId;
+        $this->status = $status;
+        $this->description = $description;
+        $this->cost = $cost;
+        $this->partsCost = $partsCost;
+        $this->laborCost = $laborCost;
+    }
 
     public static function fromArray(array $data): self
     {
         return new self(
-            vehicleId: $data['vehicle_id'] ?? null,
-            mechanicId: $data['mechanic_id'] ?? null,
-            clientId: $data['client_id'] ?? null,
-            status: $data['status'],
-            description: $data['description'] ?? null,
-            cost: $data['cost'] ?? null,
-            partsCost: $data['parts_cost'] ?? null,
-            laborCost: $data['labor_cost'] ?? null
+            $data['vehicle_id'] ?? null,
+            $data['mechanic_id'] ?? null,
+            $data['client_id'] ?? null,
+            $data['status'],
+            $data['description'] ?? null,
+            $data['cost'] ?? null,
+            $data['parts_cost'] ?? null,
+            $data['labor_cost'] ?? null
         );
     }
 
@@ -40,6 +65,8 @@ class ServiceOrderDTO
             'cost' => $this->cost,
             'parts_cost' => $this->partsCost,
             'labor_cost' => $this->laborCost,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 }

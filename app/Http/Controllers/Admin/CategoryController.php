@@ -37,7 +37,7 @@ class CategoryController extends Controller
     {
         // Mapear campos del modal a los campos del modelo
         $name = $request->input('nombre_categoria') ?? $request->input('name');
-        
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:categories,slug'],

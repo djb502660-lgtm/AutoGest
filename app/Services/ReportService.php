@@ -3,9 +3,8 @@
 namespace App\Services;
 
 use App\Models\Maintenance;
-use App\Models\ServiceOrder;
-use App\Models\Vehicle;
 use App\Models\MaintenanceSchedule;
+use App\Models\Vehicle;
 
 class ReportService
 {
@@ -30,11 +29,11 @@ class ReportService
             'rows' => $items->map(function ($m) {
                 return [
                     $m->performed_at?->format('Y-m-d') ?? 'N/A',
-                    $m->vehicle->plate . ' — ' . $m->vehicle->brand . ' ' . $m->vehicle->model,
+                    $m->vehicle->plate.' — '.$m->vehicle->brand.' '.$m->vehicle->model,
                     $m->typeLabel(),
                     $m->description,
                     $m->mechanic->name ?? 'N/A',
-                    '$' . number_format($m->cost, 2),
+                    '$'.number_format($m->cost, 2),
                     $m->statusLabel(),
                 ];
             })->toArray(),
@@ -63,10 +62,10 @@ class ReportService
             'rows' => $items->map(function ($m) {
                 return [
                     $m->performed_at?->format('Y-m-d') ?? 'N/A',
-                    $m->vehicle->plate . ' — ' . $m->vehicle->brand . ' ' . $m->vehicle->model,
+                    $m->vehicle->plate.' — '.$m->vehicle->brand.' '.$m->vehicle->model,
                     $m->description,
                     $m->serviceOrder->reference ?? 'N/A',
-                    '$' . number_format($m->cost, 2),
+                    '$'.number_format($m->cost, 2),
                 ];
             })->toArray(),
         ];
@@ -90,9 +89,9 @@ class ReportService
             'rows' => $items->map(function ($v) {
                 return [
                     $v->plate,
-                    $v->brand . ' ' . $v->model,
+                    $v->brand.' '.$v->model,
                     $v->year,
-                    number_format($v->mileage) . ' km',
+                    number_format($v->mileage).' km',
                     $v->statusLabel(),
                     $v->client->name ?? 'N/A',
                 ];
@@ -120,7 +119,7 @@ class ReportService
             'rows' => $items->map(function ($s) {
                 return [
                     $s->id,
-                    $s->vehicle->plate . ' — ' . $s->vehicle->brand,
+                    $s->vehicle->plate.' — '.$s->vehicle->brand,
                     $s->title,
                     'Media',
                     $s->scheduled_date?->format('Y-m-d') ?? 'N/A',

@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Advisor;
 
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentRequest;
-use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class AppointmentController extends Controller
 {

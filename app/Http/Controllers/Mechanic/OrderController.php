@@ -3,22 +3,24 @@
 namespace App\Http\Controllers\Mechanic;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\ActivityLog;
-use App\Models\Maintenance;
 use App\Models\OrderComment;
 use App\Models\ServiceOrder;
 use App\Services\ServiceOrderService;
+use App\Services\ServicePhotoService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    private ServiceOrderService $serviceOrderService;
+    private $serviceOrderService;
 
-    public function __construct(ServiceOrderService $serviceOrderService)
+    private $servicePhotoService;
+
+    public function __construct(ServiceOrderService $serviceOrderService, ServicePhotoService $servicePhotoService)
     {
         $this->serviceOrderService = $serviceOrderService;
+        $this->servicePhotoService = $servicePhotoService;
     }
 
     public function index(Request $request)
@@ -51,7 +53,11 @@ class OrderController extends Controller
 
         $order->load(['vehicle.client', 'client', 'maintenances', 'comments.user']);
 
-        return view('mechanic.orders.show', compact('order'));
+        // Cargar resumen de fotos para el diagnóstico (Sprint 5A.3)
+        $photoSummary = $this->servicePhotoService->getPhotoSummary($order);
+        $photos = $this->servicePhotoService->getPhotosByOrder($order);
+
+        return view('mechanic.orders.show', compact('order', 'photoSummary', 'photos'));
     }
 
     public function updateStatus(Request $request, ServiceOrder $order)
@@ -65,6 +71,16 @@ class OrderController extends Controller
             'recommendations' => ['nullable', 'string'],
             'completed_at' => ['nullable', 'date'],
         ]);
+
+        // Validar requisitos fotográficos antes de finalizar (Sprint 5A.3)
+        if (in_array($validated['status'], ['completada', 'entregada'])) {
+            $photoValidation = $this->servicePhotoService->validatePhotoRequirements($order, $validated['status']);
+            if (! $photoValidation['valid']) {
+                return redirect()
+                    ->route('mechanic.orders.show', $order)
+                    ->with('error', $photoValidation['message']);
+            }
+        }
 
         $this->serviceOrderService->updateOrderStatusWithDetails(
             $order->id,

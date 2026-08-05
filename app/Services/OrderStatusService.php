@@ -16,7 +16,7 @@ class OrderStatusService
 
     public function canTransition(string $fromStatus, string $toStatus): bool
     {
-        if (!isset($this->validTransitions[$fromStatus])) {
+        if (! isset($this->validTransitions[$fromStatus])) {
             return false;
         }
 
@@ -25,22 +25,22 @@ class OrderStatusService
 
     public function changeStatus(ServiceOrder $order, string $newStatus, ?string $reason = null): bool
     {
-        if (!$this->canTransition($order->status, $newStatus)) {
+        if (! $this->canTransition($order->status, $newStatus)) {
             return false;
         }
 
         $order->status = $newStatus;
 
-        if ($newStatus === 'en_proceso' && !$order->started_at) {
+        if ($newStatus === 'en_proceso' && ! $order->started_at) {
             $order->started_at = now();
         }
 
-        if ($newStatus === 'completada' && !$order->completed_at) {
+        if ($newStatus === 'completada' && ! $order->completed_at) {
             $order->completed_at = now();
             $order->progress = 100;
         }
 
-        if ($newStatus === 'entregada' && !$order->delivered_at) {
+        if ($newStatus === 'entregada' && ! $order->delivered_at) {
             $order->delivered_at = now();
         }
 

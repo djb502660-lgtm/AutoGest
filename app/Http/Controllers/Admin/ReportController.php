@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Mail\AdminReportMail;
 use App\Models\ActivityLog;
+use App\Models\Maintenance;
+use App\Models\MaintenanceSchedule;
 use App\Models\Vehicle;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -24,11 +26,11 @@ class ReportController extends Controller
     {
         $maintenances = $this->reportService->getMaintenanceReport();
         $vehicles = Vehicle::orderBy('plate')->get();
-        $schedules = \App\Models\MaintenanceSchedule::with('vehicle')->orderBy('scheduled_date')->get();
+        $schedules = MaintenanceSchedule::with('vehicle')->orderBy('scheduled_date')->get();
 
         return view('admin.reports.index', [
             'vehicles' => $vehicles,
-            'maintenances' => \App\Models\Maintenance::with(['vehicle', 'mechanic', 'serviceOrder'])->orderByDesc('performed_at')->get(),
+            'maintenances' => Maintenance::with(['vehicle', 'mechanic', 'serviceOrder'])->orderByDesc('performed_at')->get(),
             'schedules' => $schedules,
             'reportData' => [
                 'mantenimientos' => $maintenances['rows'],

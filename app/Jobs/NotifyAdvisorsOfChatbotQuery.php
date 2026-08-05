@@ -18,8 +18,7 @@ class NotifyAdvisorsOfChatbotQuery implements ShouldQueue
     public function __construct(
         public User $client,
         public string $query,
-    ) {
-    }
+    ) {}
 
     public function handle(): void
     {

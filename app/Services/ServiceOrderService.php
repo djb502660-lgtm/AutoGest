@@ -5,14 +5,31 @@ namespace App\Services;
 use App\Contracts\Repositories\ServiceOrderRepositoryInterface;
 use App\DTOs\ServiceOrderDTO;
 use App\Models\ServiceOrder;
+use App\Notifications\OrderStatusNotification;
+use App\Notifications\ServicePhotoNotification;
+use Illuminate\Support\Facades\Notification;
 
 class ServiceOrderService
 {
+    private $serviceOrderRepository;
+
+    private $orderStatusService;
+
+    private $auditService;
+
+    private $servicePhotoService;
+
     public function __construct(
-        protected ServiceOrderRepositoryInterface $serviceOrderRepository,
-        protected OrderStatusService $orderStatusService,
-        protected AuditService $auditService
-    ) {}
+        ServiceOrderRepositoryInterface $serviceOrderRepository,
+        OrderStatusService $orderStatusService,
+        AuditService $auditService,
+        ServicePhotoService $servicePhotoService
+    ) {
+        $this->serviceOrderRepository = $serviceOrderRepository;
+        $this->orderStatusService = $orderStatusService;
+        $this->auditService = $auditService;
+        $this->servicePhotoService = $servicePhotoService;
+    }
 
     public function createOrderFromAdvisor(array $data, $advisorId)
     {
@@ -53,7 +70,9 @@ class ServiceOrderService
     public function updateStatus($orderId, $status, ?string $reason = null)
     {
         $order = $this->serviceOrderRepository->find($orderId);
-        if (!$order) return false;
+        if (! $order) {
+            return false;
+        }
 
         $oldStatus = $order->status;
         $result = $this->orderStatusService->changeStatus($order, $status, $reason);
@@ -66,6 +85,11 @@ class ServiceOrderService
                 ['status' => $oldStatus],
                 ['status' => $status, 'reason' => $reason]
             );
+
+            // Enviar notificación al cliente sobre cambio de estado (Sprint 5A.6)
+            if ($order->client && $oldStatus !== $status) {
+                Notification::send($order->client, new OrderStatusNotification($order, $oldStatus, $status, $reason));
+            }
         }
 
         return $result;
@@ -74,7 +98,9 @@ class ServiceOrderService
     public function updateProgress($orderId, $progress, $comment = null)
     {
         $order = $this->serviceOrderRepository->find($orderId);
-        if (!$order) return false;
+        if (! $order) {
+            return false;
+        }
 
         $updates = ['progress' => $progress];
 
@@ -94,24 +120,38 @@ class ServiceOrderService
     public function updateOrderStatusWithDetails($orderId, $status, $progress, $diagnosis = null, $recommendations = null, $completedAt = null)
     {
         $order = $this->serviceOrderRepository->find($orderId);
-        if (!$order) return false;
+        if (! $order) {
+            return false;
+        }
 
         $updates = [
             'status' => $status,
             'progress' => $progress,
         ];
 
-        if ($status === 'en_proceso' && !$order->started_at) {
+        if ($status === 'en_proceso' && ! $order->started_at) {
             $updates['started_at'] = now();
         }
 
-        if (in_array($status, ['completada', 'entregada'], true)) {
+        if (in_array($status, ['completada', 'entregada'])) {
             $updates['completed_at'] = $completedAt ?? now();
             $updates['progress'] = 100;
+
+            // Enviar notificación agrupada de evidencias al completar orden (Quality Gate Sprint 5A)
+            if ($order->client) {
+                $photoSummary = $this->servicePhotoService->getPhotoSummary($order);
+                if ($photoSummary['total'] > 0) {
+                    Notification::send($order->client, new ServicePhotoNotification($order, $photoSummary));
+                }
+            }
         }
 
-        if ($diagnosis) $updates['diagnosis'] = $diagnosis;
-        if ($recommendations) $updates['recommendations'] = $recommendations;
+        if ($diagnosis) {
+            $updates['diagnosis'] = $diagnosis;
+        }
+        if ($recommendations) {
+            $updates['recommendations'] = $recommendations;
+        }
 
         return $this->serviceOrderRepository->update($orderId, $updates);
     }
@@ -162,5 +202,26 @@ class ServiceOrderService
     public function getOrderDetailsForClient($orderId)
     {
         return $this->serviceOrderRepository->findWithRelations($orderId);
+    }
+
+    // Integración con ServicePhotoService (Sprint 5A.3)
+    public function getOrderPhotoSummary($orderId)
+    {
+        $order = $this->serviceOrderRepository->find($orderId);
+        if (! $order) {
+            return null;
+        }
+
+        return $this->servicePhotoService->getPhotoSummary($order);
+    }
+
+    public function validatePhotoRequirementsForStatusChange($orderId, $targetStatus)
+    {
+        $order = $this->serviceOrderRepository->find($orderId);
+        if (! $order) {
+            return ['valid' => false, 'message' => 'Orden no encontrada'];
+        }
+
+        return $this->servicePhotoService->validatePhotoRequirements($order, $targetStatus);
     }
 }

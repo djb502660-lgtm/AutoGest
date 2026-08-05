@@ -4,26 +4,48 @@ namespace App\DTOs;
 
 class UserDTO
 {
+    private $name;
+
+    private $email;
+
+    private $password;
+
+    private $role;
+
+    private $phone;
+
+    private $address;
+
+    private $status;
+
     public function __construct(
-        public string $name,
-        public string $email,
-        public string $password,
-        public string $role,
-        public ?string $phone = null,
-        public ?string $address = null,
-        public string $status = 'activo'
-    ) {}
+        string $name,
+        string $email,
+        string $password,
+        string $role,
+        ?string $phone = null,
+        ?string $address = null,
+        string $status = 'activo'
+    ) {
+        $this->name = $name;
+        $this->email = $email;
+        $this->password = $password;
+        $this->role = $role;
+        $this->phone = $phone;
+        $this->address = $address;
+        $this->status = $status;
+    }
 
     public static function fromArray(array $data): self
     {
         return new self(
-            name: $data['name'],
-            email: $data['email'],
-            password: $data['password'],
-            role: $data['role'],
-            phone: $data['phone'] ?? null,
-            address: $data['address'] ?? null,
-            status: $data['status'] ?? 'activo'
+            $data['name'],
+            $data['email'],
+            $data['password'],
+            $data['role'],
+            $data['phone'] ?? null,
+            $data['address'] ?? null,
+            $data['status'] ?? 'activo'
         );
     }
 
@@ -37,6 +59,8 @@ class UserDTO
             'phone' => $this->phone,
             'address' => $this->address,
             'status' => $this->status,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 }

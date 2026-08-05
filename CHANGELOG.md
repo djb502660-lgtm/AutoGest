@@ -1,6 +1,130 @@
 # Release Notes
 
-## [Sprint 4 - Calidad, Seguridad y Preparación de Producción](https://github.com/laravel/laravel/compare/v0.8-sprint3c-admin-module...HEAD) - 2026-08-04
+## [Sprint 5B - Optimización y Consolidación](https://github.com/laravel/laravel/compare/v0.10-sprint5a-evidence-photos...HEAD) - 2026-08-05
+
+### Optimization
+- ✅ Analizada duplicación de código en Services (patrones identificados, no críticos)
+- ✅ Analizada duplicación de código en Controllers (similitudes en OrderControllers, aceptables por contexto de rol)
+- ✅ Revisadas consultas Eloquent para problemas N+1 (optimización en MaintenanceService::getClientExpensesSummary)
+- ✅ Analizadas validaciones inline vs FormRequest (actualmente inline, funcional para el tamaño del proyecto)
+- ✅ Verificada configuración de almacenamiento de fotografías (filesystems.php correcto)
+- ⚠️ Enlace simbólico storage no creado (requiere entorno PHP >= 8.2.0)
+- ✅ Analizados índices de base de datos (agregados índices a service_photos)
+
+### Database Optimization
+- Agregados índices a tabla service_photos:
+  - (service_order_id, type) para consultas por orden y tipo
+  - user_id para consultas por usuario
+  - created_at para ordenamiento temporal
+- Migración creada: 2026_08_05_000002_add_indexes_to_service_photos_table.php
+
+### Code Quality Improvements
+- Optimizada MaintenanceService::getClientExpensesSummary:
+  - Eliminado filter en memoria (N+1 problem)
+  - Reemplazado por whereHas con eager loading
+  - Mejora de performance para clientes con muchos mantenimientos
+
+### Environment Issues
+- ⚠️ Entorno PHP actual: 8.0.30
+- ⚠️ Requerido: >= 8.2.0
+- ⚠️ Impacto: No se pueden ejecutar comandos artisan (test, storage:link, migrate)
+- ⚠️ Recomendación: Actualizar PHP antes de continuar
+
+### Pending Actions
+- Ejecutar `php artisan test` (requiere actualización de PHP)
+- Crear enlace simbólico `php artisan storage:link` (requiere actualización de PHP)
+- Ejecutar migraciones de índices nuevos (requiere actualización de PHP)
+
+---
+
+## [Sprint 5A - Evidencias Fotográficas del Vehículo + Notificaciones](https://github.com/laravel/laravel/compare/v0.9-sprint4-quality-production...v0.10-sprint5a-evidence-photos) - 2026-08-05
+
+### Architecture
+- ✅ Sprint 5A.1 - Estructura del sistema de evidencias (Model, Repository, DTO, Service)
+- ✅ Sprint 5A.2 - Captura de fotografías por rol con validaciones
+- ✅ Sprint 5A.3 - Integración con diagnóstico y observaciones
+- ✅ Sprint 5A.4 - Visualización por rol (galerías)
+- ✅ Sprint 5A.5 - Chatbot no gestiona evidencias (eliminada integración)
+- ✅ Sprint 5A.6 - Notificaciones Laravel Notifications completas
+
+### Evidence Photography System
+- ServicePhotoRepository y ServicePhotoRepositoryInterface creados
+- ServicePhotoDTO para transferencia de datos
+- ServicePhotoService refactorizado con métodos de diagnóstico
+- ServicePhotoPolicy para control de permisos por rol
+- Rutas específicas para mecánico y asesor
+
+### Integration with Diagnosis
+- ServicePhotoService: attachToDiagnosis(), getDiagnosisPhotos(), getPhotoSummary()
+- ServiceOrderService: getOrderPhotoSummary(), validatePhotoRequirementsForStatusChange()
+- Mechanic\OrderController: Validación de requisitos fotográficos al finalizar orden
+- Vista del mecánico: Galerías organizadas por tipo (recepción, antes, evidencia, después)
+- Campo de descripción técnica para respaldar diagnóstico
+
+### Role-Based Visualization
+- Advisor: Galería read-only con información completa
+- Client: Galería read-only (sin datos técnicos)
+- Admin: Galería completa con todos los detalles
+- Mechanic: Galería organizada por tipo con funcionalidad completa
+
+### Chatbot Integration
+- ChatbotService no gestiona evidencias fotográficas
+- Cliente debe revisar evidencias desde historial de orden de servicio en su panel
+- Chatbot limitado a funciones de dominio del sistema (estado, citas, historial)
+
+### Laravel Notifications
+- OrderStatusNotification: Notificaciones de cambio de estado de orden
+- ServicePhotoNotification: Notificaciones de nuevas evidencias fotográficas
+- Integración automática en ServicePhotoService (al agregar fotos importantes)
+- Integración automática en ServiceOrderService (al cambiar estado)
+- Canales: mail y database
+
+### PHP 8.0 Compatibility
+- Propiedades promoted convertidas en todos los DTOs
+- Arrow functions convertidas en closures
+- Propiedades tipo convertidas en todos los Controllers
+
+### Quality
+- ✅ Sistema de evidencias fotográficas completo
+- ✅ Integración con diagnóstico técnico
+- ✅ Visualización por rol implementada
+- ✅ Chatbot no gestiona evidencias (cliente las revisa desde su panel)
+- ✅ Notificaciones Laravel completas (agrupadas, no una por foto)
+- ✅ Arquitectura por capas mantenida
+- ✅ Soft Delete implementado con AuditLog para trazabilidad
+- ✅ Quality Gate Technical Lead aprobado
+
+### Quality Gate Corrections
+- Soft Delete implementado en ServicePhoto con AuditLog para trazabilidad
+- Notificaciones agrupadas: se envía una sola notificación al completar orden, no por cada foto
+- Migración creada para agregar soft_deletes a service_photos
+- ServicePhotoService->deletePhoto() usa soft delete y registra en AuditLog
+- ServicePhotoNotification rediseñada para notificaciones agrupadas
+
+### Chatbot Functions Decision (Sprint 5A.1 Estabilización)
+- Funciones del chatbot LIMITADAS según decisión de diseño cerrada:
+  - ✅ Estado del vehículo
+  - ✅ Citas (agendar, editar, cancelar)
+  - ✅ Historial de mantenimientos y gastos
+- Funciones ELIMINADAS del chatbot:
+  - ❌ Preguntas frecuentes (searchFaq)
+  - ❌ Consultas abiertas con IA (askAI)
+  - ❌ Síntomas mecánicos (diagnóstico guiado)
+  - ❌ Información sobre evidencias fotográficas
+- Evidencias fotográficas administradas solo por módulos internos (Mecánico, Asesor, Admin)
+- Cliente visualiza evidencias solo desde historial de orden, nunca desde chatbot
+
+### System Status
+- Sistema de evidencias fotográficas integrado al flujo de trabajo
+- Mecánico no puede finalizar orden sin fotos iniciales y finales
+- Cliente recibe notificación agrupada de evidencias al completar orden
+- Cliente recibe notificaciones de cambios de estado
+- Evidencias asociadas a ServiceOrder, no a Vehicle
+- Historial por orden mantenido correctamente
+
+---
+
+## [Sprint 4 - Calidad, Seguridad y Preparación de Producción](https://github.com/laravel/laravel/compare/v0.8-sprint3c-admin-module...v0.9-sprint4-quality-production) - 2026-08-04
 
 ### Security & Quality
 - ✅ Sprint 4A - Auditoría de Seguridad y Permisos RBAC
@@ -246,7 +370,7 @@
 
 ### Quality
 - ✅ Corregido test ChatbotAppointmentManageTest
-- ✅ Alcanzado 56/56 tests (100% de éxito)
+- ⏳ Tests automatizados: Pendiente de ejecución en entorno PHP
 - ✅ Verificada autenticación para los 4 roles (Admin, Advisor, Mechanic, Client)
 - ✅ Revisadas rutas (181 rutas funcionando, sin duplicadas)
 

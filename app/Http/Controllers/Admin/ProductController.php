@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Category;
+use App\Http\Requests\ProductRequest;
 use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
@@ -48,22 +48,9 @@ class ProductController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(ProductRequest $request)
     {
-        $validated = $request->validate([
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'brand_id' => ['nullable', 'exists:brands,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
-            'description' => ['nullable', 'string'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'sale_price' => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => ['required', 'integer', 'min:0'],
-            'min_stock' => ['required', 'integer', 'min:0'],
-            'max_stock' => ['nullable', 'integer', 'min:0'],
-            'unit' => ['required', 'string', 'max:50'],
-            'is_active' => ['boolean'],
-        ]);
+        $validated = $request->validated();
 
         // Mapear campos del modal a los campos del modelo
         $mappedData = [
@@ -101,22 +88,9 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, Product $product)
+    public function update(ProductRequest $request, Product $product)
     {
-        $validated = $request->validate([
-            'category_id' => ['nullable', 'exists:categories,id'],
-            'brand_id' => ['nullable', 'exists:brands,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product->id)],
-            'description' => ['nullable', 'string'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
-            'sale_price' => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => ['required', 'integer', 'min:0'],
-            'min_stock' => ['required', 'integer', 'min:0'],
-            'max_stock' => ['nullable', 'integer', 'min:0'],
-            'unit' => ['required', 'string', 'max:50'],
-            'is_active' => ['boolean'],
-        ]);
+        $validated = $request->validated();
 
         $product->update($validated);
 

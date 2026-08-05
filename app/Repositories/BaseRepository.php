@@ -4,7 +4,6 @@ namespace App\Repositories;
 
 use App\Contracts\Repositories\BaseRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 abstract class BaseRepository implements BaseRepositoryInterface
@@ -34,12 +33,14 @@ abstract class BaseRepository implements BaseRepositoryInterface
     public function update($id, array $data)
     {
         $model = $this->find($id);
+
         return $model ? $model->update($data) : false;
     }
 
     public function delete($id)
     {
         $model = $this->find($id);
+
         return $model ? $model->delete() : false;
     }
 
@@ -59,6 +60,7 @@ abstract class BaseRepository implements BaseRepositoryInterface
             $value = $operator;
             $operator = '=';
         }
+
         return $this->model->where($column, $operator, $value);
     }
 

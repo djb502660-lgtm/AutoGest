@@ -19,6 +19,10 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->enum('type', ['reception', 'before', 'after', 'evidence'])->default('evidence');
             $table->timestamps();
+
+            $table->index(['service_order_id', 'type']);
+            $table->index('user_id');
+            $table->index('created_at');
         });
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Advisor;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ServiceOrderRequest;
 use App\Models\ActivityLog;
 use App\Models\ServiceOrder;
 use App\Models\User;
@@ -11,11 +12,10 @@ use App\Models\Vehicle;
 use App\Models\VehicleModelTemplate;
 use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    private ServiceOrderService $serviceOrderService;
+    private $serviceOrderService;
 
     public function __construct(ServiceOrderService $serviceOrderService)
     {
@@ -58,11 +58,11 @@ class OrderController extends Controller
         return view('advisor.orders.create', $this->formData());
     }
 
-    public function store(Request $request)
+    public function store(ServiceOrderRequest $request)
     {
         $this->authorize('create', ServiceOrder::class);
 
-        $validated = $this->validateOrder($request);
+        $validated = $request->validated();
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
         $user = $request->user();
 
@@ -93,7 +93,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['vehicle.client', 'client', 'mechanic', 'advisor', 'maintenances', 'comments.user']);
+        $order->load(['vehicle.client', 'client', 'mechanic', 'advisor', 'maintenances', 'comments.user', 'photos.user']);
 
         return view('advisor.orders.show', array_merge(
             [
@@ -128,11 +128,11 @@ class OrderController extends Controller
         ));
     }
 
-    public function update(Request $request, ServiceOrder $order)
+    public function update(ServiceOrderRequest $request, ServiceOrder $order)
     {
         $this->authorize('update', $order);
 
-        $validated = $this->validateOrder($request, $order);
+        $validated = $request->validated();
         $vehicle = Vehicle::findOrFail($validated['vehicle_id']);
 
         $order->update([
@@ -143,7 +143,7 @@ class OrderController extends Controller
             'description' => $validated['description'],
             'scheduled_at' => $validated['scheduled_at'] ?? null,
             'estimated_cost' => $validated['estimated_cost'] ?? null,
-            'status' => $validated['status'],
+            'status' => $validated['status'] ?? $order->status,
         ]);
 
         ActivityLog::record(
@@ -188,32 +188,6 @@ class OrderController extends Controller
             ->with('success', $previousMechanic && $previousMechanic->isNot($mechanic)
                 ? "Orden reasignada correctamente a {$mechanic->name}."
                 : "Mecánico {$mechanic->name} asignado a la orden.");
-    }
-
-    private function validateOrder(Request $request, ?ServiceOrder $order = null): array
-    {
-        $validated = $request->validate([
-            'vehicle_id' => ['required', 'exists:vehicles,id'],
-            'mechanic_id' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', UserRole::Mechanic->value)->where('status', 'activo')),
-            ],
-            'priority' => ['required', Rule::in(['baja', 'normal', 'alta', 'urgente'])],
-            'description' => ['required', 'string', 'max:1000'],
-            'scheduled_at' => ['nullable', 'date'],
-            'estimated_cost' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['nullable', Rule::in(['recibida', 'en_proceso', 'completada', 'entregada', 'cancelada'])],
-        ], [], [
-            'vehicle_id' => 'vehículo',
-            'mechanic_id' => 'mecánico',
-            'description' => 'descripción',
-            'scheduled_at' => 'fecha programada',
-            'estimated_cost' => 'costo estimado',
-        ]);
-
-        $validated['status'] = $validated['status'] ?? $order?->status ?? 'recibida';
-
-        return $validated;
     }
 
     private function formData(): array

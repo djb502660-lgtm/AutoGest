@@ -4,46 +4,98 @@ namespace App\DTOs;
 
 class MaintenanceDTO
 {
+    private $serviceOrderId;
+
+    private $vehicleId;
+
+    private $mechanicId;
+
+    private $type;
+
+    private $description;
+
+    private $mileageAtService;
+
+    private $fuelLevel;
+
+    private $inventorySpareWheel;
+
+    private $inventoryTools;
+
+    private $inventoryRadio;
+
+    private $inventoryDocuments;
+
+    private $partsUsed;
+
+    private $technicalNotes;
+
+    private $cost;
+
+    private $partsCost;
+
+    private $laborCost;
+
+    private $status;
+
     public function __construct(
-        public ?int $serviceOrderId,
-        public ?int $vehicleId,
-        public ?int $mechanicId,
-        public string $type,
-        public ?string $description = null,
-        public ?int $mileageAtService = null,
-        public ?string $fuelLevel = null,
-        public ?string $inventorySpareWheel = null,
-        public ?string $inventoryTools = null,
-        public ?string $inventoryRadio = null,
-        public ?string $inventoryDocuments = null,
-        public ?string $partsUsed = null,
-        public ?string $technicalNotes = null,
-        public ?float $cost = null,
-        public ?float $partsCost = null,
-        public ?float $laborCost = null,
-        public string $status = 'pendiente'
-    ) {}
+        ?int $serviceOrderId,
+        ?int $vehicleId,
+        ?int $mechanicId,
+        string $type,
+        ?string $description = null,
+        ?int $mileageAtService = null,
+        ?string $fuelLevel = null,
+        ?string $inventorySpareWheel = null,
+        ?string $inventoryTools = null,
+        ?string $inventoryRadio = null,
+        ?string $inventoryDocuments = null,
+        ?string $partsUsed = null,
+        ?string $technicalNotes = null,
+        ?float $cost = null,
+        ?float $partsCost = null,
+        ?float $laborCost = null,
+        string $status = 'pendiente'
+    ) {
+        $this->serviceOrderId = $serviceOrderId;
+        $this->vehicleId = $vehicleId;
+        $this->mechanicId = $mechanicId;
+        $this->type = $type;
+        $this->description = $description;
+        $this->mileageAtService = $mileageAtService;
+        $this->fuelLevel = $fuelLevel;
+        $this->inventorySpareWheel = $inventorySpareWheel;
+        $this->inventoryTools = $inventoryTools;
+        $this->inventoryRadio = $inventoryRadio;
+        $this->inventoryDocuments = $inventoryDocuments;
+        $this->partsUsed = $partsUsed;
+        $this->technicalNotes = $technicalNotes;
+        $this->cost = $cost;
+        $this->partsCost = $partsCost;
+        $this->laborCost = $laborCost;
+        $this->status = $status;
+    }
 
     public static function fromArray(array $data): self
     {
         return new self(
-            serviceOrderId: $data['service_order_id'] ?? null,
-            vehicleId: $data['vehicle_id'] ?? null,
-            mechanicId: $data['mechanic_id'] ?? null,
-            type: $data['type'],
-            description: $data['description'] ?? null,
-            mileageAtService: $data['mileage_at_service'] ?? null,
-            fuelLevel: $data['fuel_level'] ?? null,
-            inventorySpareWheel: $data['inventory_spare_wheel'] ?? null,
-            inventoryTools: $data['inventory_tools'] ?? null,
-            inventoryRadio: $data['inventory_radio'] ?? null,
-            inventoryDocuments: $data['inventory_documents'] ?? null,
-            partsUsed: $data['parts_used'] ?? null,
-            technicalNotes: $data['technical_notes'] ?? null,
-            cost: $data['cost'] ?? null,
-            partsCost: $data['parts_cost'] ?? null,
-            laborCost: $data['labor_cost'] ?? null,
-            status: $data['status'] ?? 'pendiente'
+            $data['service_order_id'] ?? null,
+            $data['vehicle_id'] ?? null,
+            $data['mechanic_id'] ?? null,
+            $data['type'],
+            $data['description'] ?? null,
+            $data['mileage_at_service'] ?? null,
+            $data['fuel_level'] ?? null,
+            $data['inventory_spare_wheel'] ?? null,
+            $data['inventory_tools'] ?? null,
+            $data['inventory_radio'] ?? null,
+            $data['inventory_documents'] ?? null,
+            $data['parts_used'] ?? null,
+            $data['technical_notes'] ?? null,
+            $data['cost'] ?? null,
+            $data['parts_cost'] ?? null,
+            $data['labor_cost'] ?? null,
+            $data['status'] ?? 'pendiente'
         );
     }
 
@@ -67,6 +119,8 @@ class MaintenanceDTO
             'parts_cost' => $this->partsCost,
             'labor_cost' => $this->laborCost,
             'status' => $this->status,
-        ], fn ($value) => $value !== null);
+        ], function ($value) {
+            return $value !== null;
+        });
     }
 }

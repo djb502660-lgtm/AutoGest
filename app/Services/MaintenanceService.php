@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\MaintenanceRepositoryInterface;
 use App\DTOs\MaintenanceDTO;
+use Carbon\Carbon;
 
 class MaintenanceService
 {
@@ -54,15 +55,15 @@ class MaintenanceService
     public function getClientExpensesSummary($clientId, $year = null)
     {
         $year = $year ?? (int) now()->year;
-        $startOfYear = \Carbon\Carbon::create($year, 1, 1)->startOfDay();
+        $startOfYear = Carbon::create($year, 1, 1)->startOfDay();
 
-        $maintenances = $this->getRecentMaintenances(1000);
-
-        $maintenances = $maintenances->filter(function ($m) use ($clientId, $startOfYear) {
-            return $m->vehicle && $m->vehicle->client_id === $clientId
-                && $m->status === 'completado'
-                && $m->performed_at >= $startOfYear;
-        });
+        $maintenances = $this->maintenanceRepository->whereHas('vehicle', function ($q) use ($clientId) {
+            $q->where('client_id', $clientId);
+        })
+            ->where('status', 'completado')
+            ->where('performed_at', '>=', $startOfYear)
+            ->with('vehicle')
+            ->get();
 
         $count = $maintenances->count();
         $total = $maintenances->sum('cost');

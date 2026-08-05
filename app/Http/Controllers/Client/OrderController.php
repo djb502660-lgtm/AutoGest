@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\ServiceOrder;
 use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
-    private ServiceOrderService $serviceOrderService;
+    private $serviceOrderService;
 
     public function __construct(ServiceOrderService $serviceOrderService)
     {
@@ -43,7 +42,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['vehicle', 'mechanic', 'maintenances', 'comments.user']);
+        $order->load(['vehicle', 'mechanic', 'maintenances', 'comments.user', 'photos']);
 
         return view('client.orders.show', compact('order'));
     }

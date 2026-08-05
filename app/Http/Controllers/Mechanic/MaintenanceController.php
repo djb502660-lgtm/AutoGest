@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Mechanic;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\OrderComment;

@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\VehicleRequest;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModelTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
@@ -46,13 +45,11 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(VehicleRequest $request)
     {
         $this->authorize('create', Vehicle::class);
 
-        $validated = $request->validate($this->rules());
-
-        $vehicle = Vehicle::create($validated);
+        $vehicle = Vehicle::create($request->validated());
 
         VehicleModelTemplate::forVehicle($vehicle)->each(
             fn (VehicleModelTemplate $template) => $template->createScheduleFor($vehicle),
@@ -77,11 +74,11 @@ class VehicleController extends Controller
         ]);
     }
 
-    public function update(Request $request, Vehicle $vehicle)
+    public function update(VehicleRequest $request, Vehicle $vehicle)
     {
         $this->authorize('update', $vehicle);
 
-        $vehicle->update($request->validate($this->rules($vehicle)));
+        $vehicle->update($request->validated());
 
         ActivityLog::record(
             'vehicle.updated',
@@ -122,23 +119,5 @@ class VehicleController extends Controller
             ->where('status', 'activo')
             ->orderBy('name')
             ->get();
-    }
-
-    private function rules(?Vehicle $vehicle = null): array
-    {
-        return [
-            'client_id' => ['required', 'exists:users,id'],
-            'plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate')->ignore($vehicle?->id)],
-            'brand' => ['required', 'string', 'max:100'],
-            'model' => ['required', 'string', 'max:100'],
-            'year' => ['nullable', 'integer', 'min:1980', 'max:'.(date('Y') + 1)],
-            'color' => ['nullable', 'string', 'max:50'],
-            'mileage' => ['required', 'integer', 'min:0'],
-            'vin' => ['nullable', 'string', 'max:50'],
-            'status' => ['required', Rule::in(['activo', 'inactivo', 'en_taller'])],
-            'insurance_expiry' => ['nullable', 'date'],
-            'inspection_expiry' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ];
     }
 }

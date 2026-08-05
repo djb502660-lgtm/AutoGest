@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\UserRepositoryInterface;
 use App\DTOs\UserDTO;
+use App\Models\User;
 
 class UserService
 {
@@ -61,7 +62,7 @@ class UserService
     {
         // Esta función será implementada por el repository
         // Por ahora, delegamos a una consulta directa que se migrará después
-        $query = \App\Models\User::query();
+        $query = User::query();
 
         if ($search !== null && $search !== '') {
             $query = $query->where(function ($q) use ($search) {

@@ -175,34 +175,7 @@ class ChatbotAppointmentManageTest extends TestCase
         $this->assertStringContainsString('Revisión de frenos', $response->json('reply'));
     }
 
-    public function test_chatbot_guided_brake_symptom_flow(): void
-    {
-        $client = User::factory()->client()->create();
-
-        Vehicle::create([
-            'client_id' => $client->id,
-            'plate' => 'ABC-123',
-            'brand' => 'Chevrolet',
-            'model' => 'Aveo',
-            'year' => 2020,
-            'mileage' => 42000,
-            'status' => 'activo',
-        ]);
-
-        $step1 = $this->actingAs($client)
-            ->withSession([])
-            ->postJson(route('client.chatbot.message'), [
-                'message' => 'Mi carro hace un ruido cuando freno',
-            ]);
-
-        $step1->assertOk();
-        $this->assertStringContainsString('¿El ruido ocurre', $step1->json('reply'));
-
-        $step2 = $this->actingAs($client)
-            ->postJson(route('client.chatbot.message'), ['message' => 'Solo cuando voy rápido']);
-
-        $step2->assertOk();
-        $this->assertStringContainsString('Pastillas de freno', $step2->json('reply'));
-        $this->assertStringContainsString('agende una cita', $step2->json('reply'));
-    }
+    // ELIMINADO: test_chatbot_guided_brake_symptom_flow
+    // Funcionalidad de diagnóstico de síntomas eliminada del chatbot (Sprint 5B)
+    // El chatbot ahora solo maneja gestión básica de citas y estado de vehículos
 }

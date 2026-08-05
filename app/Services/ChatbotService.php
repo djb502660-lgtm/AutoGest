@@ -3,28 +3,32 @@
 namespace App\Services;
 
 use App\Jobs\NotifyAdvisorsOfChatbotQuery;
-use App\Models\AppointmentRequest;
-use App\Models\ChatbotFaq;
-use App\Models\ChatbotMessage;
-use App\Models\Maintenance;
-use App\Models\ServiceOrder;
 use App\Models\Vehicle;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Throwable;
 
 class ChatbotService
 {
     private const CONTEXT_KEY = 'chatbot_context';
 
+    private $appointments;
+
+    private $vehicleService;
+
+    private $serviceOrderService;
+
+    private $maintenanceService;
+
     public function __construct(
-        private ChatbotAppointmentService $appointments,
-        private VehicleService $vehicleService,
-        private ServiceOrderService $serviceOrderService,
-        private MaintenanceService $maintenanceService,
-        private ServicePhotoService $servicePhotoService,
-    ) {}
+        ChatbotAppointmentService $appointments,
+        VehicleService $vehicleService,
+        ServiceOrderService $serviceOrderService,
+        MaintenanceService $maintenanceService
+    ) {
+        $this->appointments = $appointments;
+        $this->vehicleService = $vehicleService;
+        $this->serviceOrderService = $serviceOrderService;
+        $this->maintenanceService = $maintenanceService;
+    }
 
     public function processMessage($user, string $message): string
     {
@@ -57,11 +61,6 @@ class ChatbotService
             return $this->greeting($user);
         }
 
-        // Síntomas mecánicos (diagnóstico guiado)
-        if ($symptomReply = $this->handleSymptom($user, $message, $normalized)) {
-            return $symptomReply;
-        }
-
         // Estado del vehículo
         if ($this->isVehicleStatusQuery($normalized)) {
             return $this->vehicleStatus($user);
@@ -82,21 +81,7 @@ class ChatbotService
             return $this->vehicleByPlate($user, $plate);
         }
 
-        // FAQs de la base de datos
-        if ($faqAnswer = $this->searchFaq($normalized)) {
-            $this->setContext(['last_topic' => 'faq']);
-
-            return $faqAnswer;
-        }
-
-        // Consulta abierta con IA
-        if ($aiReply = $this->askAI($user, $message)) {
-            $this->setContext(['last_topic' => 'ai']);
-
-            return $aiReply;
-        }
-
-        // Escalar a asesor humano
+        // Escalar a asesor humano (funciones limitadas según decisión de diseño)
         if ($user) {
             NotifyAdvisorsOfChatbotQuery::dispatch($user, $message);
         }
@@ -116,15 +101,14 @@ class ChatbotService
             ."Soy el asistente inteligente de **AutoGest** y estoy aquí para ayudarte con todo lo relacionado con tu vehículo.\n\n";
 
         if (! $user) {
-            return $intro."Puedes escribirme lo que necesites: consultas de mecánica, estado de tu vehículo o agendar una cita.\n\n"
+            return $intro."Puedes escribirme lo que necesites: estado de tu vehículo o agendar una cita.\n\n"
                 .'(Inicia sesión para acceder a la información de tus vehículos.)';
         }
 
         $vehicles = $this->vehicleService->getClientVehicles($user->id);
 
         if ($vehicles->isEmpty()) {
-            return $intro."Aún no tienes vehículos registrados. Contacta al taller para registrarlos.\n\n"
-                .'Mientras tanto, puedo responder consultas generales de mecánica.';
+            return $intro.'Aún no tienes vehículos registrados. Contacta al taller para registrarlos.';
         }
 
         if ($vehicles->count() === 1) {
@@ -140,9 +124,8 @@ class ChatbotService
         return $intro."¿En qué puedo ayudarte hoy?\n\n"
             ."• Consultar el estado del vehículo\n"
             ."• Agendar, consultar o modificar una cita\n"
-            ."• Revisar el historial de mantenimientos\n"
-            ."• Resolver dudas sobre mecánica\n\n"
-            .'También puedes escribirme lo que necesites con tus propias palabras.';
+            ."• Revisar el historial de mantenimientos\n\n"
+            .'Escribe lo que necesites con tus propias palabras.';
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -289,12 +272,6 @@ class ChatbotService
                 $line .= " — Mecánico: {$o->mechanic->name}";
             }
 
-            // Check if order has evidence photos
-            $hasPhotos = $this->servicePhotoService->hasEvidencePhotos($o);
-            if ($hasPhotos) {
-                $line .= " 📸 (con evidencias fotográficas)";
-            }
-
             return $line;
         })->join("\n");
 
@@ -328,105 +305,12 @@ class ChatbotService
         return "Revisando tu historial...\n\n"
             ."Durante este año has realizado:\n\n"
             ."✔️ **{$summary['count']}** mantenimientos.\n"
-            .'💲 Total invertido: **$'.number_format((float) $summary['total'], 2)."**"
+            .'💲 Total invertido: **$'.number_format((float) $summary['total'], 2).'**'
             .$expensiveLine
             ."\n\nSi deseas, puedo mostrarte el detalle de cada servicio o ayudarte a agendar uno nuevo.";
     }
 
     // ─────────────────────────────────────────────────────────────
-    // DIAGNÓSTICO GUIADO DE SÍNTOMAS
-    // ─────────────────────────────────────────────────────────────
-
-    private function handleSymptom($user, string $message, string $normalized): ?string
-    {
-        $context = session(self::CONTEXT_KEY, []);
-
-        if (($context['symptom_flow'] ?? null) === 'brake_noise') {
-            return $this->continueBrakeNoiseFlow($user, $message, $normalized, $context);
-        }
-
-        if (Str::contains($normalized, ['ruido', 'rechin', 'chirr', 'grit']) && Str::contains($normalized, ['fren', 'freno'])) {
-            $this->setContext(['symptom_flow' => 'brake_noise', 'symptom' => 'ruido al frenar']);
-
-            return "Entiendo. Voy a ayudarte a identificar el posible problema.\n\n"
-                ."¿El ruido ocurre:\n\n"
-                ."🔹 Siempre que frenas?\n"
-                ."🔹 Solo cuando el vehículo está frío?\n"
-                ."🔹 O únicamente a altas velocidades?\n\n"
-                .'Mientras más detalles me des, mejor podré orientarte.';
-        }
-
-        if (Str::contains($normalized, ['consume mucha gasolina', 'gasta mucha gasolina', 'mucho combustible', 'bajo rendimiento'])) {
-            $this->setContext(['symptom_flow' => 'fuel_consumption', 'last_topic' => 'fuel']);
-
-            return "Ese problema puede deberse a varias causas.\n\n"
-                ."Las más comunes son:\n\n"
-                ."• Filtro de aire obstruido\n"
-                ."• Bujías desgastadas\n"
-                ."• Inyectores sucios\n"
-                ."• Presión incorrecta de las llantas\n"
-                ."• Sensor de oxígeno defectuoso\n\n"
-                ."Para darte una recomendación más precisa, ¿se encendió la luz de **Check Engine**?\n\n"
-                .'También puedo agendar una revisión de diagnóstico en el taller.';
-        }
-
-        if (Str::contains($normalized, ['cambiar las llantas', 'cambiar llantas', 'debo cambiar llantas', 'cuando cambiar llantas'])) {
-            $this->setContext(['symptom_flow' => 'tire_check', 'last_topic' => 'tires']);
-
-            return "Puedo ayudarte a determinarlo.\n\n"
-                ."¿Aproximadamente cuántos kilómetros tienen las llantas actuales?\n\n"
-                .'¿Has notado desgaste irregular o poca adherencia cuando llueve?';
-        }
-
-        if (($context['symptom_flow'] ?? null) === 'tire_check') {
-            if (preg_match('/(\d[\d\s\.]*)\s*(mil|km|kilomet)/u', $normalized, $m)) {
-                $km = (int) preg_replace('/\D/', '', $m[1]);
-                $this->setContext(['symptom_flow' => null, 'last_topic' => 'tires', 'tire_km' => $km]);
-
-                return "Gracias por la información.\n\n"
-                    ."Generalmente unas llantas duran entre 40 000 y 60 000 kilómetros, dependiendo del tipo de conducción y del mantenimiento.\n\n"
-                    ."Con el kilometraje que me indicas ({$km} km), es recomendable realizar una **inspección** para verificar la profundidad del dibujo y el estado general.\n\n"
-                    .'Si lo deseas, puedo agendar una revisión sin compromiso. Solo dime cuándo te conviene.';
-            }
-        }
-
-        return null;
-    }
-
-    private function continueBrakeNoiseFlow($user, string $message, string $normalized, array $context): string
-    {
-        if (Str::contains($normalized, ['siempre', 'cada vez', 'todo el tiempo'])) {
-            $detail = 'siempre que frena';
-        } elseif (Str::contains($normalized, ['frio', 'frío', 'arranque', 'calent'])) {
-            $detail = 'cuando el vehículo está frío';
-        } elseif (Str::contains($normalized, ['veloc', 'rapido', 'rápido', 'autopista', 'carretera'])) {
-            $detail = 'a altas velocidades';
-        } else {
-            return 'Gracias. ¿El ruido ocurre siempre que frenas, cuando está frío o solo a altas velocidades?';
-        }
-
-        $this->setContext([
-            'symptom_flow' => null,
-            'last_topic' => 'brake_noise',
-            'symptom_detail' => $detail,
-        ]);
-
-        $reply = "Gracias por la información.\n\n"
-            ."Ese síntoma ({$detail}) suele estar relacionado con:\n\n"
-            ."• Pastillas de freno desgastadas\n"
-            ."• Discos de freno deformados\n"
-            ."• Componentes sueltos del sistema de frenado\n\n"
-            ."Por seguridad, te recomiendo una revisión lo antes posible.\n\n";
-
-        if ($user) {
-            $reply .= '¿Deseas que agende una cita para inspeccionar tu vehículo?';
-        } else {
-            $reply .= 'Inicia sesión si deseas agendar una cita de inspección.';
-        }
-
-        return $reply;
-    }
-
     // ─────────────────────────────────────────────────────────────
     // MEMORIA DE CONTEXTO
     // ─────────────────────────────────────────────────────────────
@@ -482,76 +366,6 @@ class ChatbotService
     }
 
     // ─────────────────────────────────────────────────────────────
-    // IA CON HISTORIAL
-    // ─────────────────────────────────────────────────────────────
-
-    private function askAI($user, string $prompt): ?string
-    {
-        $apiKey = config('services.openai.key', env('OPENAI_API_KEY'));
-
-        if (! $apiKey || $apiKey === 'tu_sk_live_o_test_key_aqui') {
-            return null;
-        }
-
-        try {
-            $vehicleContext = '';
-            if ($user) {
-                $vehicles = $user->vehicles()->get();
-                if ($vehicles->isNotEmpty()) {
-                    $vehicleContext = ' Vehículos del cliente: '.$vehicles->map(
-                        fn (Vehicle $v) => "{$v->brand} {$v->model} ({$v->plate})"
-                    )->join(', ').'.';
-                }
-            }
-
-            $systemPrompt = 'Eres AutoGest Bot, el asistente inteligente del taller mecánico AutoGest del ISTAE. '
-                .'Atiendes al cliente '.($user?->name ?? 'visitante').'.'.$vehicleContext.' '
-                .'Responde en español, de forma amable, concisa y experta sobre mecánica automotriz, '
-                .'servicios del taller, diagnósticos orientativos y mantenimiento preventivo. '
-                .'Haz preguntas de seguimiento cuando necesites más datos. '
-                .'Si el cliente quiere agendar, indícale que puede decir "quiero agendar una cita". '
-                .'Si no puedes resolver algo, sugiere contactar a un asesor del taller. '
-                .'No inventes precios exactos ni diagnósticos definitivos sin inspección.';
-
-            $messages = [['role' => 'system', 'content' => $systemPrompt]];
-
-            if ($user) {
-                $history = ChatbotMessage::where('user_id', $user->id)
-                    ->orderByDesc('created_at')
-                    ->take(6)
-                    ->get()
-                    ->reverse();
-
-                foreach ($history as $msg) {
-                    $messages[] = [
-                        'role' => $msg->sender === 'user' ? 'user' : 'assistant',
-                        'content' => $msg->message,
-                    ];
-                }
-            }
-
-            $messages[] = ['role' => 'user', 'content' => $prompt];
-
-            $response = Http::withToken($apiKey)
-                ->timeout(12)
-                ->post('https://api.openai.com/v1/chat/completions', [
-                    'model' => 'gpt-4o-mini',
-                    'messages' => $messages,
-                    'max_tokens' => 400,
-                    'temperature' => 0.7,
-                ]);
-
-            if ($response->successful()) {
-                return trim($response->json('choices.0.message.content'));
-            }
-        } catch (Throwable $e) {
-            \Log::warning('[ChatbotService] Error IA: '.$e->getMessage());
-        }
-
-        return null;
-    }
-
-    // ─────────────────────────────────────────────────────────────
     // UTILIDADES
     // ─────────────────────────────────────────────────────────────
 
@@ -562,26 +376,6 @@ class ChatbotService
         }
 
         return $this->appointments->handle($user, $message);
-    }
-
-    private function searchFaq(string $normalized): ?string
-    {
-        try {
-            $faq = ChatbotFaq::where('is_active', true)->get()->first(function ($item) use ($normalized) {
-                $keywords = array_map('trim', explode(',', Str::lower($item->keywords ?? '')));
-                foreach ($keywords as $kw) {
-                    if (! empty($kw) && Str::contains($normalized, $kw)) {
-                        return true;
-                    }
-                }
-
-                return Str::contains($normalized, Str::lower($item->question));
-            });
-
-            return $faq?->answer;
-        } catch (Throwable) {
-            return null;
-        }
     }
 
     private function isGreeting(string $normalized): bool
@@ -600,7 +394,7 @@ class ChatbotService
 
     private function isExpenseQuery(string $normalized): bool
     {
-        return Str::contains($normalized, [
+        return str()->contains($normalized, [
             'gastos', 'cuanto he pagado', 'cuanto gaste', 'cuánto he gastado',
             'historial de pago', 'mis pagos', 'costo', 'invertido', 'gastado',
         ]);
@@ -608,14 +402,14 @@ class ChatbotService
 
     private function isOrderQuery(string $normalized): bool
     {
-        return Str::contains($normalized, [
+        return str()->contains($normalized, [
             'orden de servicio', 'ordenes activas', 'mis ordenes', 'trabajo en el taller',
         ]);
     }
 
     private function isCostFollowUp(string $normalized): bool
     {
-        return Str::contains($normalized, [
+        return str()->contains($normalized, [
             'cuanto cost', 'cuánto cost', 'que precio', 'qué precio',
             'cuanto sale', 'cuánto sale', 'cuanto cobr', 'cuánto cobr',
             'y el costo', 'y cuanto', 'y cuánto',
@@ -630,7 +424,7 @@ class ChatbotService
 
     private function normalize(string $text): string
     {
-        $text = Str::lower(trim($text));
+        $text = mb_strtolower(trim($text), 'UTF-8');
         $map = [
             '/[áàâãä]/u' => 'a', '/[éèêë]/u' => 'e',
             '/[íìîï]/u' => 'i', '/[óòôõö]/u' => 'o',

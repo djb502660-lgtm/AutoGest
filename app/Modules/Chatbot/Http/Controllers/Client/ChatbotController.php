@@ -2,10 +2,10 @@
 
 namespace App\Modules\Chatbot\Http\Controllers\Client;
 
+use App\Http\Controllers\Controller;
 use App\Models\ChatbotFaq;
 use App\Models\ChatbotMessage;
 use App\Services\ChatbotService;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Throwable;
 
@@ -19,7 +19,7 @@ class ChatbotController extends Controller
     {
         $userId = $request->user()?->id;
 
-        $messages = ChatbotMessage::when($userId, fn($q) => $q->where('user_id', $userId))
+        $messages = ChatbotMessage::when($userId, fn ($q) => $q->where('user_id', $userId))
             ->orderBy('created_at')
             ->take(50)
             ->get();
@@ -41,10 +41,10 @@ class ChatbotController extends Controller
         try {
             // Guardar mensaje del usuario
             ChatbotMessage::create([
-                'user_id'    => $user?->id,
+                'user_id' => $user?->id,
                 'session_id' => $request->session()->getId(),
-                'sender'     => 'user',
-                'message'    => $text,
+                'sender' => 'user',
+                'message' => $text,
             ]);
 
             // Generar respuesta con el servicio mejorado
@@ -52,16 +52,17 @@ class ChatbotController extends Controller
 
             // Guardar respuesta del bot
             ChatbotMessage::create([
-                'user_id'    => $user?->id,
+                'user_id' => $user?->id,
                 'session_id' => $request->session()->getId(),
-                'sender'     => 'bot',
-                'message'    => $reply,
+                'sender' => 'bot',
+                'message' => $reply,
             ]);
 
             return response()->json(['reply' => $reply]);
 
         } catch (Throwable $e) {
-            \Log::error('[ChatbotController] Error: ' . $e->getMessage());
+            \Log::error('[ChatbotController] Error: '.$e->getMessage());
+
             return response()->json([
                 'reply' => 'Tuve un pequeño contratiempo. ¿Puedes intentarlo de nuevo?',
             ]);

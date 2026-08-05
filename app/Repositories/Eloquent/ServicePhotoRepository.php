@@ -4,7 +4,6 @@ namespace App\Repositories\Eloquent;
 
 use App\Contracts\Repositories\ServicePhotoRepositoryInterface;
 use App\Models\ServicePhoto;
-use Illuminate\Database\Eloquent\Collection;
 
 class ServicePhotoRepository implements ServicePhotoRepositoryInterface
 {
@@ -23,8 +22,10 @@ class ServicePhotoRepository implements ServicePhotoRepositoryInterface
         $photo = $this->find($id);
         if ($photo) {
             $photo->update($data);
+
             return $photo;
         }
+
         return null;
     }
 
@@ -34,6 +35,7 @@ class ServicePhotoRepository implements ServicePhotoRepositoryInterface
         if ($photo) {
             return $photo->delete();
         }
+
         return false;
     }
 

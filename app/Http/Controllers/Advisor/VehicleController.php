@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Advisor;
 
 use App\Http\Controllers\Controller;
-use App\Models\Vehicle;
 use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -49,7 +49,7 @@ class VehicleController extends Controller
             'plate' => ['required', 'string', 'max:20', 'unique:vehicles,plate'],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'color' => ['nullable', 'string', 'max:50'],
             'mileage' => ['required', 'integer', 'min:0'],
             'vin' => ['nullable', 'string', 'max:50'],
@@ -90,7 +90,7 @@ class VehicleController extends Controller
             'plate' => ['required', 'string', 'max:20', Rule::unique('vehicles', 'plate')->ignore($vehicle->id)],
             'brand' => ['required', 'string', 'max:100'],
             'model' => ['required', 'string', 'max:100'],
-            'year' => ['nullable', 'integer', 'min:1900', 'max:' . (date('Y') + 1)],
+            'year' => ['nullable', 'integer', 'min:1900', 'max:'.(date('Y') + 1)],
             'color' => ['nullable', 'string', 'max:50'],
             'mileage' => ['required', 'integer', 'min:0'],
             'vin' => ['nullable', 'string', 'max:50'],

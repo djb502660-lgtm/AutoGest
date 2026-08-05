@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\Category;
 use App\Models\Brand;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\Purchase;
 
@@ -43,9 +43,12 @@ class InventoryService
     public function updateStock($productId, $quantity)
     {
         $product = Product::find($productId);
-        if (!$product) return false;
+        if (! $product) {
+            return false;
+        }
 
         $product->stock = $quantity;
+
         return $product->save();
     }
 

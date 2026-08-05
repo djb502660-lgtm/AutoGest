@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Advisor;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AppointmentRejectRequest;
+use App\Http\Requests\AppointmentRequest;
 use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\AppointmentRequest;
@@ -12,7 +14,6 @@ use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModelTemplate;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class AppointmentRequestController extends Controller
 {
@@ -40,19 +41,13 @@ class AppointmentRequestController extends Controller
         ]);
     }
 
-    public function confirm(Request $request, AppointmentRequest $appointment)
+    public function confirm(AppointmentRequest $request, AppointmentRequest $appointment)
     {
         if (! in_array($appointment->status, ['pendiente', 'confirmada'], true)) {
             return back()->withErrors(['appointment' => 'Esta solicitud ya fue procesada.']);
         }
 
-        $validated = $request->validate([
-            'mechanic_id' => [
-                'nullable',
-                Rule::exists('users', 'id')->where(fn ($q) => $q->where('role', UserRole::Mechanic->value)->where('status', 'activo')),
-            ],
-            'advisor_notes' => ['nullable', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $advisor = $request->user();
         $scheduledAt = $appointment->requested_date->copy();
@@ -105,15 +100,13 @@ class AppointmentRequestController extends Controller
             ->with('success', 'Solicitud confirmada y convertida en orden de trabajo.');
     }
 
-    public function reject(Request $request, AppointmentRequest $appointment)
+    public function reject(AppointmentRejectRequest $request, AppointmentRequest $appointment)
     {
         if ($appointment->status !== 'pendiente') {
             return back()->withErrors(['appointment' => 'Esta solicitud ya fue procesada.']);
         }
 
-        $validated = $request->validate([
-            'advisor_notes' => ['required', 'string', 'max:1000'],
-        ]);
+        $validated = $request->validated();
 
         $appointment->update([
             'status' => 'rechazada',

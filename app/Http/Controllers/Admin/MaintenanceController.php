@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\MaintenanceRequest;
 use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class MaintenanceController extends Controller
 {
@@ -54,11 +53,11 @@ class MaintenanceController extends Controller
         return view('admin.maintenances.create', $this->formData());
     }
 
-    public function store(Request $request)
+    public function store(MaintenanceRequest $request)
     {
         $this->authorize('create', Maintenance::class);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
         $validated['service_order_id'] = $validated['service_order_id'] ?: null;
 
         $maintenance = Maintenance::create($validated);
@@ -85,11 +84,11 @@ class MaintenanceController extends Controller
         ]);
     }
 
-    public function update(Request $request, Maintenance $maintenance)
+    public function update(MaintenanceRequest $request, Maintenance $maintenance)
     {
         $this->authorize('update', $maintenance);
 
-        $validated = $request->validate($this->rules());
+        $validated = $request->validated();
         $validated['service_order_id'] = $validated['service_order_id'] ?: null;
 
         $oldOrderId = $maintenance->service_order_id;
@@ -130,30 +129,6 @@ class MaintenanceController extends Controller
             'vehicles' => Vehicle::with('client')->orderBy('plate')->get(),
             'mechanics' => User::where('role', UserRole::Mechanic)->where('status', 'activo')->orderBy('name')->get(),
             'orders' => ServiceOrder::with('vehicle')->latest()->take(50)->get(),
-        ];
-    }
-
-    private function rules(): array
-    {
-        return [
-            'service_order_id' => ['nullable', 'exists:service_orders,id'],
-            'vehicle_id' => ['required', 'exists:vehicles,id'],
-            'mechanic_id' => ['required', 'exists:users,id'],
-            'type' => ['required', Rule::in(['preventivo', 'correctivo', 'garantia'])],
-            'description' => ['required', 'string', 'max:255'],
-            'mileage_at_service' => ['required', 'integer', 'min:0'],
-            'fuel_level' => ['required', 'string', 'in:Reserva,1/4,1/2,3/4,Lleno'],
-            'inventory_spare_wheel' => ['nullable', 'boolean'],
-            'inventory_tools' => ['nullable', 'boolean'],
-            'inventory_radio' => ['nullable', 'boolean'],
-            'inventory_documents' => ['nullable', 'boolean'],
-            'parts_used' => ['nullable', 'string'],
-            'technical_notes' => ['nullable', 'string'],
-            'cost' => ['nullable', 'numeric', 'min:0'],
-            'parts_cost' => ['nullable', 'numeric', 'min:0'],
-            'labor_cost' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', Rule::in(['pendiente', 'en_proceso', 'completado', 'cancelado'])],
-            'performed_at' => ['required', 'date'],
         ];
     }
 

@@ -52,7 +52,7 @@ class PurchaseController extends Controller
         ]);
 
         $purchase = Purchase::create([
-            'purchase_number' => 'COMP-' . date('Y-m') . '-' . str_pad(Purchase::count() + 1, 4, '0', STR_PAD_LEFT),
+            'purchase_number' => 'COMP-'.date('Y-m').'-'.str_pad(Purchase::count() + 1, 4, '0', STR_PAD_LEFT),
             'supplier_id' => $validated['supplier_id'],
             'purchase_date' => $validated['purchase_date'],
             'subtotal' => 0,
@@ -190,7 +190,7 @@ class PurchaseController extends Controller
                 'previous_stock' => $previousStock,
                 'new_stock' => $newStock,
                 'purchase_id' => $purchase->id,
-                'notes' => 'Recepción de compra ' . $purchase->purchase_number,
+                'notes' => 'Recepción de compra '.$purchase->purchase_number,
             ]);
         }
 

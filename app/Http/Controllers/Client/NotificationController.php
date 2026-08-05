@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-
 use App\Models\Alert;
 use Illuminate\Http\Request;
 

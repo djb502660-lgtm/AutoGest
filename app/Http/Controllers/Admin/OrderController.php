@@ -2,19 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
-use App\Models\ActivityLog;
 use App\Models\ServiceOrder;
-use App\Models\User;
-use App\Models\Vehicle;
 use App\Services\ServiceOrderService;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    private ServiceOrderService $serviceOrderService;
+    private $serviceOrderService;
 
     public function __construct(ServiceOrderService $serviceOrderService)
     {
@@ -46,7 +41,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['vehicle.client', 'client', 'mechanic', 'advisor', 'maintenances', 'comments.user']);
+        $order->load(['vehicle.client', 'client', 'mechanic', 'advisor', 'maintenances', 'comments.user', 'photos.user']);
 
         return view('admin.orders.show', compact('order'));
     }

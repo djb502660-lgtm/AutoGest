@@ -12,5 +12,3 @@ Route::middleware(['web', 'auth', 'role:cliente'])
             ->middleware('throttle:60,1')
             ->name('chatbot.message');
     });
-
-

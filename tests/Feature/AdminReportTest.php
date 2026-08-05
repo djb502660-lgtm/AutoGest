@@ -2,10 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
-use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
 use Illuminate\Foundation\Testing\RefreshDatabase;

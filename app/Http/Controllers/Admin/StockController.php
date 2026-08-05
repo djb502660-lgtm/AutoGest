@@ -44,7 +44,7 @@ class StockController extends Controller
         // Mapear campos del modal a los campos del modelo
         $tipoMovimiento = $request->input('tipo_movimiento') ?? $request->input('type');
         $productId = $request->input('product_id');
-        
+
         // Mapear tipo de movimiento al formato del modelo
         $typeMap = [
             'ingreso' => 'entrada',
@@ -71,6 +71,7 @@ class StockController extends Controller
                 if ($request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => 'No hay suficiente stock para esta salida.']);
                 }
+
                 return redirect()
                     ->back()
                     ->with('error', 'No hay suficiente stock para esta salida.');

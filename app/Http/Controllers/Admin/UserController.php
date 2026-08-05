@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
+use App\DTOs\UserDTO;
 use App\Enums\UserRole;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\UserRequest;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\UserService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -53,20 +53,13 @@ class UserController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
         $this->authorize('create', User::class);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', Password::defaults()],
-            'role' => ['required', Rule::enum(UserRole::class)],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'status' => ['required', Rule::in(['activo', 'inactivo'])],
-        ]);
+        $validated = $request->validated();
 
-        $user = $this->userService->createUser(new \App\DTOs\UserDTO(
+        $user = $this->userService->createUser(new UserDTO(
             name: $validated['name'],
             email: $validated['email'],
             password: $validated['password'],
@@ -97,18 +90,11 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(Request $request, User $user)
+    public function update(UserRequest $request, User $user)
     {
         $this->authorize('update', $user);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => ['nullable', Password::defaults()],
-            'role' => ['required', Rule::enum(UserRole::class)],
-            'phone' => ['nullable', 'string', 'max:20'],
-            'status' => ['required', Rule::in(['activo', 'inactivo'])],
-        ]);
+        $validated = $request->validated();
 
         $updateData = [
             'name' => $validated['name'],
@@ -122,7 +108,7 @@ class UserController extends Controller
             $updateData['password'] = $validated['password'];
         }
 
-        $this->userService->updateUser($user->id, new \App\DTOs\UserDTO(
+        $this->userService->updateUser($user->id, new UserDTO(
             name: $validated['name'],
             email: $validated['email'],
             password: $validated['password'] ?? '',
@@ -189,7 +175,7 @@ class UserController extends Controller
             return redirect()
                 ->route('users.index')
                 ->with('success', 'Usuario eliminado correctamente.');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Si hay error de foreign key, desactivar en su lugar
             $this->userService->updateUserStatus($user->id, 'inactivo');
 

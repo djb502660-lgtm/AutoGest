@@ -4,13 +4,29 @@ namespace App\DTOs;
 
 class ServicePhotoDTO
 {
+    private $serviceOrderId;
+
+    private $userId;
+
+    private $photoPath;
+
+    private $description;
+
+    private $type;
+
     public function __construct(
-        public readonly int $serviceOrderId,
-        public readonly int $userId,
-        public readonly string $photoPath,
-        public readonly ?string $description = null,
-        public readonly string $type = 'evidence',
-    ) {}
+        int $serviceOrderId,
+        int $userId,
+        string $photoPath,
+        ?string $description = null,
+        string $type = 'evidence'
+    ) {
+        $this->serviceOrderId = $serviceOrderId;
+        $this->userId = $userId;
+        $this->photoPath = $photoPath;
+        $this->description = $description;
+        $this->type = $type;
+    }
 
     public function toArray(): array
     {
