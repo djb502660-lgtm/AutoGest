@@ -219,9 +219,10 @@ class AdminReportTest extends TestCase
                 'type' => 'vehiculos',
             ]));
 
-        $this->assertDatabaseHas('activity_logs', [
-            'action' => 'report.downloaded',
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'report_downloaded',
             'user_id' => $admin->id,
+            'module' => 'reports',
         ]);
     }
 
@@ -234,9 +235,10 @@ class AdminReportTest extends TestCase
                 'type' => 'vehiculos',
             ]));
 
-        $this->assertDatabaseHas('activity_logs', [
-            'action' => 'report.downloaded',
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'report_downloaded',
             'user_id' => $admin->id,
+            'module' => 'reports',
         ]);
     }
 

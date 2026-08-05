@@ -8,6 +8,13 @@ use App\Models\Vehicle;
 
 class ReportService
 {
+    private $auditService;
+
+    public function __construct(AuditService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
+
     public function getMaintenanceReport(?int $vehicleId = null, ?string $from = null, ?string $to = null): array
     {
         $query = Maintenance::with(['vehicle', 'mechanic'])
@@ -172,6 +179,14 @@ class ReportService
 
         $data['type'] = $type;
         $data['filters_label'] = $this->getFiltersLabel($validated);
+
+        $this->auditService->logReportAction(
+            'report_generated',
+            "Reporte de tipo {$type} generado con filtros: {$data['filters_label']}",
+            auth()->id(),
+            null,
+            ['type' => $type, 'filters' => $validated]
+        );
 
         return $data;
     }

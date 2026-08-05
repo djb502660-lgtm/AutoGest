@@ -3,7 +3,6 @@
 namespace App\Modules\Chatbot\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
-use App\Models\ChatbotFaq;
 use App\Models\ChatbotMessage;
 use App\Services\ChatbotService;
 use Illuminate\Http\Request;
@@ -24,9 +23,7 @@ class ChatbotController extends Controller
             ->take(50)
             ->get();
 
-        $faqs = ChatbotFaq::where('is_active', true)->orderBy('sort_order')->get();
-
-        return view('client.chatbot.index', compact('messages', 'faqs'));
+        return view('client.chatbot.index', compact('messages'));
     }
 
     public function message(Request $request)

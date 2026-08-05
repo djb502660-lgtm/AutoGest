@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Advisor;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AppointmentRejectRequest;
-use App\Http\Requests\AppointmentRequest;
+use App\Http\Requests\AppointmentRequest as AppointmentFormRequest;
 use App\Models\ActivityLog;
 use App\Models\Alert;
 use App\Models\AppointmentRequest;
@@ -41,13 +41,13 @@ class AppointmentRequestController extends Controller
         ]);
     }
 
-    public function confirm(AppointmentRequest $request, AppointmentRequest $appointment)
+    public function confirm(AppointmentFormRequest $formRequest, AppointmentRequest $appointment)
     {
         if (! in_array($appointment->status, ['pendiente', 'confirmada'], true)) {
             return back()->withErrors(['appointment' => 'Esta solicitud ya fue procesada.']);
         }
 
-        $validated = $request->validated();
+        $validated = $formRequest->validated();
 
         $advisor = $request->user();
         $scheduledAt = $appointment->requested_date->copy();

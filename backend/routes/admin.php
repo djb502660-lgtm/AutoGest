@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\CategoryController;
@@ -39,6 +40,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/perfil', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/perfil', [ProfileController::class, 'update'])->name('profile.update');
+
+    // Audit Log
+    Route::get('/auditoria', [AuditController::class, 'index'])->name('audit.index');
+    Route::get('/auditoria/{auditLog}', [AuditController::class, 'show'])->name('audit.show');
 
     // Inventory Management
     Route::get('/inventario', [InventoryController::class, 'index'])->name('inventory.index');

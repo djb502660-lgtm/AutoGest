@@ -7,10 +7,18 @@ use App\Http\Requests\ProductRequest;
 use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\AuditService;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    private $auditService;
+
+    public function __construct(AuditService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
+
     public function index(Request $request)
     {
         $search = $request->string('search')->trim();
@@ -68,7 +76,15 @@ class ProductController extends Controller
             'is_active' => true,
         ];
 
-        Product::create($mappedData);
+        $product = Product::create($mappedData);
+
+        $this->auditService->logInventoryAction(
+            'product_created',
+            "Producto {$product->sku} creado",
+            auth()->id(),
+            null,
+            ['id' => $product->id, 'sku' => $product->sku, 'name' => $product->name]
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Producto creado correctamente.']);
@@ -91,8 +107,17 @@ class ProductController extends Controller
     public function update(ProductRequest $request, Product $product)
     {
         $validated = $request->validated();
+        $oldValues = $product->toArray();
 
         $product->update($validated);
+
+        $this->auditService->logInventoryAction(
+            'product_updated',
+            "Producto {$product->sku} actualizado",
+            auth()->id(),
+            $oldValues,
+            $validated
+        );
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Producto actualizado correctamente.']);
@@ -110,6 +135,14 @@ class ProductController extends Controller
                 ->route('products.index')
                 ->with('error', 'No se puede eliminar el producto porque tiene registros asociados.');
         }
+
+        $this->auditService->logInventoryAction(
+            'product_deleted',
+            "Producto {$product->sku} eliminado",
+            auth()->id(),
+            ['id' => $product->id, 'sku' => $product->sku, 'name' => $product->name],
+            null
+        );
 
         $product->delete();
 

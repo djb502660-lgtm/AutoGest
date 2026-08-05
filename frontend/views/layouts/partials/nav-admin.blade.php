@@ -14,6 +14,7 @@
     <div class="menu-label">📂 ADMINISTRACIÓN Y USUARIOS</div>
     <a class="menu-item nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">👥 Gestión de Usuarios</a>
     <a class="menu-item nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">📈 Reportes e Indicadores</a>
+    <a class="menu-item nav-link {{ request()->routeIs('audit.*') ? 'active' : '' }}" href="{{ route('audit.index') }}">🔍 Auditoría del Sistema</a>
 
     <div class="menu-label">Cuenta</div>
     <a class="menu-item nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.edit') }}">👤 Mi perfil</a>

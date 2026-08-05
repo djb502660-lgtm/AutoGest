@@ -44,7 +44,17 @@ class ServiceOrderService
             'progress' => 0,
         ]);
 
-        return $this->serviceOrderRepository->create($orderData);
+        $order = $this->serviceOrderRepository->create($orderData);
+
+        $this->auditService->logOrderAction(
+            'order_created',
+            "Orden {$order->order_number} creada por asesor",
+            $advisorId,
+            null,
+            ['id' => $order->id, 'order_number' => $order->order_number, 'client_id' => $order->client_id, 'vehicle_id' => $order->vehicle_id]
+        );
+
+        return $order;
     }
 
     public function createOrder(ServiceOrderDTO $dto)
@@ -59,12 +69,41 @@ class ServiceOrderService
 
     public function deleteOrder($id)
     {
-        return $this->serviceOrderRepository->delete($id);
+        $order = $this->serviceOrderRepository->find($id);
+
+        $result = $this->serviceOrderRepository->delete($id);
+
+        if ($result) {
+            $this->auditService->logOrderAction(
+                'order_deleted',
+                "Orden {$order->order_number} eliminada",
+                auth()->id(),
+                ['id' => $order->id, 'order_number' => $order->order_number, 'client_id' => $order->client_id],
+                null
+            );
+        }
+
+        return $result;
     }
 
     public function reassignMechanic($orderId, $mechanicId)
     {
-        return $this->serviceOrderRepository->update($orderId, ['mechanic_id' => $mechanicId]);
+        $order = $this->serviceOrderRepository->find($orderId);
+        $oldMechanicId = $order->mechanic_id;
+
+        $result = $this->serviceOrderRepository->update($orderId, ['mechanic_id' => $mechanicId]);
+
+        if ($result) {
+            $this->auditService->logOrderAction(
+                'mechanic_assigned',
+                "Orden {$order->order_number} reasignada de mecánico {$oldMechanicId} a {$mechanicId}",
+                auth()->id(),
+                ['old_mechanic_id' => $oldMechanicId],
+                ['new_mechanic_id' => $mechanicId]
+            );
+        }
+
+        return $result;
     }
 
     public function updateStatus($orderId, $status, ?string $reason = null)

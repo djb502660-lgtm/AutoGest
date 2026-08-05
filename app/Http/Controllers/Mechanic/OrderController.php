@@ -32,7 +32,6 @@ class OrderController extends Controller
 
         $orders = $user->assignedOrders()
             ->with('vehicle', 'client')
-            ->whereHas('vehicle', fn ($v) => $v->where('status', 'en_taller'))
             ->when($search->isNotEmpty(), function ($q) use ($search) {
                 $q->where(function ($query) use ($search) {
                     $query->where('order_number', 'like', "%{$search}%")

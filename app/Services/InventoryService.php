@@ -9,6 +9,13 @@ use App\Models\Purchase;
 
 class InventoryService
 {
+    private $auditService;
+
+    public function __construct(AuditService $auditService)
+    {
+        $this->auditService = $auditService;
+    }
+
     public function getInventorySummary()
     {
         return [
@@ -16,7 +23,7 @@ class InventoryService
             'categories' => Category::with('brands')->orderBy('name')->get(),
             'brands' => Brand::orderBy('name')->get(),
             'total_products' => Product::count(),
-            'low_stock' => Product::where('stock', '<', 10)->count(),
+            'low_stock' => Product::where('stock_quantity', '<', 10)->count(),
         ];
     }
 
@@ -47,9 +54,26 @@ class InventoryService
             return false;
         }
 
+        $oldStock = $product->stock;
         $product->stock = $quantity;
+        $result = $product->save();
 
-        return $product->save();
+        if ($result) {
+            $action = $quantity < $oldStock ? 'stock_removed' : 'stock_updated';
+            $description = $quantity < $oldStock
+                ? "Stock de producto {$product->sku} reducido de {$oldStock} a {$quantity}"
+                : "Stock de producto {$product->sku} actualizado de {$oldStock} a {$quantity}";
+
+            $this->auditService->logInventoryAction(
+                $action,
+                $description,
+                auth()->id(),
+                ['old_stock' => $oldStock],
+                ['new_stock' => $quantity]
+            );
+        }
+
+        return $result;
     }
 
     public function getTotalInventoryValue()

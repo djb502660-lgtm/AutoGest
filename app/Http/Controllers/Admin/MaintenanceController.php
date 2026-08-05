@@ -84,6 +84,15 @@ class MaintenanceController extends Controller
         ]);
     }
 
+    public function show(Maintenance $maintenance)
+    {
+        $this->authorize('view', $maintenance);
+
+        $maintenance->load(['vehicle', 'mechanic', 'serviceOrder.photos']);
+
+        return view('admin.maintenances.show', compact('maintenance'));
+    }
+
     public function update(MaintenanceRequest $request, Maintenance $maintenance)
     {
         $this->authorize('update', $maintenance);

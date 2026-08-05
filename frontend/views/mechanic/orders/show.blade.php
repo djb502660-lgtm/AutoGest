@@ -122,7 +122,7 @@
 @endpush
 
 @section('content')
-    <form action="{{ route('mechanic.orders.status', $order) }}" method="POST">
+    <form action="{{ route('mechanic.orders.status', $order) }}" method="POST" enctype="multipart/form-data">
       @csrf @method('PUT')
 
       <!-- SECCIÓN 1: DATOS DEL CLIENTE Y VEHÍCULO -->

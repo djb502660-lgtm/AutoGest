@@ -8,6 +8,7 @@ use App\Models\ActivityLog;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
 use App\Models\Vehicle;
+use App\Services\AuditService;
 use App\Services\ReportService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -16,10 +17,12 @@ use Illuminate\Support\Facades\Mail;
 class ReportController extends Controller
 {
     private ReportService $reportService;
+    private AuditService $auditService;
 
-    public function __construct(ReportService $reportService)
+    public function __construct(ReportService $reportService, AuditService $auditService)
     {
         $this->reportService = $reportService;
+        $this->auditService = $auditService;
     }
 
     public function index()
@@ -69,10 +72,12 @@ class ReportController extends Controller
 
         $filename = 'reporte-'.$validated['type'].'-'.now()->format('Y-m-d-His').'.pdf';
 
-        ActivityLog::record(
-            'report.downloaded',
-            "Se descargó el reporte «{$report['title']}» en PDF.",
-            user: $request->user(),
+        $this->auditService->logReportAction(
+            'report_downloaded',
+            "Reporte «{$report['title']}» descargado en PDF",
+            auth()->id(),
+            null,
+            ['type' => $validated['type'], 'format' => 'pdf']
         );
 
         return $pdf->download($filename);
@@ -86,10 +91,12 @@ class ReportController extends Controller
 
         Mail::to($admin->email)->send(new AdminReportMail($report, $admin));
 
-        ActivityLog::record(
-            'report.emailed',
-            "Se envió por correo el reporte «{$report['title']}» a {$admin->email}.",
-            user: $admin,
+        $this->auditService->logReportAction(
+            'report_emailed',
+            "Reporte «{$report['title']}» enviado por correo a {$admin->email}",
+            auth()->id(),
+            null,
+            ['type' => $validated['type'], 'recipient' => $admin->email]
         );
 
         return redirect()
@@ -124,10 +131,12 @@ class ReportController extends Controller
             fclose($file);
         };
 
-        ActivityLog::record(
-            'report.downloaded',
-            "Se descargó el reporte «{$report['title']}» en CSV.",
-            user: $request->user(),
+        $this->auditService->logReportAction(
+            'report_downloaded',
+            "Reporte «{$report['title']}» descargado en CSV",
+            auth()->id(),
+            null,
+            ['type' => $validated['type'], 'format' => 'csv']
         );
 
         return response()->stream($callback, 200, $headers);

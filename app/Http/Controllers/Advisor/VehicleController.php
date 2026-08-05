@@ -3,13 +3,23 @@
 namespace App\Http\Controllers\Advisor;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\UserService;
+use App\Services\VehicleService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class VehicleController extends Controller
 {
+    private $userService;
+    private $vehicleService;
+
+    public function __construct(UserService $userService, VehicleService $vehicleService)
+    {
+        $this->userService = $userService;
+        $this->vehicleService = $vehicleService;
+    }
+
     public function index(Request $request)
     {
         $search = $request->string('search')->trim();
@@ -31,14 +41,14 @@ class VehicleController extends Controller
             'vehicles' => $vehicles,
             'search' => $search->toString(),
             'client' => $client,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => $this->userService->getActiveClients(),
         ]);
     }
 
     public function create()
     {
         return view('advisor.vehicles.create', [
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => $this->userService->getActiveClients(),
         ]);
     }
 
@@ -79,7 +89,7 @@ class VehicleController extends Controller
     {
         return view('advisor.vehicles.edit', [
             'vehicle' => $vehicle,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => $this->userService->getActiveClients(),
         ]);
     }
 
