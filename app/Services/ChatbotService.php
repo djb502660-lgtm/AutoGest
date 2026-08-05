@@ -23,6 +23,7 @@ class ChatbotService
         private VehicleService $vehicleService,
         private ServiceOrderService $serviceOrderService,
         private MaintenanceService $maintenanceService,
+        private ServicePhotoService $servicePhotoService,
     ) {}
 
     public function processMessage($user, string $message): string
@@ -286,6 +287,12 @@ class ChatbotService
             $line = "• **{$o->order_number}** – {$o->vehicle?->plate}: {$o->statusLabel()} ({$o->progress}%)";
             if ($o->mechanic) {
                 $line .= " — Mecánico: {$o->mechanic->name}";
+            }
+
+            // Check if order has evidence photos
+            $hasPhotos = $this->servicePhotoService->hasEvidencePhotos($o);
+            if ($hasPhotos) {
+                $line .= " 📸 (con evidencias fotográficas)";
             }
 
             return $line;

@@ -75,6 +75,7 @@ Route::middleware(['auth', 'role:asesor'])
 
         // Service Photos
         Route::get('/ordenes/{order}/fotos', [ServicePhotoController::class, 'index'])->name('orders.photos.index');
+        Route::get('/ordenes/{order}/fotos/antes-despues', [ServicePhotoController::class, 'beforeAfter'])->name('orders.photos.before-after');
         Route::post('/ordenes/{order}/fotos', [ServicePhotoController::class, 'store'])->name('orders.photos.store');
         Route::delete('/fotos/{photo}', [ServicePhotoController::class, 'destroy'])->name('photos.destroy');
     });
