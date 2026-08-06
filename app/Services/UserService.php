@@ -17,12 +17,14 @@ class UserService
     {
         $user = $this->userRepository->create($dto->toArray());
 
+        $roleValue = $user->role instanceof \BackedEnum ? $user->role->value : (string) $user->role;
+
         $this->auditService->logUserAction(
             'user_created',
-            "Usuario {$user->email} creado con rol {$user->role}",
+            "Usuario {$user->email} creado con rol {$roleValue}",
             auth()->id(),
             null,
-            ['id' => $user->id, 'email' => $user->email, 'role' => $user->role, 'status' => $user->status]
+            ['id' => $user->id, 'email' => $user->email, 'role' => $roleValue, 'status' => $user->status]
         );
 
         return $user;
@@ -55,11 +57,13 @@ class UserService
         $result = $this->userRepository->delete($id);
 
         if ($result) {
+            $deletedRole = $user->role instanceof \BackedEnum ? $user->role->value : (string) $user->role;
+
             $this->auditService->logUserAction(
                 'user_deleted',
                 "Usuario {$user->email} eliminado",
                 auth()->id(),
-                ['id' => $user->id, 'email' => $user->email, 'role' => $user->role],
+                ['id' => $user->id, 'email' => $user->email, 'role' => $deletedRole],
                 null
             );
         }
@@ -154,12 +158,15 @@ class UserService
         $result = $this->userRepository->update($userId, ['role' => $role]);
 
         if ($result) {
+            $oldRoleValue = $oldRole instanceof \BackedEnum ? $oldRole->value : (string) $oldRole;
+            $newRoleValue = $role instanceof \BackedEnum ? $role->value : (string) $role;
+
             $this->auditService->logUserAction(
                 'update_role',
-                "Usuario {$user->email} cambió rol de {$oldRole} a {$role}",
+                "Usuario {$user->email} cambió rol de {$oldRoleValue} a {$newRoleValue}",
                 auth()->id(),
-                ['role' => $oldRole],
-                ['role' => $role]
+                ['role' => $oldRoleValue],
+                ['role' => $newRoleValue]
             );
         }
 

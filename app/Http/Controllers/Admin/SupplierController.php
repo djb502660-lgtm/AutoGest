@@ -50,6 +50,10 @@ class SupplierController extends Controller
 
         Supplier::create($validated);
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Proveedor creado correctamente.']);
+        }
+
         return redirect()
             ->route('suppliers.index')
             ->with('success', 'Proveedor creado correctamente.');

@@ -1,10 +1,10 @@
 # Documentación Técnica - AutoGest
 
 ## Versión
-v0.10-sprint5a-evidence-photos
+v0.13-fase-estabilizacion-e1-e4
 
 ## Fecha
-2026-08-05
+2026-08-06
 
 ---
 

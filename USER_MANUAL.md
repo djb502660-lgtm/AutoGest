@@ -1,10 +1,10 @@
 # Manual de Usuario - AutoGest
 
 ## Versión
-v0.8-sprint3c-admin-module
+v0.13-fase-estabilizacion-e1-e4
 
 ## Fecha
-2026-08-04
+2026-08-06
 
 ---
 

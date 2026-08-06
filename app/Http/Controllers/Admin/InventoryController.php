@@ -27,6 +27,7 @@ class InventoryController extends Controller
             'products' => $inventorySummary['products'],
             'categories' => $inventorySummary['categories'],
             'brands' => $inventorySummary['brands'],
+            'suppliers' => $inventorySummary['suppliers'],
             'purchases' => $purchases,
         ]);
     }

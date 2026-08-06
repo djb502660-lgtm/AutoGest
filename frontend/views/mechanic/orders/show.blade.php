@@ -8,6 +8,7 @@
     <a href="{{ route('mechanic.orders.index') }}" class="btn-back" style="display:inline-flex; align-items:center; gap:8px; color:var(--text-muted); text-decoration:none; font-weight:600; font-size:0.9rem;">
         <i class="fa-solid fa-arrow-left"></i> Volver a órdenes
     </a>
+
     <span class="badge-status {{ $order->statusBadgeClass() }}" style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:6px; font-weight:bold; font-size:0.8rem; margin-left:12px;">{{ $order->statusLabel() }}</span>
 @endsection
 
@@ -249,13 +250,14 @@
               <label for="observacion_tecnica">Observación Técnica (Opcional)</label>
               <textarea id="observacion_tecnica" name="technical_observation" class="form-control" placeholder="Piezas cambiadas, calibraciones hechas, etc..."></textarea>
             </div>
-
-            <button type="submit" class="btn-submit">
-              <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios y Actualizar Orden
-            </button>
           </div>
         </div>
       </div>
+
+      <button type="submit" class="btn-submit" style="margin-bottom: 20px;">
+        <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios y Actualizar Orden
+      </button>
+    </form>
 
       <!-- SECCIÓN 3: REGISTRO FOTOGRÁFICO INTEGRADO CON DIAGNÓSTICO (Sprint 5A.3) -->
       <div class="card-info">
@@ -327,7 +329,13 @@
             <div style="background:#e0f2fe; color:#0369a1; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-clipboard-check"></i> Recepción ({{ $photoSummary['by_type']['reception'] ?? 0 }})
             </div>
-            <div id="gallery-reception" class="photo-gallery-row"></div>
+            <div id="gallery-reception" class="photo-gallery-row">
+              @forelse ($photos->where('type', 'reception') as $photo)
+                @include('mechanic.orders.partials.photo-item', ['photo' => $photo])
+              @empty
+                <p class="photo-empty-msg" style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>
+              @endforelse
+            </div>
           </div>
 
           <!-- Antes del trabajo -->
@@ -335,7 +343,13 @@
             <div style="background:#fef3c7; color:#92400e; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-wrench"></i> Antes del trabajo ({{ $photoSummary['by_type']['before'] ?? 0 }})
             </div>
-            <div id="gallery-before" class="photo-gallery-row"></div>
+            <div id="gallery-before" class="photo-gallery-row">
+              @forelse ($photos->where('type', 'before') as $photo)
+                @include('mechanic.orders.partials.photo-item', ['photo' => $photo])
+              @empty
+                <p class="photo-empty-msg" style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>
+              @endforelse
+            </div>
           </div>
 
           <!-- Evidencia de diagnóstico -->
@@ -343,7 +357,13 @@
             <div style="background:#f3e8ff; color:#7c3aed; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-stethoscope"></i> Evidencia de diagnóstico ({{ $photoSummary['by_type']['evidence'] ?? 0 }})
             </div>
-            <div id="gallery-evidence" class="photo-gallery-row"></div>
+            <div id="gallery-evidence" class="photo-gallery-row">
+              @forelse ($photos->where('type', 'evidence') as $photo)
+                @include('mechanic.orders.partials.photo-item', ['photo' => $photo])
+              @empty
+                <p class="photo-empty-msg" style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>
+              @endforelse
+            </div>
           </div>
 
           <!-- Después del trabajo -->
@@ -351,11 +371,16 @@
             <div style="background:#dcfce7; color:#15803d; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
               <i class="fa-solid fa-check-circle"></i> Después del trabajo ({{ $photoSummary['by_type']['after'] ?? 0 }})
             </div>
-            <div id="gallery-after" class="photo-gallery-row"></div>
+            <div id="gallery-after" class="photo-gallery-row">
+              @forelse ($photos->where('type', 'after') as $photo)
+                @include('mechanic.orders.partials.photo-item', ['photo' => $photo])
+              @empty
+                <p class="photo-empty-msg" style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>
+              @endforelse
+            </div>
           </div>
         </div>
       </div>
-    </form>
 @endsection
 
 @push('scripts')
@@ -364,6 +389,10 @@
     const photoType = document.getElementById('photoType');
     const photoDescription = document.getElementById('photoDescription');
     const orderId = {{ $order->id }};
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    const photosIndexUrl = @json(route('mechanic.orders.photos.index', $order));
+    const photosStoreUrl = @json(route('mechanic.orders.photos.store', $order));
+    const photosDestroyUrl = @json(url('/mecanico/fotos'));
 
     // Galerías por tipo (Sprint 5A.3)
     const galleries = {
@@ -376,16 +405,27 @@
     // Cargar fotos existentes
     async function loadPhotos() {
         try {
-            const res = await fetch(`{{ url('/mecanico/ordenes') }}/${orderId}/fotos`);
+            const res = await fetch(photosIndexUrl, {
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+            });
+
+            if (!res.ok) {
+                throw new Error(`Error ${res.status} al cargar fotos`);
+            }
+
             const photos = await res.json();
             renderPhotosByType(photos);
         } catch (error) {
             console.error('Error loading photos:', error);
+            showToast('Error al cargar las fotos', 'error');
         }
     }
 
     function renderPhotosByType(photos) {
-        // Limpiar todas las galerías
+        // Limpiar todas las galerías solo cuando hay respuesta válida
         Object.values(galleries).forEach(gallery => {
             if (gallery) gallery.innerHTML = '';
         });
@@ -488,6 +528,7 @@
     document.head.appendChild(style);
 
     // Subir fotos (Sprint 5A.3 - con descripción técnica)
+    if (photoInput) {
     photoInput.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
         let successCount = 0;
@@ -523,13 +564,24 @@
             formData.append('description', photoDescription.value || '');
 
             try {
-                const res = await fetch(`{{ url('/mecanico/ordenes') }}/${orderId}/fotos`, {
+                if (!csrfToken) {
+                    throw new Error('Token CSRF no encontrado. Recarga la página.');
+                }
+
+                const res = await fetch(photosStoreUrl, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
                     },
                     body: formData,
                 });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Error ${res.status} al subir la foto`);
+                }
+
                 const data = await res.json();
                 
                 uploadStatus.remove();
@@ -562,16 +614,17 @@
             }, 500);
         }
     });
+    }
 
     // Eliminar foto
     async function deletePhoto(photoId) {
         if (!confirm('¿Eliminar esta foto?')) return;
 
         try {
-            const res = await fetch(`{{ url('/mecanico/fotos') }}/${photoId}`, {
+            const res = await fetch(`${photosDestroyUrl}/${photoId}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-CSRF-TOKEN': csrfToken,
                 },
             });
             const data = await res.json();
@@ -588,5 +641,8 @@
     }
 
     // Cargar fotos al inicio
-    loadPhotos();
+    if (photoInput) {
+        loadPhotos();
+    }
 </script>
+@endpush

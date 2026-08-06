@@ -147,9 +147,12 @@ class CalendarController extends Controller
     private function formData(): array
     {
         return [
-            'clients' => User::where('role', UserRole::Client)->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => User::where('role', UserRole::Client instanceof \BackedEnum ? UserRole::Client->value : UserRole::Client)->where('status', 'activo')->orderBy('name')->get(),
             'vehicles' => Vehicle::orderBy('plate')->get(),
-            'mechanics' => User::whereIn('role', [UserRole::Mechanic, UserRole::Advisor])->where('status', 'activo')->orderBy('name')->get(),
+            'mechanics' => User::whereIn('role', [
+                UserRole::Mechanic instanceof \BackedEnum ? UserRole::Mechanic->value : UserRole::Mechanic,
+                UserRole::Advisor instanceof \BackedEnum ? UserRole::Advisor->value : UserRole::Advisor,
+            ])->where('status', 'activo')->orderBy('name')->get(),
         ];
     }
 
@@ -178,8 +181,10 @@ class CalendarController extends Controller
         // Calculate end time based on start time and duration
         if (! empty($data['start_time']) && ! empty($data['duration_minutes'])) {
             $startTime = Carbon::createFromFormat('H:i', $data['start_time']);
-            $endTime = $startTime->addMinutes($data['duration_minutes']);
+            $endTime = $startTime->addMinutes((int) $data['duration_minutes']);
             $data['end_time'] = $endTime->format('H:i');
+            // Ensure duration is stored as integer
+            $data['duration_minutes'] = (int) $data['duration_minutes'];
         }
 
         return $data;

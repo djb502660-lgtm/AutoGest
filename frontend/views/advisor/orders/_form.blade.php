@@ -84,6 +84,7 @@
     const photoInput = document.getElementById('photoInput');
     const photoGallery = document.getElementById('photoGallery');
     const orderId = {{ $order->id }};
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
     // Cargar fotos existentes
     async function loadPhotos() {
@@ -194,10 +195,14 @@
             formData.append('description', '');
 
             try {
+                if (!csrfToken) {
+                    throw new Error('Token CSRF no encontrado. Recarga la página.');
+                }
+
                 const res = await fetch(`{{ url('/asesor/ordenes') }}/${orderId}/fotos`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                        'X-CSRF-TOKEN': csrfToken,
                     },
                     body: formData,
                 });
@@ -241,7 +246,7 @@
             const res = await fetch(`{{ url('/asesor/fotos') }}/${photoId}`, {
                 method: 'DELETE',
                 headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-CSRF-TOKEN': csrfToken,
                 },
             });
             const data = await res.json();
@@ -260,6 +265,7 @@
     // Cargar fotos al inicio
     loadPhotos();
 </script>
+@endpush
 
 @push('styles')
 <style>

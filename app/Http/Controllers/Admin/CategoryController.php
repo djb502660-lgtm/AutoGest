@@ -35,23 +35,26 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
-        // Mapear campos del modal a los campos del modelo
-        $name = $request->input('nombre_categoria') ?? $request->input('name');
+        // Normalizar campos que el modal podría enviar (p. ej. 'nombre_categoria')
+        $data = $request->all();
 
-        $validated = $request->validate([
+        if (isset($data['nombre_categoria']) && empty($data['name'])) {
+            $data['name'] = $data['nombre_categoria'];
+        }
+
+        // Derivar slug desde el nombre y validar duplicados.
+        $data['slug'] = str($data['name'] ?? '')->slug();
+
+        $validated = validator($data, [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', 'unique:categories,slug'],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
-        ]);
+        ], [
+            'slug.unique' => 'La categoría ya existe.',
+        ])->validate();
 
-        // Generar slug automáticamente si no se proporciona
-        if (empty($validated['slug'])) {
-            $validated['slug'] = str($validated['name'])->slug();
-        }
-
-        $validated['name'] = $name;
-        $validated['is_active'] = true;
+        $validated['is_active'] = $validated['is_active'] ?? true;
 
         Category::create($validated);
 
@@ -73,14 +76,28 @@ class CategoryController extends Controller
 
     public function update(Request $request, Category $category)
     {
-        $validated = $request->validate([
+        $data = $request->all();
+
+        if (isset($data['nombre_categoria']) && empty($data['name'])) {
+            $data['name'] = $data['nombre_categoria'];
+        }
+
+        $data['slug'] = str($data['name'] ?? '')->slug();
+
+        $validated = validator($data, [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('categories', 'slug')->ignore($category->id)],
             'description' => ['nullable', 'string'],
             'is_active' => ['boolean'],
-        ]);
+        ], [
+            'slug.unique' => 'La categoría ya existe.',
+        ])->validate();
 
         $category->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Categoría actualizada correctamente.']);
+        }
 
         return redirect()
             ->route('categories.index')

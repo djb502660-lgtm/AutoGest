@@ -6,6 +6,7 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Purchase;
+use App\Models\Supplier;
 
 class InventoryService
 {
@@ -22,6 +23,7 @@ class InventoryService
             'products' => Product::with(['category', 'brand'])->orderBy('name')->get(),
             'categories' => Category::with('brands')->orderBy('name')->get(),
             'brands' => Brand::orderBy('name')->get(),
+            'suppliers' => Supplier::orderBy('name')->get(),
             'total_products' => Product::count(),
             'low_stock' => Product::where('stock_quantity', '<', 10)->count(),
         ];
@@ -29,7 +31,7 @@ class InventoryService
 
     public function getRecentPurchases($limit = 10)
     {
-        return Purchase::with('supplier')->latest()->take($limit)->get();
+        return Purchase::with(['supplier', 'items.product'])->latest()->take($limit)->get();
     }
 
     public function getProductBySku($sku)
@@ -54,8 +56,8 @@ class InventoryService
             return false;
         }
 
-        $oldStock = $product->stock;
-        $product->stock = $quantity;
+        $oldStock = $product->stock_quantity;
+        $product->stock_quantity = $quantity;
         $result = $product->save();
 
         if ($result) {
@@ -78,6 +80,6 @@ class InventoryService
 
     public function getTotalInventoryValue()
     {
-        return Product::sum('price');
+        return Product::sum('sale_price');
     }
 }

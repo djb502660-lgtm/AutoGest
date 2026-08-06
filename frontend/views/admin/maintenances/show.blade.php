@@ -112,20 +112,6 @@
                     <div>{{ $maintenance->mechanic->name }}</div>
                 </div>
             @endif
-
-            @if ($maintenance->next_service_date)
-                <div class="field">
-                    <label>Próximo servicio programado</label>
-                    <div>{{ $maintenance->next_service_date->format('d/m/Y') }}</div>
-                </div>
-            @endif
-
-            @if ($maintenance->next_service_mileage)
-                <div class="field">
-                    <label>Próximo servicio (km)</label>
-                    <div>{{ number_format($maintenance->next_service_mileage) }} km</div>
-                </div>
-            @endif
         </div>
 
         @if ($maintenance->service_order_id && $maintenance->serviceOrder->photos->count() > 0)

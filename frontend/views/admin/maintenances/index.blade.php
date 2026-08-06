@@ -95,7 +95,7 @@
 <script>
     async function viewMaintenanceDetails(maintenanceId) {
         try {
-            const res = await fetch(`{{ url('/mantenimientos') }}/${maintenanceId}`);
+            const res = await fetch(`{{ route('maintenances.show', ':id') }}`.replace(':id', maintenanceId));
             const html = await res.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');

@@ -5,10 +5,17 @@ namespace Database\Seeders;
 use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\Alert;
+use App\Models\Brand;
+use App\Models\Category;
 use App\Models\ChatbotFaq;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
+use App\Models\Product;
+use App\Models\Purchase;
+use App\Models\PurchaseItem;
 use App\Models\ServiceOrder;
+use App\Models\StockMovement;
+use App\Models\Supplier;
 use App\Models\SystemSetting;
 use App\Models\User;
 use App\Models\Vehicle;
@@ -269,7 +276,7 @@ class DemoSeeder extends Seeder
         MaintenanceSchedule::create([
             'vehicle_id' => $vehicles[0]->id,
             'title' => 'Cambio de aceite',
-            'maintenance_type' => 'preventivo',
+            'service_type' => 'preventivo',
             'scheduled_date' => now()->addDays(3),
             'mileage_target' => 50000,
             'assigned_mechanic_id' => $mechanic1->id,
@@ -279,7 +286,7 @@ class DemoSeeder extends Seeder
         MaintenanceSchedule::create([
             'vehicle_id' => $vehicles[1]->id,
             'title' => 'Revisión general',
-            'maintenance_type' => 'preventivo',
+            'service_type' => 'preventivo',
             'scheduled_date' => now()->addDays(5),
             'mileage_target' => 70000,
             'assigned_mechanic_id' => $mechanic2->id,
@@ -289,7 +296,7 @@ class DemoSeeder extends Seeder
         MaintenanceSchedule::create([
             'vehicle_id' => $vehicles[2]->id,
             'title' => 'Cambio de frenos',
-            'maintenance_type' => 'correctivo',
+            'service_type' => 'correctivo',
             'scheduled_date' => now()->addDays(7),
             'assigned_mechanic_id' => $mechanic1->id,
             'status' => 'programado',
@@ -431,5 +438,152 @@ class DemoSeeder extends Seeder
                 ],
             );
         }
+
+        // Inventory Seeders
+        $categories = [
+            Category::create(['name' => 'Sistema de Frenos', 'slug' => 'sistema-de-frenos', 'is_active' => true]),
+            Category::create(['name' => 'Sistema de Encendido', 'slug' => 'sistema-de-encendido', 'is_active' => true]),
+            Category::create(['name' => 'Filtros y Fluidos', 'slug' => 'filtros-y-fluidos', 'is_active' => true]),
+            Category::create(['name' => 'Suspensión', 'slug' => 'suspension', 'is_active' => true]),
+        ];
+
+        $brands = [
+            Brand::create(['name' => 'Bosch', 'slug' => 'bosch', 'is_active' => true]),
+            Brand::create(['name' => 'NGK', 'slug' => 'ngk', 'is_active' => true]),
+            Brand::create(['name' => 'Wix', 'slug' => 'wix', 'is_active' => true]),
+            Brand::create(['name' => 'Monroe', 'slug' => 'monroe', 'is_active' => true]),
+        ];
+
+        $products = [
+            Product::create([
+                'category_id' => $categories[0]->id,
+                'brand_id' => $brands[0]->id,
+                'name' => 'Pastillas de Freno Delanteras',
+                'sku' => 'REP-1001',
+                'description' => 'Pastillas de freno cerámicas para vehículos compactos',
+                'purchase_price' => 25.00,
+                'sale_price' => 45.00,
+                'stock_quantity' => 15,
+                'min_stock' => 5,
+                'max_stock' => 50,
+                'unit' => 'par',
+                'is_active' => true,
+            ]),
+            Product::create([
+                'category_id' => $categories[1]->id,
+                'brand_id' => $brands[1]->id,
+                'name' => 'Bujía Platinum',
+                'sku' => 'REP-1002',
+                'description' => 'Bujía de platino para motores de 4 cilindros',
+                'purchase_price' => 8.00,
+                'sale_price' => 15.00,
+                'stock_quantity' => 30,
+                'min_stock' => 10,
+                'max_stock' => 100,
+                'unit' => 'pieza',
+                'is_active' => true,
+            ]),
+            Product::create([
+                'category_id' => $categories[2]->id,
+                'brand_id' => $brands[2]->id,
+                'name' => 'Filtro de Aceite',
+                'sku' => 'REP-1003',
+                'description' => 'Filtro de aceite premium para vehículos sedán',
+                'purchase_price' => 5.00,
+                'sale_price' => 12.00,
+                'stock_quantity' => 8,
+                'min_stock' => 5,
+                'max_stock' => 40,
+                'unit' => 'pieza',
+                'is_active' => true,
+            ]),
+            Product::create([
+                'category_id' => $categories[3]->id,
+                'brand_id' => $brands[3]->id,
+                'name' => 'Amortiguador Trasero',
+                'sku' => 'REP-1004',
+                'description' => 'Amortiguador gas para suspensión trasera',
+                'purchase_price' => 35.00,
+                'sale_price' => 65.00,
+                'stock_quantity' => 4,
+                'min_stock' => 2,
+                'max_stock' => 20,
+                'unit' => 'pieza',
+                'is_active' => true,
+            ]),
+        ];
+
+        $suppliers = [
+            Supplier::create([
+                'name' => 'AutoPartes Express',
+                'contact_person' => 'Carlos Ruiz',
+                'email' => 'ventas@autopartesexpress.com',
+                'phone' => '02-2456789',
+                'address' => 'Av. Principal 123',
+                'city' => 'Quito',
+                'country' => 'Ecuador',
+                'notes' => 'Proveedor principal de frenos y suspensiones',
+                'is_active' => true,
+            ]),
+            Supplier::create([
+                'name' => 'Repuestos del Norte',
+                'contact_person' => 'María López',
+                'email' => 'contacto@repuestosnorte.com',
+                'phone' => '02-3456789',
+                'address' => 'Calle Secundaria 456',
+                'city' => 'Guayaquil',
+                'country' => 'Ecuador',
+                'notes' => 'Especialistas en filtros y fluidos',
+                'is_active' => true,
+            ]),
+        ];
+
+        $purchase1 = Purchase::create([
+            'purchase_number' => 'COMP-2026-08-0001',
+            'supplier_id' => $suppliers[0]->id,
+            'purchase_date' => now()->subDays(5),
+            'subtotal' => 100.00,
+            'tax' => 16.00,
+            'total' => 116.00,
+            'status' => 'recibida',
+            'notes' => 'Compra mensual de pastillas de freno',
+        ]);
+
+        PurchaseItem::create([
+            'purchase_id' => $purchase1->id,
+            'product_id' => $products[0]->id,
+            'quantity' => 4,
+            'unit_price' => 25.00,
+            'total' => 100.00,
+        ]);
+
+        StockMovement::create([
+            'product_id' => $products[0]->id,
+            'purchase_id' => $purchase1->id,
+            'type' => 'entrada',
+            'quantity' => 4,
+            'previous_stock' => 11,
+            'new_stock' => 15,
+            'notes' => 'Recepción de compra COMP-2026-08-0001',
+        ]);
+
+        $purchase2 = Purchase::create([
+            'purchase_number' => 'COMP-2026-08-0002',
+            'supplier_id' => $suppliers[1]->id,
+            'purchase_date' => now()->subDays(2),
+            'subtotal' => 40.00,
+            'tax' => 6.40,
+            'total' => 46.40,
+            'status' => 'pendiente',
+            'notes' => 'Pedido de filtros de aceite',
+        ]);
+
+        PurchaseItem::create([
+            'purchase_id' => $purchase2->id,
+            'product_id' => $products[2]->id,
+            'quantity' => 8,
+            'unit_price' => 5.00,
+            'total' => 40.00,
+        ]);
     }
 }

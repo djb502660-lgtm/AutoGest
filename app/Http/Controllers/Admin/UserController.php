@@ -131,64 +131,22 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $this->authorize('delete', $user);
-
-        // Proteger al usuario autenticado actual
-        if ($user->id === auth()->id()) {
-            return redirect()
-                ->route('users.index')
-                ->with('error', 'No puedes eliminar tu propio usuario.');
-        }
-
-        // Verificar si tiene registros críticos vinculados
-        $hasCriticalRelations = $user->clientOrders()->exists()
-            || $user->vehicles()->exists()
-            || $user->assignedOrders()->exists()
-            || $user->advisorOrders()->exists();
-
-        if ($hasCriticalRelations) {
-            $this->userService->updateUserStatus($user->id, 'inactivo');
-
-            ActivityLog::record(
-                'user.deactivated',
-                "Se desactivó el usuario {$user->email} (tiene registros vinculados).",
-                model: $user,
-                user: auth()->user(),
-            );
-
-            return redirect()
-                ->route('users.index')
-                ->with('success', 'El usuario fue desactivado porque tiene registros vinculados.');
-        }
-
         $email = $user->email;
+        $userName = $user->name;
 
-        try {
-            $this->userService->deleteUser($user->id);
+        // Hard delete - eliminar completamente el usuario
+        // Las foreign keys con cascadeOnDelete() eliminarán automáticamente
+        // los registros relacionados (vehículos, órdenes de servicio, etc.)
+        $user->delete();
 
-            ActivityLog::record(
-                'user.deleted',
-                "Se eliminó el usuario {$email}.",
-                user: auth()->user(),
-            );
+        ActivityLog::record(
+            'user.deleted',
+            "Se eliminó el usuario {$email} ({$userName}). Todos sus registros relacionados fueron eliminados automáticamente.",
+            user: auth()->user(),
+        );
 
-            return redirect()
-                ->route('users.index')
-                ->with('success', 'Usuario eliminado correctamente.');
-        } catch (QueryException $e) {
-            // Si hay error de foreign key, desactivar en su lugar
-            $this->userService->updateUserStatus($user->id, 'inactivo');
-
-            ActivityLog::record(
-                'user.deactivated',
-                "Se desactivó el usuario {$user->email} (error al eliminar: restricción de base de datos).",
-                model: $user,
-                user: auth()->user(),
-            );
-
-            return redirect()
-                ->route('users.index')
-                ->with('success', 'El usuario fue desactivado debido a restricciones de base de datos.');
-        }
+        return redirect()
+            ->route('users.index')
+            ->with('success', 'Usuario eliminado correctamente. Si el cliente regresa, se puede crear una nueva cuenta.');
     }
 }

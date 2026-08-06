@@ -11,17 +11,29 @@
         <form method="POST" action="{{ route('mechanic.maintenances.store') }}">
             @csrf
             <div class="form-grid">
-                <div class="field">
-                    <label>Orden vinculada (opcional)</label>
-                    <select name="service_order_id" id="order_select">
-                        <option value="">Sin orden</option>
-                        @foreach ($orders as $order)
-                            <option value="{{ $order->id }}" data-vehicle="{{ $order->vehicle_id }}" @selected(old('service_order_id', $selectedOrder) == $order->id)>
-                                {{ $order->order_number }} — {{ $order->vehicle->plate }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+                @if ($selectedOrder)
+                    <input type="hidden" name="service_order_id" value="{{ $selectedOrder }}">
+                    <div class="field" style="grid-column:1/-1;">
+                        <label>Orden vinculada</label>
+                        <div style="background:#f1f5f9; padding:10px; border-radius:6px; font-weight:600;">
+                            {{ $orders->firstWhere('id', $selectedOrder)->order_number ?? 'Orden no encontrada' }} — {{ $orders->firstWhere('id', $selectedOrder)->vehicle->plate ?? '' }}
+                        </div>
+                        <small style="color:var(--text-muted);">Las fotos de evidencia de esta orden se mostrarán en el detalle de mantenimiento.</small>
+                    </div>
+                @else
+                    <div class="field">
+                        <label>Orden vinculada (opcional)</label>
+                        <select name="service_order_id" id="order_select">
+                            <option value="">Sin orden</option>
+                            @foreach ($orders as $order)
+                                <option value="{{ $order->id }}" data-vehicle="{{ $order->vehicle_id }}" @selected(old('service_order_id', $selectedOrder) == $order->id)>
+                                    {{ $order->order_number }} — {{ $order->vehicle->plate }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small style="color:var(--text-muted);">Selecciona una orden para vincular las fotos de evidencia al mantenimiento.</small>
+                    </div>
+                @endif
                 <div class="field">
                     <label>Vehículo</label>
                     <select name="vehicle_id" id="vehicle_select" required>

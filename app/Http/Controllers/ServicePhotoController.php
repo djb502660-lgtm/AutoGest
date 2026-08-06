@@ -17,7 +17,7 @@ class ServicePhotoController extends Controller
         $this->servicePhotoService = $servicePhotoService;
     }
 
-    public function store(Request $request, ServiceOrder $serviceOrder)
+    public function store(Request $request, ServiceOrder $order)
     {
         try {
             $request->validate([
@@ -27,7 +27,7 @@ class ServicePhotoController extends Controller
             ]);
 
             $photo = $this->servicePhotoService->storePhoto(
-                $serviceOrder,
+                $order,
                 $request->file('photo'),
                 $request->type,
                 $request->description
@@ -57,9 +57,9 @@ class ServicePhotoController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function index(ServiceOrder $serviceOrder)
+    public function index(ServiceOrder $order)
     {
-        $photos = $this->servicePhotoService->getPhotosByOrder($serviceOrder);
+        $photos = $this->servicePhotoService->getPhotosByOrder($order);
 
         return response()->json($photos->map(function ($photo) {
             return [
@@ -74,10 +74,10 @@ class ServicePhotoController extends Controller
         }));
     }
 
-    public function beforeAfter(ServiceOrder $serviceOrder)
+    public function beforeAfter(ServiceOrder $order)
     {
-        $beforePhotos = $this->servicePhotoService->getBeforePhotos($serviceOrder);
-        $afterPhotos = $this->servicePhotoService->getAfterPhotos($serviceOrder);
+        $beforePhotos = $this->servicePhotoService->getBeforePhotos($order);
+        $afterPhotos = $this->servicePhotoService->getAfterPhotos($order);
 
         return response()->json([
             'before' => $beforePhotos->map(function ($photo) {

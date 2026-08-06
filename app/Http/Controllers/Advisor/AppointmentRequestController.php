@@ -49,7 +49,7 @@ class AppointmentRequestController extends Controller
 
         $validated = $formRequest->validated();
 
-        $advisor = $request->user();
+        $advisor = $formRequest->user();
         $scheduledAt = $appointment->requested_date->copy();
 
         if ($appointment->requested_time) {

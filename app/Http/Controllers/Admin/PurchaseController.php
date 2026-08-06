@@ -84,6 +84,10 @@ class PurchaseController extends Controller
             'total' => $total,
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Compra creada correctamente.']);
+        }
+
         return redirect()
             ->route('purchases.index')
             ->with('success', 'Compra creada correctamente.');

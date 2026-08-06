@@ -67,14 +67,28 @@
             @if ($auditLog->old_values)
                 <div class="detail-section">
                     <h4>Valores anteriores</h4>
-                    <pre>{{ json_encode($auditLog->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                    <div class="values-container">
+                        @foreach ($auditLog->old_values as $key => $value)
+                            <div class="value-item">
+                                <span class="value-key">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                <span class="value-value">{{ is_bool($value) ? ($value ? 'Sí' : 'No') : $value }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
             @if ($auditLog->new_values)
                 <div class="detail-section">
                     <h4>Valores nuevos</h4>
-                    <pre>{{ json_encode($auditLog->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
+                    <div class="values-container">
+                        @foreach ($auditLog->new_values as $key => $value)
+                            <div class="value-item">
+                                <span class="value-key">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                <span class="value-value">{{ is_bool($value) ? ($value ? 'Sí' : 'No') : $value }}</span>
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @endif
         </div>
@@ -120,6 +134,31 @@
             border-radius: 4px;
             font-size: 0.875rem;
             overflow-x: auto;
+        }
+
+        .values-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .value-item {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .value-key {
+            font-weight: 600;
+            color: #555;
+            min-width: 120px;
+        }
+
+        .value-value {
+            color: #333;
         }
     </style>
 @endsection

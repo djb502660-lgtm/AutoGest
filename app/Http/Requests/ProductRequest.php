@@ -31,12 +31,12 @@ class ProductRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product?->id)],
             'description' => ['nullable', 'string'],
-            'purchase_price' => ['required', 'numeric', 'min:0'],
+            'purchase_price' => ['nullable', 'numeric', 'min:0'],
             'sale_price' => ['required', 'numeric', 'min:0'],
-            'stock_quantity' => ['required', 'integer', 'min:0'],
-            'min_stock' => ['required', 'integer', 'min:0'],
+            'stock_quantity' => ['nullable', 'integer', 'min:0'],
+            'min_stock' => ['nullable', 'integer', 'min:0'],
             'max_stock' => ['nullable', 'integer', 'min:0'],
-            'unit' => ['required', 'string', 'max:50'],
+            'unit' => ['nullable', 'string', 'max:50'],
             'is_active' => ['boolean'],
         ];
     }
