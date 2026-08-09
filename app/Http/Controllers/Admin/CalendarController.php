@@ -181,7 +181,7 @@ class CalendarController extends Controller
         // Calculate end time based on start time and duration
         if (! empty($data['start_time']) && ! empty($data['duration_minutes'])) {
             $startTime = Carbon::createFromFormat('H:i', $data['start_time']);
-            $endTime = $startTime->addMinutes((int) $data['duration_minutes']);
+            $endTime = $startTime->copy()->addMinutes((int) $data['duration_minutes']);
             $data['end_time'] = $endTime->format('H:i');
             // Ensure duration is stored as integer
             $data['duration_minutes'] = (int) $data['duration_minutes'];

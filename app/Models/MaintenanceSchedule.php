@@ -26,6 +26,8 @@ class MaintenanceSchedule extends Model
     {
         return [
             'scheduled_date' => 'date',
+            'start_time' => 'datetime:H:i',
+            'end_time' => 'datetime:H:i',
         ];
     }
 
