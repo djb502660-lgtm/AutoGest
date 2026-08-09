@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Models\Concerns\Searchable;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -12,7 +14,7 @@ use Illuminate\Notifications\Notifiable;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Searchable;
 
     protected $fillable = [
         'name',
@@ -37,6 +39,32 @@ class User extends Authenticatable
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
+    }
+
+    protected function searchableColumns(): array
+    {
+        return ['name', 'email', 'phone'];
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'activo');
+    }
+
+    public function scopeRole(Builder $query, UserRole|string ...$roles): Builder
+    {
+        $values = array_map(
+            fn (UserRole|string $role) => $role instanceof UserRole ? $role->value : $role,
+            $roles,
+        );
+
+        return $query->whereIn('role', $values);
+    }
+
+    /** Usuarios activos del rol indicado, ordenados por nombre (selects y listados). */
+    public static function activeByRole(UserRole|string ...$roles): Builder
+    {
+        return static::query()->role(...$roles)->active()->orderBy('name');
     }
 
     public function isAdmin(): bool

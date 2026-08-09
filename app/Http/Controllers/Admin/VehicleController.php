@@ -22,13 +22,7 @@ class VehicleController extends Controller
         $status = $request->string('status')->toString();
 
         $vehicles = Vehicle::with('client')
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('plate', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%")
-                        ->orWhere('model', 'like', "%{$search}%");
-                });
-            })
+            ->search($search)
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->orderBy('plate')
             ->paginate(10)
@@ -118,10 +112,7 @@ class VehicleController extends Controller
 
     private function clients()
     {
-        return User::where('role', UserRole::Client)
-            ->where('status', 'activo')
-            ->orderBy('name')
-            ->get();
+        return User::activeByRole(UserRole::Client)->get();
     }
 
     private function rules(?Vehicle $vehicle = null): array

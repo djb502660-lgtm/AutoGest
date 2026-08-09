@@ -13,12 +13,7 @@ class SupplierController extends Controller
         $search = $request->string('search')->trim();
 
         $suppliers = Supplier::query()
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('contact_person', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            })
+            ->search($search)
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();

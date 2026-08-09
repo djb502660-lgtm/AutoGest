@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasActiveFlag;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class VehicleModelTemplate extends Model
 {
+    use HasActiveFlag;
+
     protected $fillable = [
         'brand',
         'model',
@@ -29,7 +32,7 @@ class VehicleModelTemplate extends Model
     public static function forVehicle(Vehicle $vehicle): Collection
     {
         return static::query()
-            ->where('is_active', true)
+            ->active()
             ->whereRaw('LOWER(brand) = ?', [mb_strtolower($vehicle->brand)])
             ->whereRaw('LOWER(model) = ?', [mb_strtolower($vehicle->model)])
             ->orderBy('sort_order')

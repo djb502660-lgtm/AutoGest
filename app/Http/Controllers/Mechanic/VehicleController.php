@@ -17,13 +17,7 @@ class VehicleController extends Controller
 
         $vehicles = Vehicle::with('client')
             ->whereIn('id', $user->accessibleVehicleIds())
-            ->when($search->isNotEmpty(), function ($q) use ($search) {
-                $q->where(function ($query) use ($search) {
-                    $query->where('plate', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%")
-                        ->orWhere('model', 'like', "%{$search}%");
-                });
-            })
+            ->search($search)
             ->orderBy('plate')
             ->paginate(10)
             ->withQueryString();

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Advisor;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentRequest;
 use App\Models\ServiceOrder;
@@ -40,8 +41,8 @@ class AppointmentController extends Controller
     public function create()
     {
         return view('advisor.appointments.create', [
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
-            'vehicles' => Vehicle::where('status', 'activo')->orderBy('plate')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
+            'vehicles' => Vehicle::active()->orderBy('plate')->get(),
         ]);
     }
 
@@ -95,8 +96,8 @@ class AppointmentController extends Controller
 
         return view('advisor.appointments.edit', [
             'appointment' => $appointment,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
-            'vehicles' => Vehicle::where('status', 'activo')->orderBy('plate')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
+            'vehicles' => Vehicle::active()->orderBy('plate')->get(),
         ]);
     }
 

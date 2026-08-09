@@ -14,10 +14,7 @@ class CategoryController extends Controller
         $search = $request->string('search')->trim();
 
         $categories = Category::query()
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            })
+            ->search($search)
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 
 class StockController extends Controller
@@ -16,10 +17,7 @@ class StockController extends Controller
 
         $movements = StockMovement::query()
             ->with(['product', 'purchase', 'serviceOrder'])
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('notes', 'like', "%{$search}%")
-                    ->orWhereHas('product', fn ($q) => $q->where('name', 'like', "%{$search}%"));
-            })
+            ->search($search)
             ->when($type !== '', fn ($q) => $q->where('type', $type))
             ->orderBy('created_at', 'desc')
             ->paginate(20)
@@ -35,11 +33,11 @@ class StockController extends Controller
     public function create()
     {
         return view('admin.stock.create', [
-            'products' => Product::where('is_active', true)->orderBy('name')->get(),
+            'products' => Product::catalog()->get(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, StockService $stock)
     {
         // Mapear campos del modal a los campos del modelo
         $tipoMovimiento = $request->input('tipo_movimiento') ?? $request->input('type');
@@ -62,32 +60,18 @@ class StockController extends Controller
         $validated['notes'] = $request->input('motivo') ?? $validated['notes'] ?? 'Ajuste manual de stock';
 
         $product = Product::findOrFail($validated['product_id']);
-        $previousStock = $product->stock_quantity;
 
-        if ($validated['type'] === 'entrada') {
-            $newStock = $previousStock + $validated['quantity'];
-        } elseif ($validated['type'] === 'salida') {
-            if ($previousStock < $validated['quantity']) {
-                if ($request->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'No hay suficiente stock para esta salida.']);
-                }
-                return redirect()
-                    ->back()
-                    ->with('error', 'No hay suficiente stock para esta salida.');
+        if ($validated['type'] === 'salida' && $product->stock_quantity < $validated['quantity']) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'No hay suficiente stock para esta salida.']);
             }
-            $newStock = $previousStock - $validated['quantity'];
-        } else {
-            $newStock = $validated['quantity'];
+
+            return redirect()
+                ->back()
+                ->with('error', 'No hay suficiente stock para esta salida.');
         }
 
-        $product->update(['stock_quantity' => $newStock]);
-
-        StockMovement::create([
-            'product_id' => $validated['product_id'],
-            'type' => $validated['type'],
-            'quantity' => $validated['quantity'],
-            'previous_stock' => $previousStock,
-            'new_stock' => $newStock,
+        $stock->applyMovement($product, $validated['type'], $validated['quantity'], [
             'notes' => $validated['notes'],
         ]);
 
@@ -102,7 +86,7 @@ class StockController extends Controller
 
     public function lowStock()
     {
-        $products = Product::where('is_active', true)
+        $products = Product::active()
             ->whereColumn('stock_quantity', '<=', 'min_stock')
             ->orderBy('name')
             ->get();

@@ -26,8 +26,8 @@ class NotifyAdvisorsOfChatbotQuery implements ShouldQueue
         $message = "Consulta de chatbot de {$this->client->name}: {$this->query}";
 
         User::query()
-            ->where('role', UserRole::Advisor)
-            ->where('status', 'activo')
+            ->role(UserRole::Advisor)
+            ->active()
             ->each(function (User $advisor) use ($message) {
                 Alert::create([
                     'vehicle_id' => null,

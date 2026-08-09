@@ -16,13 +16,7 @@ class OrderController extends Controller
 
         $orders = $request->user()->clientOrders()
             ->with('vehicle', 'mechanic')
-            ->when($search !== '', function ($q) use ($search) {
-                $q->where(function ($query) use ($search) {
-                    $query->where('order_number', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('vehicle', fn ($v) => $v->where('plate', 'like', "%{$search}%"));
-                });
-            })
+            ->search($search)
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(10)

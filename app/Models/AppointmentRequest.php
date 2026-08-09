@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class AppointmentRequest extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'client_id',
         'vehicle_id',
@@ -28,6 +31,14 @@ class AppointmentRequest extends Model
         return [
             'requested_date' => 'date',
             'requires_approval' => 'boolean',
+        ];
+    }
+
+    protected function searchableRelations(): array
+    {
+        return [
+            'client' => ['name'],
+            'vehicle' => ['plate'],
         ];
     }
 

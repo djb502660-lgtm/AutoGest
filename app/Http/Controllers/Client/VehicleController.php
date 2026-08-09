@@ -14,13 +14,7 @@ class VehicleController extends Controller
         $search = $request->string('search')->trim()->toString();
 
         $vehicles = $request->user()->vehicles()
-            ->when($search !== '', function ($q) use ($search) {
-                $q->where(function ($query) use ($search) {
-                    $query->where('plate', 'like', "%{$search}%")
-                        ->orWhere('brand', 'like', "%{$search}%")
-                        ->orWhere('model', 'like', "%{$search}%");
-                });
-            })
+            ->search($search)
             ->orderBy('plate')
             ->paginate(10)
             ->withQueryString();

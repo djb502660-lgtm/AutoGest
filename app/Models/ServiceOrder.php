@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ServiceOrder extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'order_number',
         'vehicle_id',
@@ -38,6 +41,16 @@ class ServiceOrder extends Model
             'estimated_cost' => 'decimal:2',
             'total_cost' => 'decimal:2',
         ];
+    }
+
+    protected function searchableColumns(): array
+    {
+        return ['order_number', 'description'];
+    }
+
+    protected function searchableRelations(): array
+    {
+        return ['vehicle' => ['plate']];
     }
 
     public function vehicle(): BelongsTo

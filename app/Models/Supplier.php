@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasActiveFlag;
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Supplier extends Model
 {
-    use HasFactory;
+    use HasActiveFlag, HasFactory, Searchable;
 
     protected $fillable = [
         'name',
@@ -25,6 +27,11 @@ class Supplier extends Model
     protected $casts = [
         'is_active' => 'boolean',
     ];
+
+    protected function searchableColumns(): array
+    {
+        return ['name', 'contact_person', 'email', 'phone'];
+    }
 
     public function purchases(): HasMany
     {

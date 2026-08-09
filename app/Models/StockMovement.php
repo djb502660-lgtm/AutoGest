@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class StockMovement extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     protected $fillable = [
         'product_id',
@@ -26,6 +27,16 @@ class StockMovement extends Model
         'previous_stock' => 'integer',
         'new_stock' => 'integer',
     ];
+
+    protected function searchableColumns(): array
+    {
+        return ['notes'];
+    }
+
+    protected function searchableRelations(): array
+    {
+        return ['product' => ['name']];
+    }
 
     public function product(): BelongsTo
     {

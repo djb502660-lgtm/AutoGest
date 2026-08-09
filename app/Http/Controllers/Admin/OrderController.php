@@ -21,11 +21,7 @@ class OrderController extends Controller
         $status = $request->string('status')->toString();
 
         $orders = ServiceOrder::with(['vehicle', 'client', 'mechanic'])
-            ->when($search->isNotEmpty(), function ($q) use ($search) {
-                $q->where('order_number', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhereHas('vehicle', fn ($query) => $query->where('plate', 'like', "%{$search}%"));
-            })
+            ->search($search)
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(10)

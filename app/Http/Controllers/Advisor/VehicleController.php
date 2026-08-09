@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Advisor;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
 use App\Models\User;
@@ -17,11 +18,7 @@ class VehicleController extends Controller
 
         $vehicles = Vehicle::query()
             ->with(['client'])
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('plate', 'like', "%{$search}%")
-                    ->orWhere('brand', 'like', "%{$search}%")
-                    ->orWhere('model', 'like', "%{$search}%");
-            })
+            ->search($search)
             ->when($client !== '', fn ($q) => $q->where('client_id', $client))
             ->orderBy('plate')
             ->paginate(10)
@@ -31,14 +28,14 @@ class VehicleController extends Controller
             'vehicles' => $vehicles,
             'search' => $search->toString(),
             'client' => $client,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
         ]);
     }
 
     public function create()
     {
         return view('advisor.vehicles.create', [
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
         ]);
     }
 
@@ -79,7 +76,7 @@ class VehicleController extends Controller
     {
         return view('advisor.vehicles.edit', [
             'vehicle' => $vehicle,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
         ]);
     }
 

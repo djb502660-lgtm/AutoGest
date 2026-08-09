@@ -19,11 +19,7 @@ class ProductController extends Controller
 
         $products = Product::query()
             ->with(['category', 'brand'])
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            })
+            ->search($search)
             ->when($category !== '', fn ($q) => $q->where('category_id', $category))
             ->when($brand !== '', fn ($q) => $q->where('brand_id', $brand))
             ->orderBy('name')
@@ -35,16 +31,16 @@ class ProductController extends Controller
             'search' => $search->toString(),
             'category' => $category,
             'brand' => $brand,
-            'categories' => Category::where('is_active', true)->orderBy('name')->get(),
-            'brands' => Brand::where('is_active', true)->orderBy('name')->get(),
+            'categories' => Category::catalog()->get(),
+            'brands' => Brand::catalog()->get(),
         ]);
     }
 
     public function create()
     {
         return view('admin.products.create', [
-            'categories' => Category::where('is_active', true)->orderBy('name')->get(),
-            'brands' => Brand::where('is_active', true)->orderBy('name')->get(),
+            'categories' => Category::catalog()->get(),
+            'brands' => Brand::catalog()->get(),
         ]);
     }
 
@@ -96,8 +92,8 @@ class ProductController extends Controller
     {
         return view('admin.products.edit', [
             'product' => $product,
-            'categories' => Category::where('is_active', true)->orderBy('name')->get(),
-            'brands' => Brand::where('is_active', true)->orderBy('name')->get(),
+            'categories' => Category::catalog()->get(),
+            'brands' => Brand::catalog()->get(),
         ]);
     }
 
