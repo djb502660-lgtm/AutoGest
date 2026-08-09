@@ -60,7 +60,7 @@ class ClientController extends Controller
 
     public function show(User $client)
     {
-        if ($client->role !== 'cliente') {
+        if (! $client->isClient()) {
             return redirect()
                 ->route('advisor.clients.index')
                 ->with('error', 'El usuario no es un cliente.');
@@ -75,7 +75,7 @@ class ClientController extends Controller
 
     public function edit(User $client)
     {
-        if ($client->role !== 'cliente') {
+        if (! $client->isClient()) {
             return redirect()
                 ->route('advisor.clients.index')
                 ->with('error', 'El usuario no es un cliente.');
@@ -88,7 +88,7 @@ class ClientController extends Controller
 
     public function update(Request $request, User $client)
     {
-        if ($client->role !== 'cliente') {
+        if (! $client->isClient()) {
             return redirect()
                 ->route('advisor.clients.index')
                 ->with('error', 'El usuario no es un cliente.');

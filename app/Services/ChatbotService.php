@@ -507,7 +507,7 @@ class ChatbotService
 
     private function askAI($user, string $prompt): ?string
     {
-        $apiKey = config('services.openai.key', env('OPENAI_API_KEY'));
+        $apiKey = config('services.openai.key');
 
         if (! $apiKey || $apiKey === 'tu_sk_live_o_test_key_aqui') {
             return null;
