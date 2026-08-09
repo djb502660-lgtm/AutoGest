@@ -57,6 +57,11 @@ jobs:
       - name: Generate app key
         run: php artisan key:generate
 
+      - name: Build frontend assets
+        run: |
+          npm install
+          npm run build
+
       - name: Execute tests
         env:
           # MySQL del servicio CI usa root/password; phpunit.xml deja DB_PASSWORD vacío para Laragon.
