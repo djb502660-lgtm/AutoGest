@@ -46,8 +46,11 @@
         }
         try {
             const res = await fetch(`{{ url('/asesor/vehiculos') }}/${id}/plantillas`, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) {
+                throw new Error(`El servidor respondió con estado ${res.status}`);
+            }
             const data = await res.json();
-            if (!data.templates.length) {
+            if (!data.templates?.length) {
                 box.innerHTML = '<p style="color:var(--muted);font-size:0.84rem;">No hay plantillas para este modelo.</p>';
                 return;
             }
@@ -63,7 +66,8 @@
                     descriptionField.value = el.dataset.title;
                 });
             });
-        } catch {
+        } catch (err) {
+            console.error('No se pudieron cargar las plantillas sugeridas', err);
             box.innerHTML = '<p style="color:var(--danger);">Error al cargar sugerencias.</p>';
         }
     }

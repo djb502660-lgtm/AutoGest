@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class StockController extends Controller
 {
@@ -69,8 +71,12 @@ class StockController extends Controller
         } elseif ($validated['type'] === 'salida') {
             if ($previousStock < $validated['quantity']) {
                 if ($request->wantsJson()) {
-                    return response()->json(['success' => false, 'message' => 'No hay suficiente stock para esta salida.']);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No hay suficiente stock para esta salida.',
+                    ], HttpResponse::HTTP_UNPROCESSABLE_ENTITY);
                 }
+
                 return redirect()
                     ->back()
                     ->with('error', 'No hay suficiente stock para esta salida.');
@@ -80,16 +86,18 @@ class StockController extends Controller
             $newStock = $validated['quantity'];
         }
 
-        $product->update(['stock_quantity' => $newStock]);
+        DB::transaction(function () use ($product, $newStock, $previousStock, $validated) {
+            $product->update(['stock_quantity' => $newStock]);
 
-        StockMovement::create([
-            'product_id' => $validated['product_id'],
-            'type' => $validated['type'],
-            'quantity' => $validated['quantity'],
-            'previous_stock' => $previousStock,
-            'new_stock' => $newStock,
-            'notes' => $validated['notes'],
-        ]);
+            StockMovement::create([
+                'product_id' => $validated['product_id'],
+                'type' => $validated['type'],
+                'quantity' => $validated['quantity'],
+                'previous_stock' => $previousStock,
+                'new_stock' => $newStock,
+                'notes' => $validated['notes'],
+            ]);
+        });
 
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Stock ajustado correctamente.']);

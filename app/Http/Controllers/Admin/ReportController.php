@@ -10,7 +10,10 @@ use App\Models\ServiceOrder;
 use App\Models\Vehicle;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use RuntimeException;
+use Throwable;
 
 class ReportController extends Controller
 {
@@ -110,7 +113,21 @@ class ReportController extends Controller
         $report = $this->buildReportData($validated);
         $admin = $request->user();
 
-        Mail::to($admin->email)->send(new AdminReportMail($report, $admin));
+        try {
+            Mail::to($admin->email)->send(new AdminReportMail($report, $admin));
+        } catch (Throwable $e) {
+            report($e);
+
+            Log::error('No se pudo enviar el reporte por correo.', [
+                'report_type' => $validated['type'],
+                'recipient' => $admin->email,
+                'exception' => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('reports.generate', $validated)
+                ->with('error', 'No se pudo enviar el reporte por correo. Revisa la configuración de correo e inténtalo de nuevo.');
+        }
 
         ActivityLog::record(
             'report.emailed',
@@ -135,6 +152,10 @@ class ReportController extends Controller
 
         $callback = function () use ($report) {
             $file = fopen('php://output', 'w');
+
+            if ($file === false) {
+                throw new RuntimeException('No se pudo abrir el flujo de salida para generar el CSV.');
+            }
             
             // Add BOM for UTF-8 Excel compatibility
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));

@@ -341,19 +341,37 @@
         }
       });
 
-      const res = await response.json();
-
-      if (res.success || response.ok) {
-        alert('✔ Operación completada correctamente');
-        cerrarModal();
-        location.reload();
-      } else {
-        alert('❌ ' + (res.message || 'Error al procesar la solicitud'));
+      let res = null;
+      try {
+        res = await response.json();
+      } catch (parseError) {
+        console.error('Respuesta no válida del servidor', parseError);
       }
+
+      if (!response.ok || res?.success === false) {
+        alert('❌ ' + describeError(response, res));
+        return;
+      }
+
+      alert('✔ ' + (res?.message || 'Operación completada correctamente'));
+      cerrarModal();
+      location.reload();
     } catch (err) {
       console.error(err);
       alert('Ocurrió un error al procesar la solicitud.');
     }
+  }
+
+  function describeError(response, res) {
+    if (res?.errors) {
+      return Object.values(res.errors).flat().join('\n');
+    }
+
+    if (res?.message) {
+      return res.message;
+    }
+
+    return `Error al procesar la solicitud (HTTP ${response.status}).`;
   }
 </script>
 @endsection

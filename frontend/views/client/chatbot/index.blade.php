@@ -207,15 +207,25 @@
                 },
                 body: JSON.stringify({ message: text })
             })
-                .then(res => {
-                    if (!res.ok) throw new Error('Http error ' + res.status);
-                    return res.json();
+                .then(async res => {
+                    const data = await res.json().catch(() => null);
+
+                    if (!res.ok && !data?.reply) {
+                        throw new Error('Http error ' + res.status);
+                    }
+
+                    if (!res.ok) {
+                        console.error('El servidor respondió con error', res.status, data);
+                    }
+
+                    return data;
                 })
                 .then(data => {
                     mostrarCargando(false);
-                    agregarMensaje(data.reply || "No se recibió respuesta.", 'bot');
+                    agregarMensaje(data?.reply || "No se recibió respuesta.", 'bot');
                 })
                 .catch(err => {
+                    console.error(err);
                     mostrarCargando(false);
                     agregarMensaje("Estoy experimentando una breve pausa técnica. ¿Deseas reintentar tu pregunta?", 'bot');
                 });
