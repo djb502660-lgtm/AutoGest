@@ -28,13 +28,7 @@ class OrderController extends Controller
                     ->orWhere('created_by', $user->id);
             })
             ->with(['vehicle', 'client', 'mechanic'])
-            ->when($search->isNotEmpty(), function ($q) use ($search) {
-                $q->where(function ($query) use ($search) {
-                    $query->where('order_number', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%")
-                        ->orWhereHas('vehicle', fn ($v) => $v->where('plate', 'like', "%{$search}%"));
-                });
-            })
+            ->search($search)
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(10)
@@ -161,9 +155,10 @@ class OrderController extends Controller
             'mechanic_id' => ['required', 'exists:users,id'],
         ]);
 
-        $mechanic = User::where('id', $validated['mechanic_id'])
-            ->where('role', UserRole::Mechanic)
-            ->where('status', 'activo')
+        $mechanic = User::query()
+            ->whereKey($validated['mechanic_id'])
+            ->role(UserRole::Mechanic)
+            ->active()
             ->firstOrFail();
 
         $previousMechanic = $order->mechanic;
@@ -216,10 +211,7 @@ class OrderController extends Controller
     {
         return [
             'vehicles' => Vehicle::with('client')->orderBy('plate')->get(),
-            'mechanics' => User::where('role', UserRole::Mechanic)
-                ->where('status', 'activo')
-                ->orderBy('name')
-                ->get(),
+            'mechanics' => User::activeByRole(UserRole::Mechanic)->get(),
             'vehicleTemplates' => collect(),
         ];
     }

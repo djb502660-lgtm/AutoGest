@@ -229,9 +229,7 @@ class GenerateAutomaticAlerts extends Command
         string $severity,
         Carbon $dueDate
     ): void {
-        $admins = User::where('role', UserRole::Admin)
-            ->where('status', 'activo')
-            ->get();
+        $admins = User::query()->role(UserRole::Admin)->active()->get();
 
         foreach ($admins as $admin) {
             $existing = Alert::where('user_id', $admin->id)

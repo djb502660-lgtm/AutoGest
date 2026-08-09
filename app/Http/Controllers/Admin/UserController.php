@@ -22,12 +22,7 @@ class UserController extends Controller
         $status = $request->string('status')->toString();
 
         $users = User::query()
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%");
-                });
-            })
+            ->search($search)
             ->when($role !== '', fn ($q) => $q->where('role', $role))
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->orderBy('name')

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Purchase;
 use App\Models\Supplier;
+use App\Services\PurchaseService;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
@@ -16,10 +18,7 @@ class PurchaseController extends Controller
 
         $purchases = Purchase::query()
             ->with(['supplier', 'items'])
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('purchase_number', 'like', "%{$search}%")
-                    ->orWhereHas('supplier', fn ($q) => $q->where('name', 'like', "%{$search}%"));
-            })
+            ->search($search)
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->orderBy('purchase_date', 'desc')
             ->paginate(10)
@@ -35,21 +34,13 @@ class PurchaseController extends Controller
     public function create()
     {
         return view('admin.purchases.create', [
-            'suppliers' => Supplier::where('is_active', true)->orderBy('name')->get(),
+            'suppliers' => Supplier::catalog()->get(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(Request $request, PurchaseService $purchases)
     {
-        $validated = $request->validate([
-            'supplier_id' => ['required', 'exists:suppliers,id'],
-            'purchase_date' => ['required', 'date'],
-            'items' => ['required', 'array'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate($this->rules());
 
         $purchase = Purchase::create([
             'purchase_number' => 'COMP-' . date('Y-m') . '-' . str_pad(Purchase::count() + 1, 4, '0', STR_PAD_LEFT),
@@ -62,27 +53,7 @@ class PurchaseController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        $subtotal = 0;
-        foreach ($validated['items'] as $item) {
-            $total = $item['quantity'] * $item['unit_price'];
-            $subtotal += $total;
-
-            $purchase->items()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total' => $total,
-            ]);
-        }
-
-        $tax = $subtotal * 0.16;
-        $total = $subtotal + $tax;
-
-        $purchase->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total' => $total,
-        ]);
+        $purchases->syncItems($purchase, $validated['items']);
 
         return redirect()
             ->route('purchases.index')
@@ -110,11 +81,11 @@ class PurchaseController extends Controller
 
         return view('admin.purchases.edit', [
             'purchase' => $purchase,
-            'suppliers' => Supplier::where('is_active', true)->orderBy('name')->get(),
+            'suppliers' => Supplier::catalog()->get(),
         ]);
     }
 
-    public function update(Request $request, Purchase $purchase)
+    public function update(Request $request, Purchase $purchase, PurchaseService $purchases)
     {
         if ($purchase->status !== 'pendiente') {
             return redirect()
@@ -122,15 +93,7 @@ class PurchaseController extends Controller
                 ->with('error', 'Solo se pueden editar compras pendientes.');
         }
 
-        $validated = $request->validate([
-            'supplier_id' => ['required', 'exists:suppliers,id'],
-            'purchase_date' => ['required', 'date'],
-            'items' => ['required', 'array'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        $validated = $request->validate($this->rules());
 
         $purchase->update([
             'supplier_id' => $validated['supplier_id'],
@@ -138,36 +101,14 @@ class PurchaseController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        $purchase->items()->delete();
-
-        $subtotal = 0;
-        foreach ($validated['items'] as $item) {
-            $total = $item['quantity'] * $item['unit_price'];
-            $subtotal += $total;
-
-            $purchase->items()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total' => $total,
-            ]);
-        }
-
-        $tax = $subtotal * 0.16;
-        $total = $subtotal + $tax;
-
-        $purchase->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total' => $total,
-        ]);
+        $purchases->syncItems($purchase, $validated['items']);
 
         return redirect()
             ->route('purchases.index')
             ->with('success', 'Compra actualizada correctamente.');
     }
 
-    public function receive(Purchase $purchase)
+    public function receive(Purchase $purchase, StockService $stock)
     {
         if ($purchase->status !== 'pendiente') {
             return redirect()
@@ -178,17 +119,7 @@ class PurchaseController extends Controller
         $purchase->update(['status' => 'recibida']);
 
         foreach ($purchase->items as $item) {
-            $product = $item->product;
-            $previousStock = $product->stock_quantity;
-            $newStock = $previousStock + $item->quantity;
-
-            $product->update(['stock_quantity' => $newStock]);
-
-            $product->stockMovements()->create([
-                'type' => 'entrada',
-                'quantity' => $item->quantity,
-                'previous_stock' => $previousStock,
-                'new_stock' => $newStock,
+            $stock->applyMovement($item->product, 'entrada', $item->quantity, [
                 'purchase_id' => $purchase->id,
                 'notes' => 'Recepción de compra ' . $purchase->purchase_number,
             ]);
@@ -212,5 +143,18 @@ class PurchaseController extends Controller
         return redirect()
             ->route('purchases.index')
             ->with('success', 'Compra eliminada correctamente.');
+    }
+
+    private function rules(): array
+    {
+        return [
+            'supplier_id' => ['required', 'exists:suppliers,id'],
+            'purchase_date' => ['required', 'date'],
+            'items' => ['required', 'array'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0'],
+            'notes' => ['nullable', 'string'],
+        ];
     }
 }

@@ -586,8 +586,8 @@ class ChatbotAppointmentService
         }
 
         User::query()
-            ->where('role', UserRole::Advisor)
-            ->where('status', 'activo')
+            ->role(UserRole::Advisor)
+            ->active()
             ->each(function (User $advisor) use ($appointment, $message) {
                 Alert::create([
                     'vehicle_id' => $appointment->vehicle_id,
@@ -1229,8 +1229,8 @@ class ChatbotAppointmentService
         }
 
         User::query()
-            ->where('role', UserRole::Advisor)
-            ->where('status', 'activo')
+            ->role(UserRole::Advisor)
+            ->active()
             ->each(function (User $advisor) use ($appointment, $message, $titles, $action) {
                 Alert::create([
                     'vehicle_id' => $appointment->vehicle_id,

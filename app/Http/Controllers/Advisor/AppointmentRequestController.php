@@ -36,7 +36,7 @@ class AppointmentRequestController extends Controller
 
         return view('advisor.appointments.show', [
             'appointment' => $appointment,
-            'mechanics' => User::where('role', UserRole::Mechanic)->where('status', 'activo')->orderBy('name')->get(),
+            'mechanics' => User::activeByRole(UserRole::Mechanic)->get(),
         ]);
     }
 

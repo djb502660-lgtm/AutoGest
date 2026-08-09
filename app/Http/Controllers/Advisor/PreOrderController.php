@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Advisor;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\AppointmentRequest;
 use App\Models\ServiceOrder;
@@ -20,10 +21,7 @@ class PreOrderController extends Controller
 
         $preOrders = AppointmentRequest::query()
             ->with(['client', 'vehicle', 'vehicleModelTemplate'])
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->whereHas('client', fn ($q) => $q->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('vehicle', fn ($q) => $q->where('plate', 'like', "%{$search}%"));
-            })
+            ->search($search)
             ->when($source !== '', fn ($q) => $q->where('source', $source))
             ->when($status !== '', fn ($q) => $q->where('status', $status))
             ->orderBy('created_at', 'desc')
@@ -41,8 +39,8 @@ class PreOrderController extends Controller
     public function create()
     {
         return view('advisor.pre-orders.create', [
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
-            'vehicles' => Vehicle::where('status', 'activo')->orderBy('plate')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
+            'vehicles' => Vehicle::active()->orderBy('plate')->get(),
         ]);
     }
 
@@ -98,8 +96,8 @@ class PreOrderController extends Controller
 
         return view('advisor.pre-orders.edit', [
             'preOrder' => $preOrder,
-            'clients' => User::where('role', 'cliente')->where('status', 'activo')->orderBy('name')->get(),
-            'vehicles' => Vehicle::where('status', 'activo')->orderBy('plate')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
+            'vehicles' => Vehicle::active()->orderBy('plate')->get(),
         ]);
     }
 

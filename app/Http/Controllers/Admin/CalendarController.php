@@ -10,55 +10,35 @@ use App\Models\MaintenanceSchedule;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Vehicle;
+use App\Services\DashboardCalendarService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class CalendarController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, DashboardCalendarService $calendar)
     {
-        Carbon::setLocale('es');
-
-        $month = max(1, min(12, (int) $request->input('month', now()->month)));
-        $year = (int) $request->input('year', now()->year);
-
-        $current = Carbon::create($year, $month, 1)->locale('es');
-        $startOfMonth = $current->copy()->startOfMonth();
-        $endOfMonth = $current->copy()->endOfMonth();
-
-        $gridStart = $startOfMonth->copy()->startOfWeek(Carbon::MONDAY);
-        $gridEnd = $endOfMonth->copy()->endOfWeek(Carbon::SUNDAY);
+        $period = $calendar->resolvePeriod(
+            (int) $request->input('month', now()->month),
+            (int) $request->input('year', now()->year),
+        );
 
         $schedules = MaintenanceSchedule::with(['vehicle', 'assignedMechanic'])
-            ->whereBetween('scheduled_date', [$gridStart->toDateString(), $gridEnd->toDateString()])
+            ->whereBetween('scheduled_date', [$period['grid_start']->toDateString(), $period['grid_end']->toDateString()])
             ->get()
             ->groupBy(fn ($item) => $item->scheduled_date->format('Y-m-d'));
 
         $orders = ServiceOrder::with('vehicle')
             ->whereNotNull('scheduled_at')
-            ->whereBetween('scheduled_at', [$gridStart->startOfDay(), $gridEnd->endOfDay()])
+            ->whereBetween('scheduled_at', [$period['grid_start'], $period['grid_end']])
             ->get()
             ->groupBy(fn ($item) => $item->scheduled_at->format('Y-m-d'));
 
-        $weeks = [];
-        $day = $gridStart->copy();
-
-        while ($day <= $gridEnd) {
-            $week = [];
-            for ($i = 0; $i < 7; $i++) {
-                $key = $day->format('Y-m-d');
-                $week[] = [
-                    'date' => $day->copy(),
-                    'in_month' => $day->month === $month,
-                    'is_today' => $day->isToday(),
-                    'schedules' => $schedules->get($key, collect()),
-                    'orders' => $orders->get($key, collect()),
-                ];
-                $day->addDay();
-            }
-            $weeks[] = $week;
-        }
+        $weeks = $calendar->makeGrid($period, [
+            'schedules' => $schedules,
+            'orders' => $orders,
+        ]);
 
         $upcoming = MaintenanceSchedule::with('vehicle')
             ->where('scheduled_date', '>=', now()->toDateString())
@@ -69,11 +49,11 @@ class CalendarController extends Controller
 
         return view('admin.calendar.index', [
             'weeks' => $weeks,
-            'current' => $current,
-            'month' => $month,
-            'year' => $year,
-            'prev' => $startOfMonth->copy()->subMonth(),
-            'next' => $startOfMonth->copy()->addMonth(),
+            'current' => $period['current'],
+            'month' => $period['month'],
+            'year' => $period['year'],
+            'prev' => $period['prev'],
+            'next' => $period['next'],
             'upcoming' => $upcoming,
         ]);
     }
@@ -148,9 +128,9 @@ class CalendarController extends Controller
     private function formData(): array
     {
         return [
-            'clients' => User::where('role', UserRole::Client)->where('status', 'activo')->orderBy('name')->get(),
+            'clients' => User::activeByRole(UserRole::Client)->get(),
             'vehicles' => Vehicle::orderBy('plate')->get(),
-            'mechanics' => User::whereIn('role', [UserRole::Mechanic, UserRole::Advisor])->where('status', 'activo')->orderBy('name')->get(),
+            'mechanics' => User::activeByRole(UserRole::Mechanic, UserRole::Advisor)->get(),
         ];
     }
 

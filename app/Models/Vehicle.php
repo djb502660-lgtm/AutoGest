@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Vehicle extends Model
 {
+    use Searchable;
+
     protected $fillable = [
         'client_id',
         'plate',
@@ -39,6 +43,16 @@ class Vehicle extends Model
             'inspection_expiry' => 'date',
             'registration_date' => 'date',
         ];
+    }
+
+    protected function searchableColumns(): array
+    {
+        return ['plate', 'brand', 'model'];
+    }
+
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'activo');
     }
 
     public function client(): BelongsTo

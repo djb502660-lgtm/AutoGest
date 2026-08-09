@@ -128,7 +128,7 @@ class MaintenanceController extends Controller
     {
         return [
             'vehicles' => Vehicle::with('client')->orderBy('plate')->get(),
-            'mechanics' => User::where('role', UserRole::Mechanic)->where('status', 'activo')->orderBy('name')->get(),
+            'mechanics' => User::activeByRole(UserRole::Mechanic)->get(),
             'orders' => ServiceOrder::with('vehicle')->latest()->take(50)->get(),
         ];
     }

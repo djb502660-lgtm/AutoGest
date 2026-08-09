@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\Searchable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Purchase extends Model
 {
-    use HasFactory;
+    use HasFactory, Searchable;
 
     protected $fillable = [
         'purchase_number',
@@ -28,6 +29,16 @@ class Purchase extends Model
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
     ];
+
+    protected function searchableColumns(): array
+    {
+        return ['purchase_number'];
+    }
+
+    protected function searchableRelations(): array
+    {
+        return ['supplier' => ['name']];
+    }
 
     public function supplier(): BelongsTo
     {

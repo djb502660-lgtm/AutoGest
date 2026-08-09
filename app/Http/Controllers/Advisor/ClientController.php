@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Advisor;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,12 +14,9 @@ class ClientController extends Controller
     {
         $search = $request->string('search')->trim();
 
-        $clients = User::where('role', 'cliente')
-            ->when($search->isNotEmpty(), function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%");
-            })
+        $clients = User::query()
+            ->role(UserRole::Client)
+            ->search($search)
             ->orderBy('name')
             ->paginate(10)
             ->withQueryString();

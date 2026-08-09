@@ -31,13 +31,15 @@ class DashboardCalendarService
         ];
     }
 
-    public function makeWidget(array $period, array $eventGroups, array $options = []): array
+    /**
+     * Construye la rejilla de semanas del periodo. Cada colección de $groups debe
+     * venir agrupada por fecha «Y-m-d» y se expone en el día con la misma clave.
+     *
+     * @param  array<string, Collection>  $groups
+     * @return array<int, array<int, array<string, mixed>>>
+     */
+    public function makeGrid(array $period, array $groups = []): array
     {
-        $events = $this->normalizeEvents($eventGroups);
-        $eventsByDate = $events
-            ->filter(fn (array $event) => $event['date']->between($period['grid_start'], $period['grid_end']))
-            ->groupBy(fn (array $event) => $event['date']->format('Y-m-d'));
-
         $weeks = [];
         $day = $period['grid_start']->copy();
 
@@ -47,18 +49,34 @@ class DashboardCalendarService
             for ($i = 0; $i < 7; $i++) {
                 $key = $day->format('Y-m-d');
 
-                $week[] = [
+                $cell = [
                     'date' => $day->copy(),
                     'in_month' => $day->month === $period['month'],
                     'is_today' => $day->isToday(),
-                    'events' => $eventsByDate->get($key, collect()),
                 ];
 
+                foreach ($groups as $name => $grouped) {
+                    $cell[$name] = $grouped->get($key, collect());
+                }
+
+                $week[] = $cell;
                 $day->addDay();
             }
 
             $weeks[] = $week;
         }
+
+        return $weeks;
+    }
+
+    public function makeWidget(array $period, array $eventGroups, array $options = []): array
+    {
+        $events = $this->normalizeEvents($eventGroups);
+        $eventsByDate = $events
+            ->filter(fn (array $event) => $event['date']->between($period['grid_start'], $period['grid_end']))
+            ->groupBy(fn (array $event) => $event['date']->format('Y-m-d'));
+
+        $weeks = $this->makeGrid($period, ['events' => $eventsByDate]);
 
         return [
             'title' => $options['title'] ?? 'Agenda del mes',
