@@ -11,6 +11,7 @@ use App\Models\ServiceOrder;
 use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -564,8 +565,15 @@ class ChatbotService
             if ($response->successful()) {
                 return trim($response->json('choices.0.message.content'));
             }
+
+            Log::warning('[ChatbotService] La API de IA respondió con error.', [
+                'status' => $response->status(),
+                'body' => Str::limit($response->body(), 500),
+            ]);
         } catch (Throwable $e) {
-            \Log::warning('[ChatbotService] Error IA: '.$e->getMessage());
+            Log::warning('[ChatbotService] Error al consultar la IA.', [
+                'exception' => $e->getMessage(),
+            ]);
         }
 
         return null;
@@ -599,7 +607,13 @@ class ChatbotService
             });
 
             return $faq?->answer;
-        } catch (Throwable) {
+        } catch (Throwable $e) {
+            report($e);
+
+            Log::error('[ChatbotService] No se pudieron consultar las FAQs.', [
+                'exception' => $e->getMessage(),
+            ]);
+
             return null;
         }
     }

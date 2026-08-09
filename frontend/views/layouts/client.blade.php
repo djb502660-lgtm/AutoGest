@@ -185,13 +185,19 @@
                     credentials: 'same-origin',
                     body: JSON.stringify({ message: text })
                 });
+                const data = await res.json().catch(() => null);
+
                 if (!res.ok) {
-                    appendMsg('Error del servidor (' + res.status + '). ¿Ejecutaste las migraciones?', 'bot');
+                    console.error('El servidor respondió con error', res.status, data);
+                    appendMsg(data?.reply || ('Error del servidor (' + res.status + '). Intenta de nuevo más tarde.'), 'bot');
                     return;
                 }
-                const data = await res.json();
-                appendMsg(data.reply || 'No pude procesar tu mensaje.', 'bot');
-            } catch { appendMsg('Error de conexión. Intenta de nuevo.', 'bot'); }
+
+                appendMsg(data?.reply || 'No pude procesar tu mensaje.', 'bot');
+            } catch (err) {
+                console.error(err);
+                appendMsg('Error de conexión. Intenta de nuevo.', 'bot');
+            }
         });
         function appendMsg(text, type) {
             const el = document.createElement('div');

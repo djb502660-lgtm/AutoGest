@@ -7,6 +7,8 @@ use App\Models\ChatbotMessage;
 use App\Services\ChatbotService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Throwable;
 
 class ChatbotController extends Controller
@@ -61,10 +63,18 @@ class ChatbotController extends Controller
             return response()->json(['reply' => $reply]);
 
         } catch (Throwable $e) {
-            \Log::error('[ChatbotController] Error: ' . $e->getMessage());
+            report($e);
+
+            Log::error('[ChatbotController] No se pudo procesar el mensaje del chatbot.', [
+                'user_id' => $user?->id,
+                'session_id' => $request->session()->getId(),
+                'exception' => $e->getMessage(),
+            ]);
+
             return response()->json([
                 'reply' => 'Tuve un pequeño contratiempo. ¿Puedes intentarlo de nuevo?',
-            ]);
+                'error' => true,
+            ], HttpResponse::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 }

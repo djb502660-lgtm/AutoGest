@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Purchase;
 use App\Models\Supplier;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseController extends Controller
 {
@@ -51,38 +52,39 @@ class PurchaseController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $purchase = Purchase::create([
-            'purchase_number' => 'COMP-' . date('Y-m') . '-' . str_pad(Purchase::count() + 1, 4, '0', STR_PAD_LEFT),
-            'supplier_id' => $validated['supplier_id'],
-            'purchase_date' => $validated['purchase_date'],
-            'subtotal' => 0,
-            'tax' => 0,
-            'total' => 0,
-            'status' => 'pendiente',
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        $subtotal = 0;
-        foreach ($validated['items'] as $item) {
-            $total = $item['quantity'] * $item['unit_price'];
-            $subtotal += $total;
-
-            $purchase->items()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total' => $total,
+        DB::transaction(function () use ($validated) {
+            $purchase = Purchase::create([
+                'purchase_number' => 'COMP-' . date('Y-m') . '-' . str_pad(Purchase::count() + 1, 4, '0', STR_PAD_LEFT),
+                'supplier_id' => $validated['supplier_id'],
+                'purchase_date' => $validated['purchase_date'],
+                'subtotal' => 0,
+                'tax' => 0,
+                'total' => 0,
+                'status' => 'pendiente',
+                'notes' => $validated['notes'] ?? null,
             ]);
-        }
 
-        $tax = $subtotal * 0.16;
-        $total = $subtotal + $tax;
+            $subtotal = 0;
+            foreach ($validated['items'] as $item) {
+                $total = $item['quantity'] * $item['unit_price'];
+                $subtotal += $total;
 
-        $purchase->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total' => $total,
-        ]);
+                $purchase->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total' => $total,
+                ]);
+            }
+
+            $tax = $subtotal * 0.16;
+
+            $purchase->update([
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'total' => $subtotal + $tax,
+            ]);
+        });
 
         return redirect()
             ->route('purchases.index')
@@ -132,35 +134,36 @@ class PurchaseController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $purchase->update([
-            'supplier_id' => $validated['supplier_id'],
-            'purchase_date' => $validated['purchase_date'],
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        $purchase->items()->delete();
-
-        $subtotal = 0;
-        foreach ($validated['items'] as $item) {
-            $total = $item['quantity'] * $item['unit_price'];
-            $subtotal += $total;
-
-            $purchase->items()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total' => $total,
+        DB::transaction(function () use ($purchase, $validated) {
+            $purchase->update([
+                'supplier_id' => $validated['supplier_id'],
+                'purchase_date' => $validated['purchase_date'],
+                'notes' => $validated['notes'] ?? null,
             ]);
-        }
 
-        $tax = $subtotal * 0.16;
-        $total = $subtotal + $tax;
+            $purchase->items()->delete();
 
-        $purchase->update([
-            'subtotal' => $subtotal,
-            'tax' => $tax,
-            'total' => $total,
-        ]);
+            $subtotal = 0;
+            foreach ($validated['items'] as $item) {
+                $total = $item['quantity'] * $item['unit_price'];
+                $subtotal += $total;
+
+                $purchase->items()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total' => $total,
+                ]);
+            }
+
+            $tax = $subtotal * 0.16;
+
+            $purchase->update([
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'total' => $subtotal + $tax,
+            ]);
+        });
 
         return redirect()
             ->route('purchases.index')
@@ -175,24 +178,26 @@ class PurchaseController extends Controller
                 ->with('error', 'Solo se pueden recibir compras pendientes.');
         }
 
-        $purchase->update(['status' => 'recibida']);
+        DB::transaction(function () use ($purchase) {
+            $purchase->update(['status' => 'recibida']);
 
-        foreach ($purchase->items as $item) {
-            $product = $item->product;
-            $previousStock = $product->stock_quantity;
-            $newStock = $previousStock + $item->quantity;
+            foreach ($purchase->items as $item) {
+                $product = $item->product;
+                $previousStock = $product->stock_quantity;
+                $newStock = $previousStock + $item->quantity;
 
-            $product->update(['stock_quantity' => $newStock]);
+                $product->update(['stock_quantity' => $newStock]);
 
-            $product->stockMovements()->create([
-                'type' => 'entrada',
-                'quantity' => $item->quantity,
-                'previous_stock' => $previousStock,
-                'new_stock' => $newStock,
-                'purchase_id' => $purchase->id,
-                'notes' => 'Recepción de compra ' . $purchase->purchase_number,
-            ]);
-        }
+                $product->stockMovements()->create([
+                    'type' => 'entrada',
+                    'quantity' => $item->quantity,
+                    'previous_stock' => $previousStock,
+                    'new_stock' => $newStock,
+                    'purchase_id' => $purchase->id,
+                    'notes' => 'Recepción de compra ' . $purchase->purchase_number,
+                ]);
+            }
+        });
 
         return redirect()
             ->route('purchases.index')

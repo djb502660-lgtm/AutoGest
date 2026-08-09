@@ -10,30 +10,64 @@ use App\Models\Vehicle;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class GenerateAutomaticAlerts extends Command
 {
     protected $signature = 'autogest:generate-alerts';
     protected $description = 'Genera alertas automáticas por vencimiento de seguro, revisión técnica y mantenimientos programados';
 
+    private int $failures = 0;
+
     public function handle(): int
     {
         $this->info('Generando alertas automáticas...');
-        
+
+        $this->failures = 0;
         $alertsCreated = 0;
-        
+
         // Alertas por vencimiento de seguro (30 días antes)
         $alertsCreated += $this->generateInsuranceExpiryAlerts();
-        
+
         // Alertas por vencimiento de revisión técnica (30 días antes)
         $alertsCreated += $this->generateInspectionExpiryAlerts();
-        
+
         // Alertas por mantenimientos programados próximos (7 días antes)
         $alertsCreated += $this->generateMaintenanceScheduleAlerts();
-        
+
         $this->info("Se generaron {$alertsCreated} alertas automáticas.");
-        
+
+        if ($this->failures > 0) {
+            $this->error("{$this->failures} alertas no pudieron generarse. Revisa el log para más detalles.");
+
+            return self::FAILURE;
+        }
+
         return self::SUCCESS;
+    }
+
+    /**
+     * Ejecuta la generación de alertas de un registro sin abortar el resto del lote.
+     */
+    private function attempt(string $context, array $meta, callable $callback): bool
+    {
+        try {
+            $callback();
+
+            return true;
+        } catch (Throwable $e) {
+            $this->failures++;
+
+            report($e);
+
+            Log::error("[autogest:generate-alerts] {$context}", $meta + [
+                'exception' => $e->getMessage(),
+            ]);
+
+            $this->warn("No se pudo generar la alerta ({$context}): {$e->getMessage()}");
+
+            return false;
+        }
     }
 
     private function generateInsuranceExpiryAlerts(): int
@@ -56,29 +90,37 @@ class GenerateAutomaticAlerts extends Command
                 : 'Seguro próximo a vencer';
             
             $message = "El seguro del vehículo {$vehicle->plate} ({$vehicle->brand} {$vehicle->model}) vence el {$vehicle->insurance_expiry->format('d/m/Y')}.";
-            
-            // Alerta para el cliente
-            $this->createAlertIfNotExists(
-                $vehicle->client_id,
-                $vehicle->id,
-                'insurance_expiry',
-                $title,
-                $message,
-                $severity,
-                $vehicle->insurance_expiry
+
+            $created = $this->attempt(
+                'alerta de vencimiento de seguro',
+                ['vehicle_id' => $vehicle->id],
+                function () use ($vehicle, $title, $message, $severity) {
+                    // Alerta para el cliente
+                    $this->createAlertIfNotExists(
+                        $vehicle->client_id,
+                        $vehicle->id,
+                        'insurance_expiry',
+                        $title,
+                        $message,
+                        $severity,
+                        $vehicle->insurance_expiry
+                    );
+
+                    // Alerta para administradores
+                    $this->createAlertForAdmins(
+                        $vehicle->id,
+                        'insurance_expiry',
+                        $title,
+                        $message,
+                        $severity,
+                        $vehicle->insurance_expiry
+                    );
+                }
             );
-            
-            // Alerta para administradores
-            $this->createAlertForAdmins(
-                $vehicle->id,
-                'insurance_expiry',
-                $title,
-                $message,
-                $severity,
-                $vehicle->insurance_expiry
-            );
-            
-            $count++;
+
+            if ($created) {
+                $count++;
+            }
         }
 
         if ($count > 0) {
@@ -108,29 +150,37 @@ class GenerateAutomaticAlerts extends Command
                 : 'Revisión técnica próxima a vencer';
             
             $message = "La revisión técnica del vehículo {$vehicle->plate} ({$vehicle->brand} {$vehicle->model}) vence el {$vehicle->inspection_expiry->format('d/m/Y')}.";
-            
-            // Alerta para el cliente
-            $this->createAlertIfNotExists(
-                $vehicle->client_id,
-                $vehicle->id,
-                'inspection_expiry',
-                $title,
-                $message,
-                $severity,
-                $vehicle->inspection_expiry
+
+            $created = $this->attempt(
+                'alerta de vencimiento de revisión técnica',
+                ['vehicle_id' => $vehicle->id],
+                function () use ($vehicle, $title, $message, $severity) {
+                    // Alerta para el cliente
+                    $this->createAlertIfNotExists(
+                        $vehicle->client_id,
+                        $vehicle->id,
+                        'inspection_expiry',
+                        $title,
+                        $message,
+                        $severity,
+                        $vehicle->inspection_expiry
+                    );
+
+                    // Alerta para administradores
+                    $this->createAlertForAdmins(
+                        $vehicle->id,
+                        'inspection_expiry',
+                        $title,
+                        $message,
+                        $severity,
+                        $vehicle->inspection_expiry
+                    );
+                }
             );
-            
-            // Alerta para administradores
-            $this->createAlertForAdmins(
-                $vehicle->id,
-                'inspection_expiry',
-                $title,
-                $message,
-                $severity,
-                $vehicle->inspection_expiry
-            );
-            
-            $count++;
+
+            if ($created) {
+                $count++;
+            }
         }
 
         if ($count > 0) {
@@ -157,29 +207,37 @@ class GenerateAutomaticAlerts extends Command
             $title = "Mantenimiento programado: {$schedule->title}";
             
             $message = "Mantenimiento '{$schedule->title}' para vehículo {$schedule->vehicle->plate} programado para el {$schedule->scheduled_date->format('d/m/Y')}.";
-            
-            // Alerta para el cliente
-            $this->createAlertIfNotExists(
-                $schedule->vehicle->client_id,
-                $schedule->vehicle_id,
-                'maintenance_due',
-                $title,
-                $message,
-                $severity,
-                $schedule->scheduled_date
+
+            $created = $this->attempt(
+                'alerta de mantenimiento programado',
+                ['schedule_id' => $schedule->id, 'vehicle_id' => $schedule->vehicle_id],
+                function () use ($schedule, $title, $message, $severity) {
+                    // Alerta para el cliente
+                    $this->createAlertIfNotExists(
+                        $schedule->vehicle->client_id,
+                        $schedule->vehicle_id,
+                        'maintenance_due',
+                        $title,
+                        $message,
+                        $severity,
+                        $schedule->scheduled_date
+                    );
+
+                    // Alerta para administradores
+                    $this->createAlertForAdmins(
+                        $schedule->vehicle_id,
+                        'maintenance_due',
+                        $title,
+                        $message,
+                        $severity,
+                        $schedule->scheduled_date
+                    );
+                }
             );
-            
-            // Alerta para administradores
-            $this->createAlertForAdmins(
-                $schedule->vehicle_id,
-                'maintenance_due',
-                $title,
-                $message,
-                $severity,
-                $schedule->scheduled_date
-            );
-            
-            $count++;
+
+            if ($created) {
+                $count++;
+            }
         }
 
         if ($count > 0) {

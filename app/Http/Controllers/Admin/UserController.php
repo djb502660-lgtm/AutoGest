@@ -7,7 +7,9 @@ use App\Http\Controllers\Controller;
 use App\Enums\UserRole;
 use App\Models\ActivityLog;
 use App\Models\User;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
@@ -179,8 +181,18 @@ class UserController extends Controller
             return redirect()
                 ->route('users.index')
                 ->with('success', 'Usuario eliminado correctamente.');
-        } catch (\Illuminate\Database\QueryException $e) {
-            // Si hay error de foreign key, desactivar en su lugar
+        } catch (QueryException $e) {
+            if (! $this->isIntegrityConstraintViolation($e)) {
+                throw $e;
+            }
+
+            report($e);
+
+            Log::warning('No se pudo eliminar el usuario por una restricción de integridad; se desactivó en su lugar.', [
+                'user_id' => $user->id,
+                'exception' => $e->getMessage(),
+            ]);
+
             $user->update(['status' => 'inactivo']);
 
             ActivityLog::record(
@@ -194,5 +206,10 @@ class UserController extends Controller
                 ->route('users.index')
                 ->with('success', 'El usuario fue desactivado debido a restricciones de base de datos.');
         }
+    }
+
+    private function isIntegrityConstraintViolation(QueryException $e): bool
+    {
+        return str_starts_with((string) $e->getCode(), '23');
     }
 }
