@@ -9,11 +9,11 @@ Route::middleware(['web', 'auth', 'role:cliente'])
     ->group(function () {
         Route::get('/chatbot', [ChatbotController::class, 'index'])->name('chatbot.index');
         Route::post('/chatbot/mensaje', [ChatbotController::class, 'message'])
-            ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+            ->middleware('throttle:30,1')
             ->name('chatbot.message');
     });
 
 // Alias to ensure route('chatbot.message') works seamlessly as well
-Route::middleware(['web', 'auth'])
+Route::middleware(['web', 'auth', 'role:cliente', 'throttle:30,1'])
     ->post('/chatbot/mensaje', [ChatbotController::class, 'message'])
     ->name('chatbot.message');
