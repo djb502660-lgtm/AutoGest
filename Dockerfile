@@ -3,15 +3,9 @@ WORKDIR /app
 COPY . /app
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-FROM node:18 as frontend
-WORKDIR /app
-COPY --from=build /app /app
-RUN npm install && npm run build
-
 FROM php:8.2-apache
 WORKDIR /var/www/html
 COPY --from=build /app /var/www/html
-COPY --from=frontend /app/public/build /var/www/html/public/build
 
 # Instalar dependencias del sistema para extensiones PHP
 RUN apt-get update && apt-get install -y \
