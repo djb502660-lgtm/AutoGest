@@ -7,6 +7,9 @@ FROM php:8.2-apache
 WORKDIR /var/www/html
 COPY --from=build /app /var/www/html
 
+# Forzar invalidación de caché
+RUN echo "Cache invalidation - API only deployment"
+
 # Instalar dependencias del sistema para extensiones PHP
 RUN apt-get update && apt-get install -y \
     libsqlite3-dev \
