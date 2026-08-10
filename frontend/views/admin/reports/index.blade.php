@@ -1,233 +1,263 @@
 @extends('layouts.admin')
 
 @section('title', 'Reportes')
-@section('heading', 'Reportes del sistema')
-@section('subheading', 'Genera e imprime reportes de mantenimientos, gastos, vehículos y pendientes.')
+@section('heading', 'Expedientes Completos')
+@section('subheading', 'Genera expedientes completos de vehículos e inventario con toda la información detallada.')
 
 @section('content')
   <div class="header-page">
-    <h2>📊 Reportes del sistema</h2>
-    <p>Genera e imprime reportes de mantenimientos, gastos, vehículos y pendientes.</p>
+    <h2>📊 Generador de Expedientes Completos</h2>
+    <p>Genera expedientes completos de vehículos e inventario con toda la información detallada en PDF.</p>
   </div>
 
-  <!-- TARJETAS DE REPORTES -->
-  <div class="reports-grid">
-    
-    <div class="report-card" onclick="abrirReporte('mantenimientos')">
-      <div class="icon-box">🛠️</div>
-      <h3>Reporte de mantenimientos</h3>
-      <p>Historial completo de servicios realizados a la flota de vehículos.</p>
-    </div>
-
-    <div class="report-card" onclick="abrirReporte('gastos')">
-      <div class="icon-box">💰</div>
-      <h3>Reporte de gastos</h3>
-      <p>Resumen detallado de costos operativos y servicios completados.</p>
-    </div>
-
-    <div class="report-card" onclick="abrirReporte('vehiculos')">
-      <div class="icon-box">🚗</div>
-      <h3>Reporte de vehículos</h3>
-      <p>Estado general de la flota de vehículos registrada en el sistema.</p>
-    </div>
-
-    <div class="report-card" onclick="abrirReporte('pendientes')">
-      <div class="icon-box">⏳</div>
-      <h3>Reporte de pendientes</h3>
-      <p>Mantenimientos programados y órdenes de servicio aún abiertas.</p>
-    </div>
-
-  </div>
-
-  <!-- MODAL DE PREVISUALIZACIÓN / IMPRESIÓN -->
-  <div class="modal-overlay" id="modalReporte">
-    <div class="modal-box" id="modalPrintArea">
+  <!-- GENERADOR UNIFICADO -->
+  <div class="panel">
+    <h3>Configurar Expediente</h3>
+    <form id="unifiedReportForm">
+      @csrf
       
-      <div class="modal-header">
-        <h3 id="reportTitle">Vista previa del Reporte</h3>
-        <button onclick="cerrarModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      <div class="form-group">
+        <label>Tipo de Expediente</label>
+        <select name="type" id="reportType" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px;" onchange="updateReportConfig()">
+          <option value="">Seleccione un tipo de expediente...</option>
+          
+          <optgroup label="📋 EXPEDIENTES DE VEHÍCULOS">
+            <option value="vehiculo_detalle">Expediente de Vehículo Específico</option>
+            <option value="vehiculo_general">Expediente Completo de Flota</option>
+          </optgroup>
+          
+          <optgroup label="📦 INVENTARIO Y PRODUCTOS">
+            <option value="inventario">Reporte de Inventario General</option>
+            <option value="productos">Reporte de Productos</option>
+            <option value="movimientos">Reporte de Movimientos de Stock</option>
+            <option value="categorias">Reporte de Categorías y Marcas</option>
+          </optgroup>
+        </select>
       </div>
 
-      <div class="modal-body">
-        <div id="reportContent">
-          <!-- La tabla se inyecta dinámicamente -->
-        </div>
+      <!-- Filtros dinámicos según tipo de reporte -->
+      <div id="dynamicFilters" style="margin-top: 16px;">
+        <!-- Los filtros se cargarán dinámicamente -->
       </div>
 
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-        <button class="btn btn-pdf" onclick="exportarPDF()">📄 Descargar PDF</button>
-        <button class="btn btn-print" onclick="imprimirReporte()">🖨️ Imprimir</button>
+      <div style="margin-top: 24px;">
+        <button type="button" class="btn btn-primary" onclick="generatePdf()" style="width: 100%;">📥 Generar y Descargar PDF</button>
       </div>
-
-    </div>
+    </form>
   </div>
-
-  <!-- Librería para exportar a PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-  <style>
-    .header-page { margin-bottom: 24px; }
-    .header-page h2 { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
-    .header-page p { font-size: 0.875rem; color: #64748b; margin-top: 4px; }
-
-    .reports-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-      max-width: 1000px;
-    }
-
-    .report-card {
-      background: #ffffff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 24px;
-      cursor: pointer;
-      transition: all 0.2s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-
-    .report-card:hover {
-      border-color: #0d9488;
-      box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.1);
-      transform: translateY(-2px);
-    }
-
-    .report-card .icon-box {
-      font-size: 1.75rem;
-      background: #f1f5f9;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-    }
-
-    .report-card h3 { font-size: 1.05rem; color: #0f172a; font-weight: 600; }
-    .report-card p { font-size: 0.85rem; color: #64748b; line-height: 1.4; }
-
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px);
-      display: none; align-items: center; justify-content: center;
-      z-index: 999;
-    }
-    .modal-overlay.active { display: flex; }
-
-    .modal-box {
-      background: #ffffff; border-radius: 12px;
-      width: 100%; max-width: 850px;
-      overflow: hidden;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
-    }
-
-    .modal-header {
-      padding: 20px 24px; border-bottom: 1px solid #e2e8f0;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .modal-header h3 { font-size: 1.15rem; color: #0f172a; }
-
-    .modal-body { padding: 24px; max-height: 60vh; overflow-y: auto; }
-
-    .modal-footer {
-      padding: 16px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0;
-      display: flex; justify-content: flex-end; gap: 10px;
-    }
-
-    .btn { padding: 9px 16px; border-radius: 6px; font-weight: 600; font-size: 0.875rem; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; }
-    .btn-secondary { background: #ffffff; border: 1px solid #cbd5e1; color: #475569; }
-    .btn-print { background: #0f172a; color: #ffffff; }
-    .btn-pdf { background: #ef4444; color: #ffffff; }
-    .btn:hover { opacity: 0.9; }
-
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-    th { background: #f1f5f9; color: #475569; padding: 10px 12px; border-bottom: 1px solid #cbd5e1; }
-    td { padding: 10px 12px; border-bottom: 1px solid #e2e8f0; }
-
-    @media print {
-      body * { visibility: hidden; }
-      #modalPrintArea, #modalPrintArea * { visibility: visible; }
-      #modalPrintArea { position: absolute; left: 0; top: 0; width: 100%; }
-      .modal-footer, .modal-header button { display: none !important; }
-    }
-  </style>
 
   <script>
-    const datosReportes = {
-        'mantenimientos': {
-            'titulo': 'Reporte General de Mantenimientos',
-            'columnas': ['ID Orden', 'Vehículo', 'Servicio', 'Mecánico', 'Fecha'],
-            'filas': @json($reportData['mantenimientos'])
-        },
-        'gastos': {
-            'titulo': 'Reporte Resumen de Gastos Operativos',
-            'columnas': ['Categoría', 'Detalle / Concepto', 'Vehículo', 'Costo ($)'],
-            'filas': @json($reportData['gastos'])
-        },
-        'vehiculos': {
-            'titulo': 'Reporte de Estado de Flota Vehicular',
-            'columnas': ['Placa', 'Modelo / Marca', 'Año', 'Kilometraje', 'Estado'],
-            'filas': @json($reportData['vehiculos'])
-        },
-        'pendientes': {
-            'titulo': 'Reporte de Mantenimientos Pendientes y Abiertos',
-            'columnas': ['N° Cita', 'Vehículo', 'Trabajo Requerido', 'Prioridad', 'Fecha Programada'],
-            'filas': @json($reportData['pendientes'])
+    const vehicles = @json($vehicles ?? []);
+    const categories = @json($categories ?? []);
+    const brands = @json($brands ?? []);
+    const clients = @json($clients ?? []);
+
+    function updateReportConfig() {
+      const reportType = document.getElementById('reportType').value;
+      const filtersContainer = document.getElementById('dynamicFilters');
+      
+      if (!reportType) {
+        filtersContainer.innerHTML = '';
+        return;
+      }
+
+      let filtersHTML = '';
+
+      // Filtros para expedientes de vehículos
+      if (reportType === 'vehiculo_detalle') {
+        filtersHTML += `
+          <div class="form-group">
+            <label>Seleccionar Cliente</label>
+            <select name="client_id" id="clientSelect" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;" onchange="filterVehiclesByClient()">
+              <option value="">Seleccione un cliente...</option>
+              ${clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+            </select>
+          </div>
+
+          <div class="form-group" id="vehicleSelection" style="display: none;">
+            <label>Seleccionar Vehículo</label>
+            <select name="vehicle_id" id="vehicleSelect" style="width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 4px;">
+              <option value="">Seleccione un vehículo...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Filtros Adicionales</label>
+            <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 8px;">
+              <div>
+                <label style="font-size: 0.85rem;">Estado:</label>
+                <select name="status" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                  <option value="">Todos los estados</option>
+                  <option value="activo">Activo</option>
+                  <option value="en_taller">En Taller</option>
+                  <option value="mantenimiento">En Mantenimiento</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (reportType === 'vehiculo_general') {
+        filtersHTML += `
+          <div class="form-group">
+            <label>Filtros de Flota</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+              <div>
+                <label style="font-size: 0.85rem;">Cliente:</label>
+                <select name="client_id" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                  <option value="">Todos los clientes</option>
+                  ${clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.85rem;">Estado:</label>
+                <select name="status" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                  <option value="">Todos los estados</option>
+                  <option value="activo">Activo</option>
+                  <option value="en_taller">En Taller</option>
+                  <option value="mantenimiento">En Mantenimiento</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Rango de Fechas</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+              <div>
+                <label style="font-size: 0.85rem;">Desde:</label>
+                <input type="date" name="from" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+              </div>
+              <div>
+                <label style="font-size: 0.85rem;">Hasta:</label>
+                <input type="date" name="to" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+
+
+      // Filtros para inventario y productos
+      if (['inventario', 'productos', 'movimientos', 'categorias'].includes(reportType)) {
+        filtersHTML += `
+          <div class="form-group">
+            <label>Filtros de Inventario</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+              <div>
+                <label style="font-size: 0.85rem;">Categoría:</label>
+                <select name="category_id" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                  <option value="">Todas las categorías</option>
+                  ${categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 0.85rem;">Marca:</label>
+                <select name="brand_id" style="width: 100%; padding: 6px; border: 1px solid #e2e8f0; border-radius: 4px;">
+                  <option value="">Todas las marcas</option>
+                  ${brands.map(b => `<option value="${b.id}">${b.name}</option>`).join('')}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Estado de Stock</label>
+            <div style="margin: 8px 0;">
+              <label style="display: block; margin: 4px 0;">
+                <input type="radio" name="stock_status" value="all" checked>
+                Todo el inventario
+              </label>
+              <label style="display: block; margin: 4px 0;">
+                <input type="radio" name="stock_status" value="low">
+                Stock bajo (alerta)
+              </label>
+              <label style="display: block; margin: 4px 0;">
+                <input type="radio" name="stock_status" value="out">
+                Sin stock
+              </label>
+            </div>
+          </div>
+        `;
+      }
+
+      filtersContainer.innerHTML = filtersHTML;
+    }
+
+    function filterVehiclesByClient() {
+      const clientId = document.getElementById('clientSelect').value;
+      const vehicleSelect = document.getElementById('vehicleSelect');
+      const vehicleSelection = document.getElementById('vehicleSelection');
+      
+      if (!clientId) {
+        vehicleSelection.style.display = 'none';
+        return;
+      }
+
+      const clientVehicles = vehicles.filter(v => v.client_id == clientId);
+      
+      vehicleSelect.innerHTML = '<option value="">Seleccione un vehículo...</option>' +
+        clientVehicles.map(v => `<option value="${v.id}">${v.plate} - ${v.brand} ${v.model} (${v.year})</option>`).join('');
+      
+      vehicleSelection.style.display = 'block';
+    }
+
+    function generatePdf() {
+      const form = document.getElementById('unifiedReportForm');
+      const formData = new FormData(form);
+      const reportType = formData.get('type');
+
+      if (!reportType) {
+        alert('Seleccione un tipo de expediente');
+        return;
+      }
+
+      // Para expedientes individuales, redirigir a rutas específicas
+      if (reportType === 'vehiculo_detalle') {
+        const vehicleId = formData.get('vehicle_id');
+        if (!vehicleId) {
+          alert('Debe seleccionar un vehículo para el expediente individual');
+          return;
         }
-    };
+        window.location.href = "{{ route('reports.vehicle.detail.pdf', ':vehicleId') }}".replace(':vehicleId', vehicleId);
+        return;
+      }
 
-    let reporteActual = null;
+      if (reportType === 'vehiculo_general') {
+        // Construir URL con filtros opcionales
+        const params = new URLSearchParams();
+        const clientId = formData.get('client_id');
+        const status = formData.get('status');
+        const from = formData.get('from');
+        const to = formData.get('to');
+        
+        if (clientId) params.append('client_id', clientId);
+        if (status) params.append('status', status);
+        if (from) params.append('from', from);
+        if (to) params.append('to', to);
+        
+        const queryString = params.toString();
+        window.location.href = "{{ route('reports.vehicle.fleet.pdf') }}" + (queryString ? '?' + queryString : '');
+        return;
+      }
 
-    function abrirReporte(tipo) {
-      reporteActual = datosReportes[tipo];
-      document.getElementById('reportTitle').innerText = reporteActual.titulo;
-
-      let html = `<table id="tablaReporte"><thead><tr>`;
-      reporteActual.columnas.forEach(col => html += `<th>${col}</th>`);
-      html += `</tr></thead><tbody>`;
-
-      reporteActual.filas.forEach(fila => {
-        html += `<tr>`;
-        fila.forEach(celda => html += `<td>${celda}</td>`);
-        html += `</tr>`;
-      });
-      html += `</tbody></table>`;
-
-      document.getElementById('reportContent').innerHTML = html;
-      document.getElementById('modalReporte').classList.add('active');
+      // Para reportes de inventario, usar la ruta general
+      const params = new URLSearchParams();
+      for (const [key, value] of formData.entries()) {
+        if (key !== '_token' && value !== '') {
+          params.append(key, value);
+        }
+      }
+      window.location.href = "{{ route('reports.pdf') }}?" + params.toString();
     }
 
-    function cerrarModal() {
-      document.getElementById('modalReporte').classList.remove('active');
-    }
-
-    function imprimirReporte() {
-      window.print();
-    }
-
-    function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(16);
-      doc.text(reporteActual.titulo, 14, 20);
-
-      doc.autoTable({
-        head: [reporteActual.columnas],
-        body: reporteActual.filas,
-        startY: 28,
-        theme: 'striped',
-        headStyles: { fillColor: [13, 148, 136] }
-      });
-
-      doc.save(`${reporteActual.titulo}.pdf`);
-    }
+    // Inicializar configuración al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+      updateReportConfig();
+    });
   </script>
 @endsection

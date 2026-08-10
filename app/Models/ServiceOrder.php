@@ -80,6 +80,11 @@ class ServiceOrder extends Model
         return $this->hasMany(ServicePhoto::class);
     }
 
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class);
+    }
+
     public function statusLabel(): string
     {
         return match ($this->status) {

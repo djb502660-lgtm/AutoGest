@@ -8,7 +8,6 @@
 
 @section('top-actions')
     <a href="{{ route('admin.orders.index') }}" class="btn btn-secondary">← Lista</a>
-    <a href="{{ route('admin.orders.invoice', $order) }}" class="btn btn-primary">Factura</a>
 @endsection
 
 @section('content')

@@ -19,7 +19,6 @@ Route::middleware(['auth', 'role:asesor'])
         Route::get('/ordenes/crear', [OrderController::class, 'create'])->name('orders.create');
         Route::post('/ordenes', [OrderController::class, 'store'])->name('orders.store');
         Route::get('/ordenes/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::get('/ordenes/{order}/factura', [OrderController::class, 'invoice'])->name('orders.invoice');
         Route::get('/ordenes/{order}/editar', [OrderController::class, 'edit'])->name('orders.edit');
         Route::put('/ordenes/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::put('/ordenes/{order}/asignar-mecanico', [OrderController::class, 'assignMechanic'])->name('orders.assign');

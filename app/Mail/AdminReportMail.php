@@ -18,12 +18,15 @@ class AdminReportMail extends Mailable
     public function __construct(
         public array $report,
         public User $admin,
+        public $pdf = null,
+        public string $filename = 'reporte.pdf',
+        public string $title = 'Reporte'
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'AutoGest — '.$this->report['title'],
+            subject: 'AutoGest — '.$this->title,
         );
     }
 
@@ -32,10 +35,10 @@ class AdminReportMail extends Mailable
         return new Content(
             view: 'mail.admin-report',
             with: [
-                'title' => $this->report['title'],
+                'title' => $this->title,
                 'adminName' => $this->admin->name,
-                'summary' => $this->report['summary'],
-                'filtersLabel' => $this->report['filters_label'],
+                'summary' => $this->report['summary'] ?? [],
+                'filtersLabel' => $this->report['filters_label'] ?? '',
                 'generatedAt' => now()->format('d/m/Y H:i'),
             ],
         );
@@ -43,6 +46,14 @@ class AdminReportMail extends Mailable
 
     public function attachments(): array
     {
+        if ($this->pdf) {
+            return [
+                Attachment::fromData(fn () => $this->pdf->output(), $this->filename)
+                    ->withMime('application/pdf'),
+            ];
+        }
+
+        // Fallback al método original si no se proporciona PDF
         $pdf = Pdf::loadView('admin.reports.pdf', [
             'title' => $this->report['title'],
             'summary' => $this->report['summary'],

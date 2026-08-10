@@ -8,38 +8,38 @@
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
 </head>
-<body class="home-page" data-theme="admin">
+<body class="home-page" data-theme="home">
     <header class="home-header">
-        <a href="{{ route('home') }}" class="home-logo home-logo-istae">
-            <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-logo">
-            <span class="home-logo-text">
-                <span class="home-logo-app">AutoGest</span>
-                <span class="home-logo-inst">ISTAE · San Lorenzo</span>
-            </span>
-        </a>
-        <div class="home-header-actions">
-            <nav class="home-nav" aria-label="Principal">
-                <a href="#funciones">Funciones</a>
-                <a href="#beneficios">Beneficios</a>
-                <a href="#institucion">Institución</a>
-            </nav>
-            <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
+        <div class="home-header-inner">
+            <a href="{{ route('home') }}" class="home-logo">
+                <img src="{{ asset('images/logo-mecanica-automotriz.pgn.png') }}" alt="Mecánica Automotriz" class="home-istae-logo">
+                <span class="home-logo-text">
+                    <span class="home-logo-app">AutoGest</span>
+                    <span class="home-logo-inst">Mecánica Automotriz · ISTAE</span>
+                </span>
+            </a>
+            <div class="home-header-actions">
+                <nav class="home-nav" aria-label="Principal">
+                    <a href="#funciones">Funciones</a>
+                    <a href="#beneficios">Beneficios</a>
+                    <a href="#institucion">Institución</a>
+                </nav>
+                <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
+            </div>
         </div>
     </header>
 
     <main>
         <section class="home-hero">
             <div class="home-hero-content">
-                <div class="home-hero-brand">
-                    <img src="{{ asset('images/logo-istae.png') }}" alt="Logo ISTAE" class="home-hero-istae">
-                    <p class="home-eyebrow">Instituto Superior Tecnológico Alberto Enríquez · San Lorenzo</p>
-                </div>
+                <p class="home-eyebrow">Plataforma ISTAE · Mecánica Automotriz</p>
                 <h1>AutoGest — Mantenimiento vehicular <span>claro, rápido y bajo control</span></h1>
                 <p class="home-lead">
                     Plataforma web para centralizar vehículos, órdenes de servicio, mantenimientos programados y alertas en un solo sistema moderno y fácil de usar.
                 </p>
                 <div class="home-hero-actions">
-                    <a href="#funciones" class="btn btn-secondary btn-lg">Ver funciones</a>
+                    <a href="#funciones" class="btn btn-primary btn-lg">Ver funciones</a>
+                    <a href="{{ route('login') }}" class="btn btn-secondary btn-lg">Iniciar sesión</a>
                 </div>
                 <ul class="home-hero-stats">
                     <li><strong>Web</strong><span>acceso desde cualquier dispositivo</span></li>
@@ -157,10 +157,10 @@
     <footer class="home-footer">
         <div class="home-footer-inner">
             <div class="home-footer-brand">
-                <img src="{{ asset('images/logo-istae.png') }}" alt="ISTAE" class="home-footer-istae">
+                <img src="{{ asset('images/logo-mecanica-automotriz.pgn.png') }}" alt="Mecánica Automotriz" class="home-footer-istae">
                 <div>
                     <p class="home-footer-app"><strong>AutoGest</strong></p>
-                    <p>Instituto Superior Tecnológico Alberto Enríquez · San Lorenzo</p>
+                    <p>Mecánica Automotriz</p>
                 </div>
             </div>
             <p class="home-footer-copy">&copy; {{ date('Y') }} AutoGest — Proyecto académico ISTAE.</p>

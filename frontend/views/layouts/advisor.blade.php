@@ -11,8 +11,8 @@
     <style>
         .notification-btn {
             position: relative;
-            background: white;
-            border: 1px solid var(--border, #e2e8f0);
+            background: #38bdf8;
+            border: 1px solid #0284c7;
             width: 42px;
             height: 42px;
             border-radius: 10px;
@@ -20,13 +20,13 @@
             align-items: center;
             justify-content: center;
             font-size: 1.2rem;
-            color: var(--text, #1e293b);
+            color: #fff;
             cursor: pointer;
             text-decoration: none;
             transition: background 0.2s;
         }
         .notification-btn:hover {
-            background: #f1f5f9;
+            background: #0284c7;
         }
         .notification-badge {
             position: absolute;
@@ -67,7 +67,7 @@
                     <div class="sidebar-footer mt-auto">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="btn btn-secondary w-100">Cerrar sesión</button>
+                            <button type="submit" class="btn logout w-100">Cerrar sesión</button>
                         </form>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
                 <div class="sidebar-footer mt-auto">
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-secondary w-100">Cerrar sesión</button>
+                        <button type="submit" class="btn logout w-100">Cerrar sesión</button>
                     </form>
                 </div>
             </aside>

@@ -67,12 +67,12 @@
     .top-header p { font-size: 0.85rem; color: var(--text-muted); margin:0; }
 
     .notification-btn {
-      position: relative; background: white; border: 1px solid var(--border-color);
+      position: relative; background: #38bdf8; border: 1px solid #0284c7;
       width: 42px; height: 42px; border-radius: 10px; display: flex;
       align-items: center; justify-content: center; font-size: 1.2rem;
-      color: var(--text-main); cursor: pointer; text-decoration: none; transition: background 0.2s;
+      color: #fff; cursor: pointer; text-decoration: none; transition: background 0.2s;
     }
-    .notification-btn:hover { background: #f1f5f9; }
+    .notification-btn:hover { background: #0284c7; }
     .notification-badge {
       position: absolute; top: 6px; right: 6px; width: 10px; height: 10px;
       background: #ef4444; border-radius: 50%; border: 2px solid white;
@@ -118,7 +118,7 @@
       </li>
       
       <li class="nav-item logout-item">
-        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout">
             <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
         </a>
         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">

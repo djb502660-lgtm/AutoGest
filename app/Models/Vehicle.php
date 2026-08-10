@@ -66,6 +66,11 @@ class Vehicle extends Model
         return $this->hasMany(Alert::class);
     }
 
+    public function appointmentRequests(): HasMany
+    {
+        return $this->hasMany(AppointmentRequest::class);
+    }
+
     public function displayName(): string
     {
         return "{$this->brand} {$this->model} ({$this->plate})";

@@ -25,12 +25,19 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::resource('maintenances', MaintenanceController::class);
     Route::get('/ordenes', [OrderController::class, 'index'])->name('admin.orders.index');
     Route::get('/ordenes/{order}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::get('/ordenes/{order}/factura', [OrderController::class, 'invoice'])->name('admin.orders.invoice');
+    
+    // Rutas de reportes
     Route::get('/reportes', [ReportController::class, 'index'])->name('reports.index');
-    Route::get('/reportes/generar', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('/reportes/vehiculo/{vehicleId}', [ReportController::class, 'vehicleDetail'])->name('reports.vehicle.detail');
+    Route::get('/reportes/flota', [ReportController::class, 'vehicleFleet'])->name('reports.vehicle.fleet');
+    Route::get('/reportes/vehiculo/{vehicleId}/pdf', [ReportController::class, 'downloadVehicleDetailPdf'])->name('reports.vehicle.detail.pdf');
+    Route::get('/reportes/flota/pdf', [ReportController::class, 'downloadVehicleFleetPdf'])->name('reports.vehicle.fleet.pdf');
     Route::get('/reportes/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
-    Route::get('/reportes/csv', [ReportController::class, 'downloadCsv'])->name('reports.csv');
-    Route::post('/reportes/enviar', [ReportController::class, 'sendEmail'])->name('reports.email');
+    
+    // Ruta de prueba
+    Route::get('/test-reportes', function() {
+        return 'Ruta de reportes funciona correctamente';
+    })->name('test.reportes');
     Route::get('/calendario', [CalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendario/crear', [CalendarController::class, 'create'])->name('calendar.create');
     Route::post('/calendario', [CalendarController::class, 'store'])->name('calendar.store');

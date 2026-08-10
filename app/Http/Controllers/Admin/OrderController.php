@@ -53,13 +53,4 @@ class OrderController extends Controller
 
         return view('admin.orders.show', compact('order'));
     }
-
-    public function invoice(ServiceOrder $order)
-    {
-        $this->authorize('view', $order);
-
-        $order->load(['vehicle.client', 'client', 'mechanic', 'advisor']);
-
-        return view('admin.invoices.show', compact('order'));
-    }
 }

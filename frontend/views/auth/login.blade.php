@@ -11,7 +11,7 @@
     <div class="auth-shell">
         <section class="brand-panel">
             <div>
-                <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="auth-istae-logo">
+                <img src="{{ asset('images/logo-mecanica-automotriz.pgn.png') }}" alt="Mecánica Automotriz" class="auth-istae-logo">
                 <div class="brand-badge">AutoGest</div>
                 <h1>Seguimiento inteligente del mantenimiento vehicular.</h1>
                 <p>Plataforma web para administrar vehículos, órdenes de servicio, alertas técnicas y reportes en tiempo real.</p>

@@ -46,7 +46,6 @@
                         <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
                         <td>
                             <a href="{{ route('admin.orders.show', $order) }}" class="btn btn-primary btn-sm">Ver</a>
-                            <a href="{{ route('admin.orders.invoice', $order) }}" class="btn btn-outline-primary btn-sm">Factura</a>
                         </td>
                     </tr>
                 @empty
