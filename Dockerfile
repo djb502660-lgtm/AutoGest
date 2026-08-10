@@ -26,8 +26,11 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 RUN sed -i 's|<Directory /var/www/html>|<Directory /var/www/html/public>|g' /etc/apache2/sites-available/000-default.conf
 
-# Generar APP_KEY automáticamente si no está definida
-RUN php artisan key:generate --ansi || true
+# Crear archivo .env si no existe
+RUN cp .env.example .env || echo "APP_NAME=AutoGest\nAPP_ENV=production\nAPP_DEBUG=false\nAPP_KEY=\nAPP_URL=https://autogest-taller-management-api.onrender.com\nDB_CONNECTION=sqlite\nDB_DATABASE=/var/www/html/database/database.sqlite\nCACHE_DRIVER=array\nSESSION_DRIVER=cookie\nQUEUE_CONNECTION=sync\nLOG_CHANNEL=errorlog" > .env
+
+# Generar APP_KEY automáticamente
+RUN php artisan key:generate --ansi
 
 # Configurar permisos
 RUN chown -R www-data:www-data /var/www/html \
