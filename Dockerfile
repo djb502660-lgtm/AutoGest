@@ -40,6 +40,9 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage \
     && chmod -R 755 /var/www/html/bootstrap/cache
 
+# Crear directorio build y manifest.json dummy para evitar error de Vite
+RUN mkdir -p /var/www/html/public/build && echo "{}" > /var/www/html/public/build/manifest.json
+
 # Crear directorio para base de datos SQLite
 RUN mkdir -p /var/www/html/database && touch /var/www/html/database/database.sqlite \
     && chown www-data:www-data /var/www/html/database/database.sqlite
