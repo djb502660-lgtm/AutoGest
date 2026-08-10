@@ -7,8 +7,16 @@ FROM php:8.2-apache
 WORKDIR /var/www/html
 COPY --from=build /app /var/www/html
 
+# Instalar dependencias del sistema para extensiones PHP
+RUN apt-get update && apt-get install -y \
+    libsqlite3-dev \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Instalar extensiones PHP necesarias
-RUN docker-php-ext-install pdo pdo_sqlite
+RUN docker-php-ext-install pdo pdo_sqlite mbstring xml exif
 
 # Configurar Apache
 RUN a2enmod rewrite
