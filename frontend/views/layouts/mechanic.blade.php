@@ -8,6 +8,7 @@
   <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   @include('layouts.partials.bootstrap-head')
+  @include('layouts.partials.pwa-firebase')
   <style>
     :root {
       --primary: #0284c7;

@@ -7,12 +7,13 @@
     <title>AutoGest — Mantenimiento vehicular inteligente</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
+    @include('layouts.partials.pwa-firebase')
 </head>
 <body class="home-page" data-theme="home">
     <header class="home-header">
         <div class="home-header-inner">
             <a href="{{ route('home') }}" class="home-logo">
-                <img src="{{ asset('images/logo-mecanica-automotriz.pgn.png') }}" alt="Mecánica Automotriz" class="home-istae-logo">
+                <img src="{{ asset('images/logo-mecanica-automotriz.png') }}" alt="Mecánica Automotriz" class="home-istae-logo">
                 <span class="home-logo-text">
                     <span class="home-logo-app">AutoGest</span>
                     <span class="home-logo-inst">Mecánica Automotriz · ISTAE</span>
@@ -157,7 +158,7 @@
     <footer class="home-footer">
         <div class="home-footer-inner">
             <div class="home-footer-brand">
-                <img src="{{ asset('images/logo-mecanica-automotriz.pgn.png') }}" alt="Mecánica Automotriz" class="home-footer-istae">
+                <img src="{{ asset('images/logo-mecanica-automotriz.png') }}" alt="Mecánica Automotriz" class="home-footer-istae">
                 <div>
                     <p class="home-footer-app"><strong>AutoGest</strong></p>
                     <p>Mecánica Automotriz</p>

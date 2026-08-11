@@ -1,0 +1,21 @@
+{
+  "name": "AutoGest",
+  "short_name": "AutoGest",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#38bdf8",
+  "description": "AutoGest - Asistente y Taller Mecánico Inteligente",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

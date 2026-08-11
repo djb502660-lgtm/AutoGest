@@ -14,17 +14,7 @@ export default defineConfig({
         host: '0.0.0.0',
         port: 5173,
         strictPort: true,
-        allowedHosts: ['autogest.test'],
-        cors: {
-            origin: 'http://autogest.test',
-            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        },
-        origin: 'http://autogest.test:5173',
-        hmr: {
-            host: 'autogest.test',
-            protocol: 'ws',
-            clientPort: 5173,
-        },
+        cors: true,
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

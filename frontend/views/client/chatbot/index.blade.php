@@ -90,49 +90,32 @@
 
         <!-- Panel de Preguntas Frecuentes y Accesos Rápidos -->
         <div class="panel" style="display:flex;flex-direction:column;gap:12px;">
-            <h3 style="margin:0 0 4px;">Sugerencias</h3>
-            <p style="font-size:0.82rem;color:var(--muted, #94a3b8);margin:0 0 8px;">Escribe libremente o usa una de estas ideas:</p>
+            <h3 style="margin:0 0 4px;">Preguntas frecuentes y Opciones</h3>
+            <p style="font-size:0.82rem;color:var(--muted, #94a3b8);margin:0 0 8px;">Haz clic en cualquiera de las
+                siguientes sugerencias para consultar al instante:</p>
 
             <div class="notif-item"
                 style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:6px;"
-                onclick="preguntarDirecto('¿Cómo va mi carro?')">
-                <strong>Estado de mi vehículo</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Consulta el progreso de tu auto en el taller.</div>
+                onclick="preguntarDirecto('1')">
+                <strong>1️⃣ Ver estado de mi vehículo</strong>
+                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Consulta en tiempo real el progreso de tu auto
+                    en el taller.</div>
             </div>
 
             <div class="notif-item"
                 style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:6px;"
-                onclick="preguntarDirecto('Mi carro hace un ruido cuando freno')">
-                <strong>Consulta mecánica</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Describe un síntoma y te orientaré paso a paso.</div>
-            </div>
-
-            <div class="notif-item"
-                style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:6px;"
-                onclick="preguntarDirecto('Quiero agendar una cita')">
-                <strong>Agendar una cita</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Solicita turno de servicio para tu vehículo.</div>
-            </div>
-
-            <div class="notif-item"
-                style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:6px;"
-                onclick="preguntarDirecto('¿Tengo alguna cita?')">
-                <strong>Mis citas</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Consulta, modifica o cancela tus citas activas.</div>
-            </div>
-
-            <div class="notif-item"
-                style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:6px;"
-                onclick="preguntarDirecto('Quiero cambiar mi cita')">
-                <strong>Modificar cita</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Reprograma fecha u hora de una cita activa.</div>
+                onclick="preguntarDirecto('2')">
+                <strong>2️⃣ Agendar una cita</strong>
+                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Solicita turno de servicio para tu vehículo.
+                </div>
             </div>
 
             <div class="notif-item"
                 style="cursor:pointer;padding:10px;border-radius:8px;background:rgba(15,23,42,0.6);margin-bottom:12px;"
-                onclick="preguntarDirecto('¿Cuánto he gastado este año?')">
-                <strong>Gastos de mantenimiento</strong>
-                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Resumen de lo invertido en tu vehículo.</div>
+                onclick="preguntarDirecto('3')">
+                <strong>3️⃣ Ver mis gastos de mantenimiento</strong>
+                <div style="font-size:0.78rem;color:var(--muted, #94a3b8);">Resumen consolidado de tu historial de gastos.
+                </div>
             </div>
 
             @if($faqs->isNotEmpty())
@@ -173,8 +156,8 @@
             const div = document.createElement('div');
             div.className = `chat-msg ${remitente}`;
             div.style.cssText = `padding:10px 14px;border-radius:12px;font-size:0.88rem;max-width:85%;white-space:pre-line;word-break:break-word;line-height:1.45;${remitente === 'user'
-                    ? 'background:rgba(56,189,248,0.2);align-self:flex-end;color:#e0f2fe;'
-                    : 'background:rgba(8,15,29,0.9);align-self:flex-start;color:#f8fafc;'
+                ? 'background:rgba(56,189,248,0.2);align-self:flex-end;color:#e0f2fe;'
+                : 'background:rgba(8,15,29,0.9);align-self:flex-start;color:#f8fafc;'
                 }`;
             div.innerText = texto;
 
@@ -220,7 +203,6 @@
                     agregarMensaje("Estoy experimentando una breve pausa técnica. ¿Deseas reintentar tu pregunta?", 'bot');
                 });
         }
-
         function preguntarDirecto(texto) {
             const input = document.getElementById('userInput');
             input.value = texto;
