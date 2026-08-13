@@ -29,59 +29,61 @@
             @endif
         </form>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Estado</th>
-                    <th>Último acceso</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($users as $user)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ $user->name }}</td>
-                        <td>{{ $user->email }}</td>
-                        <td>
-                            @php
-                                $roleClass = match ($user->role->value) {
-                                    'admin' => 'blue',
-                                    'asesor' => 'blue',
-                                    'mecanico' => 'yellow',
-                                    default => 'green',
-                                };
-                            @endphp
-                            <span class="badge {{ $roleClass }}">{{ $user->role->label() }}</span>
-                        </td>
-                        <td>
-                            <span class="badge {{ $user->status === 'activo' ? 'green' : 'red' }}">
-                                {{ ucfirst($user->status) }}
-                            </span>
-                        </td>
-                        <td>{{ $user->last_login_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                        <td>
-                            <div class="actions-inline">
-                                <a href="{{ route('users.edit', $user) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                @if ($user->id !== auth()->id())
-                                    <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('¿Eliminar o desactivar este usuario?')">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                    </form>
-                                @endif
-                            </div>
-                        </td>
+                        <th>Nombre</th>
+                        <th>Correo</th>
+                        <th>Rol</th>
+                        <th>Estado</th>
+                        <th>Último acceso</th>
+                        <th>Acciones</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6">No se encontraron usuarios.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse ($users as $user)
+                        <tr>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>
+                                @php
+                                    $roleClass = match ($user->role->value) {
+                                        'admin' => 'blue',
+                                        'asesor' => 'blue',
+                                        'mecanico' => 'yellow',
+                                        default => 'green',
+                                    };
+                                @endphp
+                                <span class="badge {{ $roleClass }}">{{ $user->role->label() }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {{ $user->status === 'activo' ? 'green' : 'red' }}">
+                                    {{ ucfirst($user->status) }}
+                                </span>
+                            </td>
+                            <td>{{ $user->last_login_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                            <td>
+                                <div class="actions-inline">
+                                    <a href="{{ route('users.edit', $user) }}" class="btn btn-secondary btn-sm">Editar</a>
+                                    @if ($user->id !== auth()->id())
+                                        <form method="POST" action="{{ route('users.destroy', $user) }}" onsubmit="return confirm('¿Eliminar o desactivar este usuario?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">No se encontraron usuarios.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         <div class="pagination">
             {{ $users->links('pagination.simple') }}

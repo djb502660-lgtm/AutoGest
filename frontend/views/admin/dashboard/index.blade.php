@@ -46,30 +46,32 @@
             <h3>Órdenes de servicio recientes</h3>
             <p class="subtle">Seguimiento de trabajos abiertos y estados de ejecución.</p>
 
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Vehículo</th>
-                        <th>Servicio</th>
-                        <th>Estado</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($recentOrders as $order)
-                    <tr>
-                        <td>{{ $order->vehicle->plate }}</td>
-                        <td>{{ $order->description }}</td>
-                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
-                        <td>{{ $order->scheduled_at?->translatedFormat('d M') ?? $order->created_at->translatedFormat('d M') }}</td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="4">No hay órdenes registradas.</td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Vehículo</th>
+                            <th>Servicio</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentOrders as $order)
+                        <tr>
+                            <td>{{ $order->vehicle->plate }}</td>
+                            <td>{{ $order->description }}</td>
+                            <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
+                            <td>{{ $order->scheduled_at?->translatedFormat('d M') ?? $order->created_at->translatedFormat('d M') }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="4">No hay órdenes registradas.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </section>
 
         <section class="panel">

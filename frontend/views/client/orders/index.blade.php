@@ -20,25 +20,27 @@
             <button type="submit" class="btn btn-secondary">Filtrar</button>
         </form>
 
-        <table class="table">
-            <thead>
-                <tr><th>N° Orden</th><th>Vehículo</th><th>Servicio</th><th>Fecha</th><th>Estado</th><th></th></tr>
-            </thead>
-            <tbody>
-                @forelse ($orders as $order)
-                    <tr>
-                        <td>{{ $order->order_number }}</td>
-                        <td>{{ $order->vehicle->plate }}</td>
-                        <td>{{ Str::limit($order->description, 40) }}</td>
-                        <td>{{ $order->created_at->format('d/m/Y') }}</td>
-                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
-                        <td><a href="{{ route('client.orders.show', $order) }}" class="btn btn-primary btn-sm">Ver</a></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="6">No hay órdenes registradas.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr><th>N° Orden</th><th>Vehículo</th><th>Servicio</th><th>Fecha</th><th>Estado</th><th></th></tr>
+                </thead>
+                <tbody>
+                    @forelse ($orders as $order)
+                        <tr>
+                            <td>{{ $order->order_number }}</td>
+                            <td>{{ $order->vehicle->plate }}</td>
+                            <td>{{ Str::limit($order->description, 40) }}</td>
+                            <td>{{ $order->created_at->format('d/m/Y') }}</td>
+                            <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
+                            <td><a href="{{ route('client.orders.show', $order) }}" class="btn btn-primary btn-sm">Ver</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6">No hay órdenes registradas.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         <div style="margin-top:12px;">{{ $orders->links('pagination.simple') }}</div>
     </div>
 @endsection

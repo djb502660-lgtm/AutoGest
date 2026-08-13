@@ -10,6 +10,56 @@
   @include('layouts.partials.bootstrap-head')
   @include('layouts.partials.pwa-firebase')
   <style>
+    /* Estilos responsivos para mecánico */
+    @media (max-width: 991px) {
+        .top-header {
+            padding: 1rem !important;
+            flex-wrap: wrap !important;
+        }
+        .top-header h1 {
+            font-size: 1.25rem !important;
+        }
+        .main-content {
+            padding: 1rem !important;
+        }
+        .stats, .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .panel-grid, .form-grid, .grid-2 {
+            grid-template-columns: 1fr !important;
+        }
+        .filters {
+            flex-direction: column !important;
+        }
+        .filters input, .filters select {
+            width: 100% !important;
+        }
+        .top-actions {
+            flex-wrap: wrap !important;
+            width: 100% !important;
+        }
+    }
+    @media (max-width: 576px) {
+        .stats, .stats-grid {
+            grid-template-columns: 1fr !important;
+        }
+        .top-header {
+            padding: 0.75rem 1rem !important;
+        }
+        .top-header h1 {
+            font-size: 1.1rem !important;
+        }
+        .main-content {
+            padding: 0.75rem 1rem !important;
+        }
+        .notification-btn {
+            width: 36px !important;
+            height: 36px !important;
+            font-size: 1rem !important;
+        }
+    }
+  </style>
+  <style>
     :root {
       --primary: #0284c7;
       --primary-light: #e0f2fe;
@@ -82,7 +132,17 @@
     @media (max-width: 991px) {
         .sidebar { display: none; }
         .main-content { margin-left: 0; width: 100%; padding: 16px; }
-        /* Add offcanvas or simple mobile support if needed, but keeping it simple for now based on provided HTML */
+        .top-header { flex-wrap: wrap; gap: 1rem; }
+        .top-header h1 { font-size: 1.2rem; }
+        .top-header .d-flex { flex-wrap: wrap; }
+    }
+    
+    @media (max-width: 576px) {
+        .main-content { padding: 12px; }
+        .top-header h1 { font-size: 1.1rem; }
+        .notification-btn { width: 36px; height: 36px; font-size: 1rem; }
+        .top-header { flex-direction: column; align-items: flex-start; }
+        .top-header .d-flex { width: 100%; justify-content: space-between; margin-top: 0.5rem; }
     }
   </style>
   @stack('styles')

@@ -41,6 +41,13 @@
     
     @media (max-width: 768px) {
         .calendar-grid-wrapper { grid-template-columns: 1fr; }
+        .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    
+    @media (max-width: 576px) {
+        .kpi-grid { grid-template-columns: 1fr; }
+        .calendar-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+        .calendar-controls { width: 100%; justify-content: space-between; }
     }
 </style>
 @endpush

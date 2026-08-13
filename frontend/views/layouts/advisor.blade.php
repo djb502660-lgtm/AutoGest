@@ -10,6 +10,56 @@
     @include('layouts.partials.pwa-firebase')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Estilos responsivos para advisor */
+        @media (max-width: 991px) {
+            .topbar {
+                padding: 1rem !important;
+                flex-wrap: wrap !important;
+            }
+            .topbar h2 {
+                font-size: 1.25rem !important;
+            }
+            .content {
+                padding: 1rem !important;
+            }
+            .stats, .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+            .panel-grid, .form-grid, .grid-2 {
+                grid-template-columns: 1fr !important;
+            }
+            .filters {
+                flex-direction: column !important;
+            }
+            .filters input, .filters select {
+                width: 100% !important;
+            }
+            .top-actions {
+                flex-wrap: wrap !important;
+                width: 100% !important;
+            }
+        }
+        @media (max-width: 576px) {
+            .stats, .stats-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .topbar {
+                padding: 0.75rem 1rem !important;
+            }
+            .topbar h2 {
+                font-size: 1.1rem !important;
+            }
+            .content {
+                padding: 0.75rem 1rem !important;
+            }
+            .notification-btn {
+                width: 36px !important;
+                height: 36px !important;
+                font-size: 1rem !important;
+            }
+        }
+    </style>
+    <style>
         .notification-btn {
             position: relative;
             background: #38bdf8;

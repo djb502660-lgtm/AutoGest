@@ -23,31 +23,33 @@
 
   <!-- TAB 1: PRODUCTOS -->
   <div id="tab-productos" class="tab-content active">
-    <table>
-      <thead>
-        <tr>
-          <th>SKU / Código</th>
-          <th>Nombre del Repuesto</th>
-          <th>P. Venta</th>
-          <th>Stock Actual</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($products as $product)
-        <tr>
-          <td><strong>{{ $product->sku }}</strong></td>
-          <td>{{ $product->name }}</td>
-          <td>${{ number_format((float) $product->sale_price, 2) }}</td>
-          <td>{{ $product->stock_quantity }} unid.</td>
-          <td>
-            <button class="actions-btn" onclick="abrirModal('editar_producto', @js($product->name), @js($product->sku), {{ (float) $product->sale_price }}, {{ $product->id }})">Editar</button>
-            <button class="actions-btn" style="color: #2563eb;" onclick="abrirModal('ajustar_stock', @js($product->name), {{ $product->stock_quantity }}, {{ $product->id }})">+ Stock</button>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU / Código</th>
+            <th>Nombre del Repuesto</th>
+            <th>P. Venta</th>
+            <th>Stock Actual</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($products as $product)
+          <tr>
+            <td><strong>{{ $product->sku }}</strong></td>
+            <td>{{ $product->name }}</td>
+            <td>${{ number_format((float) $product->sale_price, 2) }}</td>
+            <td>{{ $product->stock_quantity }} unid.</td>
+            <td>
+              <button class="actions-btn" onclick="abrirModal('editar_producto', @js($product->name), @js($product->sku), {{ (float) $product->sale_price }}, {{ $product->id }})">Editar</button>
+              <button class="actions-btn" style="color: #2563eb;" onclick="abrirModal('ajustar_stock', @js($product->name), {{ $product->stock_quantity }}, {{ $product->id }})">+ Stock</button>
+            </td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- TAB 2: CATEGORÍAS -->
@@ -55,26 +57,28 @@
     <div style="margin-bottom: 16px; text-align: right;">
       <button class="btn btn-primary" style="background:#475569;" onclick="abrirModal('nueva_categoria')">+ Nueva Categoría / Marca</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>Categoría</th>
-          <th>Marcas Vinculadas</th>
-          <th>Total Productos</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($categories as $category)
-        <tr>
-          <td><strong>{{ $category->name }}</strong></td>
-          <td>{{ $category->brands->pluck('name')->join(', ') ?: 'Sin marcas' }}</td>
-          <td>{{ $category->products()->count() }} repuestos</td>
-          <td><button class="actions-btn" onclick="abrirModal('editar_categoria', {{ $category->id }}, @js($category->name))">Editar</button></td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Marcas Vinculadas</th>
+            <th>Total Productos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($categories as $category)
+          <tr>
+            <td><strong>{{ $category->name }}</strong></td>
+            <td>{{ $category->brands->pluck('name')->join(', ') ?: 'Sin marcas' }}</td>
+            <td>{{ $category->products()->count() }} repuestos</td>
+            <td><button class="actions-btn" onclick="abrirModal('editar_categoria', {{ $category->id }}, @js($category->name))">Editar</button></td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
   </div>
 
   <!-- TAB 3: PROVEEDORES Y COMPRAS -->
@@ -83,49 +87,51 @@
       <button class="btn btn-secondary" onclick="abrirModal('nueva_compra')">+ Nueva Compra</button>
       <button class="btn btn-primary" onclick="abrirModal('nuevo_proveedor')">+ Nuevo Proveedor</button>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th>N° Orden</th>
-          <th>Proveedor</th>
-          <th>Monto Total</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach ($purchases as $purchase)
-        <tr>
-          <td><strong>{{ $purchase->purchase_number }}</strong></td>
-          <td>{{ $purchase->supplier->name }}</td>
-          <td>${{ number_format((float) $purchase->total, 2) }}</td>
-          <td>{{ ucfirst($purchase->status) }}</td>
-          <td>
-            <button
-              class="actions-btn"
-              type="button"
-              onclick="abrirModal('ver_detalle_compra', {{ json_encode([
-                "purchase_number" => $purchase->purchase_number,
-                "supplier_name" => $purchase->supplier->name,
-                "purchase_date" => optional($purchase->purchase_date)->format("d/m/Y"),
-                "subtotal" => (float) $purchase->subtotal,
-                "tax" => (float) $purchase->tax,
-                "total" => (float) $purchase->total,
-                "items" => $purchase->items->map(fn ($item) => [
-                    "product_name" => $item->product?->name ?? "Producto no disponible",
-                    "quantity" => $item->quantity,
-                    "unit_price" => (float) $item->unit_price,
-                    "total" => (float) $item->total,
-                ])->values(),
-              ]) }})"
-            >
-              Ver Detalle
-            </button>
-          </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>N° Orden</th>
+            <th>Proveedor</th>
+            <th>Monto Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach ($purchases as $purchase)
+          <tr>
+            <td><strong>{{ $purchase->purchase_number }}</strong></td>
+            <td>{{ $purchase->supplier->name }}</td>
+            <td>${{ number_format((float) $purchase->total, 2) }}</td>
+            <td>{{ ucfirst($purchase->status) }}</td>
+            <td>
+              <button
+                class="actions-btn"
+                type="button"
+                onclick="abrirModal('ver_detalle_compra', {{ json_encode([
+                  "purchase_number" => $purchase->purchase_number,
+                  "supplier_name" => $purchase->supplier->name,
+                  "purchase_date" => optional($purchase->purchase_date)->format("d/m/Y"),
+                  "subtotal" => (float) $purchase->subtotal,
+                  "tax" => (float) $purchase->tax,
+                  "total" => (float) $purchase->total,
+                  "items" => $purchase->items->map(fn ($item) => [
+                      "product_name" => $item->product?->name ?? "Producto no disponible",
+                      "quantity" => $item->quantity,
+                      "unit_price" => (float) $item->unit_price,
+                      "total" => (float) $item->total,
+                  ])->values(),
+                ]) }})"
+              >
+                Ver Detalle
+              </button>
+            </td>
+          </tr>
+          @endforeach
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 

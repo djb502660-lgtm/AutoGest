@@ -40,21 +40,23 @@
 
     <div class="panel">
         <h3 style="margin:0 0 12px;font-size:1rem;">Órdenes de servicio recientes</h3>
-        <table class="table">
-            <thead><tr><th>Orden</th><th>Vehículo</th><th>Servicio</th><th>Estado</th><th></th></tr></thead>
-            <tbody>
-                @forelse ($recentOrders as $order)
-                    <tr>
-                        <td>{{ $order->order_number }}</td>
-                        <td>{{ $order->vehicle->plate }}</td>
-                        <td>{{ Str::limit($order->description, 35) }}</td>
-                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
-                        <td><a href="{{ route('client.orders.show', $order) }}" class="btn btn-secondary btn-sm">Ver</a></td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5">No hay órdenes registradas.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table">
+                <thead><tr><th>Orden</th><th>Vehículo</th><th>Servicio</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                    @forelse ($recentOrders as $order)
+                        <tr>
+                            <td>{{ $order->order_number }}</td>
+                            <td>{{ $order->vehicle->plate }}</td>
+                            <td>{{ Str::limit($order->description, 35) }}</td>
+                            <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
+                            <td><a href="{{ route('client.orders.show', $order) }}" class="btn btn-secondary btn-sm">Ver</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5">No hay órdenes registradas.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </div>
 @endsection

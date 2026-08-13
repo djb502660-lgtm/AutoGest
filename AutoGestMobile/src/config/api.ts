@@ -1,7 +1,7 @@
 // Configuración de la API
 export const API_CONFIG = {
   // URL base de la API - cambiar según el entorno
-  BASE_URL: 'http://192.168.1.8/backend/api', // IP permanente de Laragon
+  BASE_URL: 'http://192.168.1.38/api', // IP actual del servidor
   // BASE_URL: 'http://localhost/backend/api', // Para desarrollo local solo
   // BASE_URL: 'https://autogest-taller-management-api.onrender.com/api', // Para producción
   

@@ -20,32 +20,34 @@
             <button type="submit" class="btn btn-secondary">Filtrar</button>
         </form>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>N° Orden</th>
-                    <th>Vehículo</th>
-                    <th>Cliente</th>
-                    <th>Servicio</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($orders as $order)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ $order->order_number }}</td>
-                        <td>{{ $order->vehicle->plate }}</td>
-                        <td>{{ $order->client->name }}</td>
-                        <td>{{ Str::limit($order->description, 40) }}</td>
-                        <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
-                        <td><a href="{{ route('mechanic.orders.show', $order) }}" class="btn btn-primary btn-sm">Ver detalle</a></td>
+                        <th>N° Orden</th>
+                        <th>Vehículo</th>
+                        <th>Cliente</th>
+                        <th>Servicio</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                @empty
-                    <tr><td colspan="6">No hay órdenes asignadas.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse ($orders as $order)
+                        <tr>
+                            <td>{{ $order->order_number }}</td>
+                            <td>{{ $order->vehicle->plate }}</td>
+                            <td>{{ $order->client->name }}</td>
+                            <td>{{ Str::limit($order->description, 40) }}</td>
+                            <td><span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></td>
+                            <td><a href="{{ route('mechanic.orders.show', $order) }}" class="btn btn-primary btn-sm">Ver detalle</a></td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="6">No hay órdenes asignadas.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         <div style="margin-top:12px;">{{ $orders->links('pagination.simple') }}</div>
     </div>

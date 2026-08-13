@@ -18,43 +18,45 @@
             @endif
         </form>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Vehículos</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($clients as $client)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ $client->name }}</td>
-                        <td>{{ $client->email }}</td>
-                        <td>{{ $client->phone ?? '—' }}</td>
-                        <td>{{ $client->vehicles->count() }}</td>
-                        <td>
-                            <span class="badge {{ $client->status === 'activo' ? 'green' : 'red' }}">
-                                {{ ucfirst($client->status) }}
-                            </span>
-                        </td>
-                        <td>
-                            <div class="actions-inline">
-                                <a href="{{ route('advisor.clients.show', $client) }}" class="btn btn-secondary btn-sm">Ver</a>
-                                <a href="{{ route('advisor.clients.edit', $client) }}" class="btn btn-secondary btn-sm">Editar</a>
-                            </div>
-                        </td>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Vehículos</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                @empty
-                    <tr>
-                        <td colspan="6">No se encontraron clientes.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse ($clients as $client)
+                        <tr>
+                            <td>{{ $client->name }}</td>
+                            <td>{{ $client->email }}</td>
+                            <td>{{ $client->phone ?? '—' }}</td>
+                            <td>{{ $client->vehicles->count() }}</td>
+                            <td>
+                                <span class="badge {{ $client->status === 'activo' ? 'green' : 'red' }}">
+                                    {{ ucfirst($client->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="actions-inline">
+                                    <a href="{{ route('advisor.clients.show', $client) }}" class="btn btn-secondary btn-sm">Ver</a>
+                                    <a href="{{ route('advisor.clients.edit', $client) }}" class="btn btn-secondary btn-sm">Editar</a>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6">No se encontraron clientes.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         <div class="pagination">
             {{ $clients->links('pagination.simple') }}

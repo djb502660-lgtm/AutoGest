@@ -1027,6 +1027,183 @@ body.auth-page {
     .topbar { padding: 1rem; }
 }
 
+/* —— Responsive para layouts de módulos (Bootstrap) —— */
+@media (max-width: 991px) {
+    /* Ajustes generales para container-fluid */
+    .container-fluid {
+        padding: 0 !important;
+    }
+    
+    /* Mobile topbar */
+    .mobile-topbar {
+        position: sticky !important;
+        top: 0;
+        z-index: 1000;
+    }
+    
+    /* Sidebar en offcanvas */
+    .offcanvas .sidebar {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: calc(100vh - 60px);
+        overflow-y: auto;
+    }
+    
+    /* Ajustes para contenido en móvil */
+    .topbar {
+        padding: 1rem !important;
+        flex-wrap: wrap;
+    }
+    
+    .topbar h2 {
+        font-size: 1.25rem;
+    }
+    
+    .topbar p {
+        font-size: 0.85rem;
+    }
+    
+    .content {
+        padding: 1rem !important;
+    }
+    
+    /* Stats grid responsive */
+    .stats,
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    
+    /* Panel grids */
+    .panel-grid,
+    .form-grid,
+    .grid-2 {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Tablas responsive */
+    .table-responsive {
+        border-radius: var(--radius);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Filtros responsive */
+    .filters {
+        display: flex !important;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .filters input,
+    .filters select {
+        flex: 1;
+        min-width: 150px;
+    }
+    
+    .filters button {
+        white-space: nowrap;
+    }
+    
+    /* Botones en móvil */
+    .top-actions {
+        flex-wrap: wrap;
+    }
+    
+    .notification-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    
+    /* Ajustes para offcanvas */
+    .offcanvas-start {
+        width: 280px !important;
+    }
+    
+    /* SOBREESCRIBIR BOOTSTRAP - Force column layout en móvil */
+    .row.g-0 {
+        flex-direction: column !important;
+    }
+    
+    .col-lg-auto.d-none.d-lg-flex {
+        display: none !important;
+    }
+    
+    .col-12.d-lg-none {
+        display: block !important;
+    }
+    
+    .col.min-vh-100 {
+        width: 100% !important;
+        flex: 1 !important;
+    }
+}
+
+@media (max-width: 576px) {
+    /* Ajustes adicionales para móviles pequeños */
+    .stats,
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    .topbar {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    .topbar h2 {
+        font-size: 1.1rem;
+    }
+    
+    .content {
+        padding: 0.75rem 1rem !important;
+    }
+    
+    /* Formularios en móvil */
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-row > * {
+        width: 100% !important;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Cards y panels */
+    .panel,
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    /* Botones */
+    .btn {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+    }
+    
+    /* Offcanvas width */
+    .offcanvas {
+        width: 85% !important;
+        max-width: 300px !important;
+    }
+    
+    /* Ajustes para columnas Bootstrap */
+    .col-12 {
+        width: 100% !important;
+    }
+    
+    /* Ajustes para filtros en móvil pequeño */
+    .filters input,
+    .filters select {
+        min-width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .filters button {
+        width: 100%;
+    }
+}
+
 /* —— Dashboard admin —— */
 .stats-grid {
     display: grid;

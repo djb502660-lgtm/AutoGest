@@ -24,44 +24,46 @@
             @endif
         </form>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Placa</th>
-                    <th>Marca</th>
-                    <th>Modelo</th>
-                    <th>Año</th>
-                    <th>Kilometraje</th>
-                    <th>Cliente</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse ($vehicles as $vehicle)
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
                     <tr>
-                        <td>{{ $vehicle->plate }}</td>
-                        <td>{{ $vehicle->brand }}</td>
-                        <td>{{ $vehicle->model }}</td>
-                        <td>{{ $vehicle->year ?? '—' }}</td>
-                        <td>{{ number_format($vehicle->mileage) }} km</td>
-                        <td>{{ $vehicle->client->name }}</td>
-                        <td><span class="badge {{ $vehicle->statusBadgeClass() }}">{{ $vehicle->statusLabel() }}</span></td>
-                        <td>
-                            <div class="actions-inline">
-                                <a href="{{ route('vehicles.edit', $vehicle) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                <form method="POST" action="{{ route('vehicles.destroy', $vehicle) }}" onsubmit="return confirm('¿Eliminar o desactivar este vehículo?')">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
-                                </form>
-                            </div>
-                        </td>
+                        <th>Placa</th>
+                        <th>Marca</th>
+                        <th>Modelo</th>
+                        <th>Año</th>
+                        <th>Kilometraje</th>
+                        <th>Cliente</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
-                @empty
-                    <tr><td colspan="8">No hay vehículos registrados.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @forelse ($vehicles as $vehicle)
+                        <tr>
+                            <td>{{ $vehicle->plate }}</td>
+                            <td>{{ $vehicle->brand }}</td>
+                            <td>{{ $vehicle->model }}</td>
+                            <td>{{ $vehicle->year ?? '—' }}</td>
+                            <td>{{ number_format($vehicle->mileage) }} km</td>
+                            <td>{{ $vehicle->client->name }}</td>
+                            <td><span class="badge {{ $vehicle->statusBadgeClass() }}">{{ $vehicle->statusLabel() }}</span></td>
+                            <td>
+                                <div class="actions-inline">
+                                    <a href="{{ route('vehicles.edit', $vehicle) }}" class="btn btn-secondary btn-sm">Editar</a>
+                                    <form method="POST" action="{{ route('vehicles.destroy', $vehicle) }}" onsubmit="return confirm('¿Eliminar o desactivar este vehículo?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="8">No hay vehículos registrados.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
         <div class="pagination">{{ $vehicles->links('pagination.simple') }}</div>
     </div>
