@@ -18,7 +18,8 @@ class VisibleLayoutSmokeTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Inicia sesión');
-        $response->assertSee('resources/css/app.css');
+        $response->assertSee('action="/login"', false);
+        $response->assertSee('/build/assets/', false);
         $response->assertDontSee('<<<<<<<');
         $response->assertDontSee('frontend/css/app.css');
     }
@@ -117,5 +118,6 @@ class VisibleLayoutSmokeTest extends TestCase
 
         $this->assertSame('https://autogest.example.test/login', url('/login'));
         $this->assertSame('https://autogest.example.test/build/assets/app.css', asset('build/assets/app.css'));
+        $this->assertTrue(config('session.secure'));
     }
 }

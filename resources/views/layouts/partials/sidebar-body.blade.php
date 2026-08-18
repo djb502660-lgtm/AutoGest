@@ -14,7 +14,7 @@
         <strong>Sesión activa</strong><br>
         {{ auth()->user()->name }} · {{ auth()->user()->role->label() }}
     @else
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout', absolute: false) }}">
             @csrf
             <button type="submit" class="btn logout btn-block">Cerrar sesión</button>
         </form>

@@ -13,7 +13,7 @@
 
 @section('top-actions-extra')
     <a href="{{ route('profile.edit') }}" class="btn btn-secondary desktop-only">Mi perfil</a>
-    <form method="POST" action="{{ route('logout') }}">
+    <form method="POST" action="{{ route('logout', absolute: false) }}">
         @csrf
         <button type="submit" class="btn btn-secondary logout">Cerrar sesión</button>
     </form>

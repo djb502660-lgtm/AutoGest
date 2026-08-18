@@ -451,6 +451,7 @@
     async function loadPhotos() {
         try {
             const res = await fetch(photosIndexUrl, {
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
                     'Accept': 'application/json',
@@ -597,6 +598,7 @@
 
                 const res = await fetch(photosStoreUrl, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
                         'Accept': 'application/json',
@@ -663,6 +665,7 @@
         try {
             const res = await fetch(`${photosDestroyUrl}/${photoId}`, {
                 method: 'DELETE',
+                credentials: 'same-origin',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,
                 },

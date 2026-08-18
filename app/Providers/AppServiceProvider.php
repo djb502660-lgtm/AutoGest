@@ -22,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
 
             if (str_starts_with($rootUrl, 'https://')) {
                 URL::forceScheme('https');
+                config(['session.secure' => true]);
             }
         }
 

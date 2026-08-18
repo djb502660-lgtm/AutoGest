@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AutoGest • Acceso</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     @include('layouts.partials.bootstrap-head')
 </head>
@@ -39,7 +40,7 @@
 
                 <p class="auth-back-home"><a href="{{ route('home') }}">← Volver al inicio</a></p>
 
-                <form method="POST" action="{{ route('login.submit') }}">
+                <form method="POST" action="{{ route('login.submit', absolute: false) }}">
                     @csrf
                     <div class="mb-3">
                         <label for="email" class="form-label">Correo electrónico</label>
