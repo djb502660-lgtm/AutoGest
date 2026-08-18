@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => EnsureUserRole::class,
         ]);
 
+        $middleware->trustProxies(at: '*');
+
         $middleware->redirectUsersTo(function (Request $request): string {
             $role = $request->user()?->role;
 

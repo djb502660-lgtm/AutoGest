@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -107,5 +108,14 @@ class VisibleLayoutSmokeTest extends TestCase
             'email' => $admin->email,
             'password' => 'password',
         ])->assertRedirect(route('dashboard'));
+    }
+
+    public function test_https_app_url_forces_https_links(): void
+    {
+        config(['app.url' => 'https://autogest.example.test']);
+        (new AppServiceProvider(app()))->boot();
+
+        $this->assertSame('https://autogest.example.test/login', url('/login'));
+        $this->assertSame('https://autogest.example.test/build/assets/app.css', asset('build/assets/app.css'));
     }
 }

@@ -17,7 +17,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($rootUrl = config('app.url')) {
-            URL::forceRootUrl(rtrim($rootUrl, '/'));
+            $rootUrl = rtrim($rootUrl, '/');
+            URL::forceRootUrl($rootUrl);
+
+            if (str_starts_with($rootUrl, 'https://')) {
+                URL::forceScheme('https');
+            }
         }
 
         Gate::before(function (User $user, string $ability) {
