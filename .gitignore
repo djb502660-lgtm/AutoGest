@@ -2,7 +2,8 @@
 /vendor
 /storage/*.key
 /.env
-/.env.*
+/.env.backup
+/.env.production
 /public/build
 /public/hot
 /public/storage

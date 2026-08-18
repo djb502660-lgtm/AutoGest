@@ -3,7 +3,7 @@
 return [
 
     'paths' => [
-        base_path('frontend/views'),
+        resource_path('views'),
     ],
 
     'compiled' => env(

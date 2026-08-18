@@ -5,16 +5,28 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['frontend/css/app.css', 'frontend/js/app.js'],
+            input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
         tailwindcss(),
     ],
     server: {
-        host: '0.0.0.0',
+        host: 'localhost',
         port: 5173,
         strictPort: true,
+<<<<<<< Updated upstream
         cors: true,
+=======
+        cors: {
+            origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
+            methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        },
+        hmr: {
+            host: 'localhost',
+            protocol: 'ws',
+            clientPort: 5173,
+        },
+>>>>>>> Stashed changes
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },
