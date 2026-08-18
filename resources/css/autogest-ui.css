@@ -2462,6 +2462,48 @@ body.home-page {
     gap: 0.75rem;
     flex-wrap: wrap;
     margin-bottom: 2rem;
+    align-items: center;
+}
+
+.home-apk-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 800;
+    border-radius: 14px;
+    padding: 0.45rem 1.15rem 0.45rem 0.45rem;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.home-apk-download:hover {
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(2, 132, 199, 0.4);
+}
+
+.home-apk-download-sm {
+    padding: 0.28rem 0.9rem 0.28rem 0.28rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
+
+.home-apk-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    object-fit: cover;
+    display: block;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
+}
+
+.home-apk-download-sm .home-apk-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
 }
 
 .home-hero-stats {
@@ -2839,7 +2881,7 @@ body.home-page {
 }
 
 @media (max-width: 560px) {
-    .home-header-actions .btn-secondary { display: none; }
+    .home-header-actions .btn-secondary:not(.home-apk-btn) { display: none; }
     .home-mockup-cards { grid-template-columns: repeat(2, 1fr); }
 }
 

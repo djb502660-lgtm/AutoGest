@@ -2,7 +2,7 @@
   "expo": {
     "name": "AutoGest",
     "slug": "autogest",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "autogest",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0f172a"
+      "backgroundColor": "#0F52A3"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -23,7 +23,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#0f172a"
+        "backgroundColor": "#0F52A3"
       },
       "package": "com.autogest.app",
       "permissions": [

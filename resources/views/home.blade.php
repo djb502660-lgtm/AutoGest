@@ -24,6 +24,10 @@
                     <a href="#beneficios">Beneficios</a>
                     <a href="#institucion">Institución</a>
                 </nav>
+                <a href="{{ config('app.android_apk_url') }}" class="home-apk-download home-apk-download-sm" download>
+                    <img src="{{ asset('images/apk-icon.png') }}" alt="" class="home-apk-icon">
+                    <span>Descargar APK</span>
+                </a>
                 <a href="{{ route('login') }}" class="btn btn-primary">Iniciar sesión</a>
             </div>
         </div>
@@ -38,7 +42,10 @@
                     Plataforma web para centralizar vehículos, órdenes de servicio, mantenimientos programados y alertas en un solo sistema moderno y fácil de usar.
                 </p>
                 <div class="home-hero-actions">
-                    <a href="#funciones" class="btn btn-primary btn-lg">Ver funciones</a>
+                    <a href="{{ config('app.android_apk_url') }}" class="home-apk-download" download>
+                        <img src="{{ asset('images/apk-icon.png') }}" alt="Icono AutoGest Android" class="home-apk-icon">
+                        <span>Descargar app Android</span>
+                    </a>
                     <a href="{{ route('login') }}" class="btn btn-secondary btn-lg">Iniciar sesión</a>
                 </div>
                 <ul class="home-hero-stats">
@@ -89,7 +96,7 @@
                 <article class="home-feature-card">
                     <span class="home-feature-icon">🤖</span>
                     <h3>Portal y asistente</h3>
-                    <p>Consulta de estado, gastos y servicios desde el portal del cliente.</p>
+                    <p>Consulta de estado, gastos y servicios desde el portal web o la app Android.</p>
                 </article>
             </div>
         </section>

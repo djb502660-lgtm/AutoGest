@@ -54,6 +54,11 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'android_apk_url' => env(
+        'ANDROID_APK_URL',
+        'https://expo.dev/artifacts/eas/91oxUAm56cD7WqyL77irr8aKMc3nYQ_8_y0zmCPNSrQ.apk'
+    ),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

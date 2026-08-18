@@ -51,8 +51,8 @@ npm run build:apk
 
 Proyecto EAS: https://expo.dev/accounts/kagarrutax/projects/autogest
 
-APK preview (build 1.0.0):
-- Instalación: https://expo.dev/accounts/kagarrutax/projects/autogest/builds/5910a12b-ef70-42d8-ba3b-1a6938a99870
-- Descarga directa: https://expo.dev/artifacts/eas/aoKhJZKTEIOHERlvQQ55cQ1pf-OVCsPSV-M_JH-8Ka8.apk
+APK preview (build 1.0.2):
+- Instalación: https://expo.dev/accounts/kagarrutax/projects/autogest/builds/aef7ebc1-4675-47e8-84bb-60d144bde8a3
+- Descarga directa: https://expo.dev/artifacts/eas/91oxUAm56cD7WqyL77irr8aKMc3nYQ_8_y0zmCPNSrQ.apk
 
 El perfil `production` (AAB / Play Store) queda para más adelante.
