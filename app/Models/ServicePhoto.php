@@ -41,14 +41,16 @@ class ServicePhoto extends Model
         }
 
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            if (str_starts_with($path, 'http://') && str_starts_with((string) config('app.url'), 'https://')) {
+                return (string) preg_replace('#^http://#', 'https://', $path);
+            }
+
             return $path;
         }
 
-        if (str_starts_with($path, 'storage/')) {
-            return '/'.$path;
-        }
+        $relative = str_starts_with($path, 'storage/') ? $path : 'storage/'.$path;
 
-        return '/storage/'.$path;
+        return url($relative);
     }
 
     public function getTypeLabelAttribute(): string

@@ -19,6 +19,6 @@ class ServicePhotoLightboxTest extends TestCase
     {
         $photo = new ServicePhoto(['photo_path' => 'service-photos/reception.jpg']);
 
-        $this->assertSame('/storage/service-photos/reception.jpg', $photo->url);
+        $this->assertSame(url('storage/service-photos/reception.jpg'), $photo->url);
     }
 }
