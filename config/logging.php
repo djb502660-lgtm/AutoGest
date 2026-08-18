@@ -18,7 +18,9 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    // En entornos desplegados con filesystem restringido (como Vercel) no conviene escribir
+    // en storage/logs; por eso ahi forzamos stderr.
+    'default' => env('VERCEL') ? 'stderr' : env('LOG_CHANNEL', 'stderr'),
 
     /*
     |--------------------------------------------------------------------------

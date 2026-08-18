@@ -8,7 +8,9 @@ return [
 
     'compiled' => env(
         'VIEW_COMPILED_PATH',
-        realpath(storage_path('framework/views'))
+        // Vercel usa un filesystem de solo lectura en el deploy (/var/task).
+        // Por eso, los compiled views deben ir a /tmp.
+        '/tmp/framework/views'
     ),
 
 ];
