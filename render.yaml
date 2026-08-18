@@ -3,7 +3,7 @@ services:
     name: auto-gest
     runtime: docker
     plan: starter
-    dockerfilePath: ./Dockerfile.render
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /up
     autoDeploy: true
     envVars:
