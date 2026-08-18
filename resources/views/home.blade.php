@@ -126,7 +126,7 @@
 
         <section id="institucion" class="home-section home-istae-section">
             <div class="home-istae-banner">
-                <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-banner-logo">
+                <img src="{{ asset('images/logo-istae-automotriz.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-banner-logo">
                 <div>
                     <p class="home-eyebrow">Proyecto académico</p>
                     <h2>Instituto Superior Tecnológico Alberto Enríquez</h2>
