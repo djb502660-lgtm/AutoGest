@@ -49,22 +49,8 @@
                 </ul>
             </div>
             <div class="home-hero-visual" aria-hidden="true">
-                <div class="home-mockup">
-                    <div class="home-mockup-bar">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <div class="home-mockup-body">
-                        <div class="home-mockup-sidebar"></div>
-                        <div class="home-mockup-main">
-                            <div class="home-mockup-cards">
-                                <div class="home-mockup-card"></div>
-                                <div class="home-mockup-card"></div>
-                                <div class="home-mockup-card"></div>
-                                <div class="home-mockup-card"></div>
-                            </div>
-                            <div class="home-mockup-table"></div>
-                        </div>
-                    </div>
+                <div class="home-mockup" style="background: none; border: none; box-shadow: none; padding: 0;">
+                    <img src="{{ asset('images/dashboard-mockup.jpg') }}" alt="Dashboard de AutoGest" style="width: 100%; height: auto; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
                 </div>
             </div>
         </section>

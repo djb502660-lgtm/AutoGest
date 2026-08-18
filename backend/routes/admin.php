@@ -32,8 +32,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/reportes/flota', [ReportController::class, 'vehicleFleet'])->name('reports.vehicle.fleet');
     Route::get('/reportes/vehiculo/{vehicleId}/pdf', [ReportController::class, 'downloadVehicleDetailPdf'])->name('reports.vehicle.detail.pdf');
     Route::get('/reportes/flota/pdf', [ReportController::class, 'downloadVehicleFleetPdf'])->name('reports.vehicle.fleet.pdf');
+    Route::get('/reportes/generar', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::get('/reportes/csv', [ReportController::class, 'downloadCsv'])->name('reports.csv');
     Route::get('/reportes/pdf', [ReportController::class, 'downloadPdf'])->name('reports.pdf');
-    
     // Ruta de prueba
     Route::get('/test-reportes', function() {
         return 'Ruta de reportes funciona correctamente';

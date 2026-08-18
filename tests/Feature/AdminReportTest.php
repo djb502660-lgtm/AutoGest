@@ -21,7 +21,7 @@ class AdminReportTest extends TestCase
             ->get(route('reports.index'));
 
         $response->assertOk();
-        $response->assertSee('Reportes del sistema');
+        $response->assertSee('Generador de Expedientes Completos');
     }
 
     public function test_admin_can_generate_maintenance_report(): void

@@ -194,6 +194,10 @@ class ReportService
         }
 
         $data = match ($type) {
+            'mantenimientos' => $this->getMaintenanceReport($validated['vehicle_id'] ?? null, $from, $to),
+            'gastos' => $this->getExpensesReport($validated['vehicle_id'] ?? null, $from, $to),
+            'vehiculos' => $this->getVehiclesReport($validated['vehicle_id'] ?? null),
+            'pendientes' => $this->getPendingReport($validated['vehicle_id'] ?? null),
             'inventario' => $this->getInventoryReport($categoryId, $brandId, $stockStatus),
             'productos' => $this->getProductsReport($categoryId, $brandId),
             'movimientos' => $this->getStockMovementsReport($categoryId, $from, $to),

@@ -81,6 +81,62 @@ class ReportController extends Controller
         return $pdf->download($filename);
     }
 
+    public function generate(Request $request)
+    {
+        $validated = $this->validateFilters($request);
+        $report = $this->reportService->buildReportData($validated);
+
+        return view('admin.reports.result', [
+            'title' => $report['title'],
+            'summary' => $report['summary'],
+            'columns' => $report['columns'],
+            'rows' => $report['rows'],
+            'filters' => $request->all(),
+        ]);
+    }
+
+    public function downloadCsv(Request $request)
+    {
+        $validated = $this->validateFilters($request);
+        $report = $this->reportService->buildReportData($validated);
+
+        $this->auditService->logReportAction(
+            'report_downloaded',
+            "Reporte «{$report['title']}» descargado en CSV",
+            auth()->id(),
+            null,
+            ['type' => $validated['type'], 'format' => 'csv']
+        );
+
+        $filename = 'reporte-'.$validated['type'].'-'.now()->format('Y-m-d-His').'.csv';
+        
+        $headers = [
+            "Content-type"        => "text/csv; charset=UTF-8",
+            "Content-Disposition" => "attachment; filename=$filename",
+            "Pragma"              => "no-cache",
+            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+            "Expires"             => "0"
+        ];
+
+        $columns = $report['columns'];
+        $rows = $report['rows'];
+
+        $callback = function() use($columns, $rows) {
+            $file = fopen('php://output', 'w');
+            
+            // Add BOM for Excel UTF-8 support
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+            
+            fputcsv($file, $columns);
+            foreach ($rows as $row) {
+                fputcsv($file, $row);
+            }
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
+
     private function validateFilters(Request $request): array
     {
         return $request->validate([
