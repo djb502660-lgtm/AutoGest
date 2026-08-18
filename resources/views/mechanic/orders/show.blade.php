@@ -15,7 +15,7 @@
 @push('styles')
 <style>
     /* Tarjetas de Información */
-    .card-info { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px; }
+    .card-info { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 10px; padding: 18px; margin-bottom: 20px; min-width: 0; max-width: 100%; overflow: hidden; }
     .card-title-bar { background: #334155; color: white; padding: 8px 14px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
 
     .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
@@ -46,9 +46,11 @@
     /* Galería de fotos organizada por tipo (Sprint 5A.3) */
     .photo-gallery-row {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
         gap: 12px;
         margin-top: 8px;
+        min-width: 0;
+        width: 100%;
     }
 
     .photo-item {
@@ -57,6 +59,11 @@
         overflow: hidden;
         border: 1px solid #e2e8f0;
         background: white;
+        min-width: 0;
+        max-width: 100%;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
         transition: transform 0.2s, box-shadow 0.2s;
     }
 
@@ -69,13 +76,23 @@
         width: 100%;
         height: 140px;
         object-fit: cover;
+        display: block;
         cursor: pointer;
+        background: #e2e8f0;
+        color: transparent;
+        font-size: 0;
+    }
+
+    .photo-item img.is-missing {
+        object-fit: contain;
+        background: #f1f5f9;
     }
 
     .photo-info {
-        padding: 8px;
+        padding: 8px 36px 8px 8px;
         background: #f8fafc;
         border-top: 1px solid #e2e8f0;
+        min-width: 0;
     }
 
     .photo-desc {
@@ -84,18 +101,21 @@
         color: #475569;
         margin-bottom: 4px;
         font-style: italic;
+        overflow-wrap: anywhere;
     }
 
     .photo-user {
         display: block;
         font-size: 0.7rem;
         color: #94a3b8;
+        overflow-wrap: anywhere;
     }
 
     .photo-delete {
         position: absolute;
-        top: 6px;
-        right: 6px;
+        top: 8px;
+        right: 8px;
+        z-index: 2;
         width: 28px;
         height: 28px;
         background: rgba(239, 68, 68, 0.9);
@@ -108,6 +128,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         transition: background 0.2s;
     }
 
@@ -262,23 +283,23 @@
         <div style="display:flex; gap:16px; margin-bottom:20px; flex-wrap:wrap;">
           <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
             <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Total Fotos</div>
-            <div style="font-size:1.5rem; font-weight:700; color:#7c3aed;">{{ $photoSummary['total'] ?? 0 }}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#7c3aed;" data-photo-count="total">{{ $photoSummary['total'] ?? 0 }}</div>
           </div>
           <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
             <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Recepción</div>
-            <div style="font-size:1.5rem; font-weight:700; color:#0ea5e9;">{{ $photoSummary['by_type']['reception'] ?? 0 }}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#0ea5e9;" data-photo-count="reception">{{ $photoSummary['by_type']['reception'] ?? 0 }}</div>
           </div>
           <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
             <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Antes</div>
-            <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;">{{ $photoSummary['by_type']['before'] ?? 0 }}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#f59e0b;" data-photo-count="before">{{ $photoSummary['by_type']['before'] ?? 0 }}</div>
           </div>
           <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
             <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Después</div>
-            <div style="font-size:1.5rem; font-weight:700; color:#10b981;">{{ $photoSummary['by_type']['after'] ?? 0 }}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#10b981;" data-photo-count="after">{{ $photoSummary['by_type']['after'] ?? 0 }}</div>
           </div>
           <div style="flex:1; min-width:140px; background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
             <div style="font-size:0.7rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Evidencia</div>
-            <div style="font-size:1.5rem; font-weight:700; color:#8b5cf6;">{{ $photoSummary['by_type']['evidence'] ?? 0 }}</div>
+            <div style="font-size:1.5rem; font-weight:700; color:#8b5cf6;" data-photo-count="evidence">{{ $photoSummary['by_type']['evidence'] ?? 0 }}</div>
           </div>
         </div>
 
@@ -350,7 +371,7 @@
           <!-- Recepción -->
           <div style="margin-bottom:16px;">
             <div style="background:#e0f2fe; color:#0369a1; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-clipboard-check"></i> Recepción ({{ $photoSummary['by_type']['reception'] ?? 0 }})
+              <i class="fa-solid fa-clipboard-check"></i> Recepción (<span data-photo-count="reception">{{ $photoSummary['by_type']['reception'] ?? 0 }}</span>)
             </div>
             <div id="gallery-reception" class="photo-gallery-row">
               @forelse ($photos->where('type', 'reception') as $photo)
@@ -364,7 +385,7 @@
           <!-- Antes del trabajo -->
           <div style="margin-bottom:16px;">
             <div style="background:#fef3c7; color:#92400e; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-wrench"></i> Antes del trabajo ({{ $photoSummary['by_type']['before'] ?? 0 }})
+              <i class="fa-solid fa-wrench"></i> Antes del trabajo (<span data-photo-count="before">{{ $photoSummary['by_type']['before'] ?? 0 }}</span>)
             </div>
             <div id="gallery-before" class="photo-gallery-row">
               @forelse ($photos->where('type', 'before') as $photo)
@@ -378,7 +399,7 @@
           <!-- Evidencia de diagnóstico -->
           <div style="margin-bottom:16px;">
             <div style="background:#f3e8ff; color:#7c3aed; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-stethoscope"></i> Evidencia de diagnóstico ({{ $photoSummary['by_type']['evidence'] ?? 0 }})
+              <i class="fa-solid fa-stethoscope"></i> Evidencia de diagnóstico (<span data-photo-count="evidence">{{ $photoSummary['by_type']['evidence'] ?? 0 }}</span>)
             </div>
             <div id="gallery-evidence" class="photo-gallery-row">
               @forelse ($photos->where('type', 'evidence') as $photo)
@@ -392,7 +413,7 @@
           <!-- Después del trabajo -->
           <div style="margin-bottom:16px;">
             <div style="background:#dcfce7; color:#15803d; padding:8px 12px; border-radius:6px; font-weight:700; font-size:0.85rem; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-check-circle"></i> Después del trabajo ({{ $photoSummary['by_type']['after'] ?? 0 }})
+              <i class="fa-solid fa-check-circle"></i> Después del trabajo (<span data-photo-count="after">{{ $photoSummary['by_type']['after'] ?? 0 }}</span>)
             </div>
             <div id="gallery-after" class="photo-gallery-row">
               @forelse ($photos->where('type', 'after') as $photo)
@@ -449,36 +470,39 @@
     }
 
     function renderPhotosByType(photos) {
-        // Limpiar todas las galerías solo cuando hay respuesta válida
+        const photosByType = {
+            'reception': [],
+            'before': [],
+            'evidence': [],
+            'after': [],
+        };
+
+        (photos || []).forEach((photo) => {
+            if (photosByType[photo.type]) {
+                photosByType[photo.type].push(photo);
+            }
+        });
+
+        Object.keys(photosByType).forEach(type => {
+            document.querySelectorAll(`[data-photo-count="${type}"]`).forEach((el) => {
+                el.textContent = String(photosByType[type].length);
+            });
+        });
+        document.querySelectorAll('[data-photo-count="total"]').forEach((el) => {
+            el.textContent = String((photos || []).length);
+        });
+
         Object.values(galleries).forEach(gallery => {
             if (gallery) gallery.innerHTML = '';
         });
 
-        if (!photos || photos.length === 0) {
-            Object.values(galleries).forEach(gallery => {
-                if (gallery) {
-                    gallery.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>';
-                }
-            });
-            return;
-        }
-
-        // Agrupar fotos por tipo
-        const photosByType = {
-            'reception': photos.filter(p => p.type === 'reception'),
-            'before': photos.filter(p => p.type === 'before'),
-            'evidence': photos.filter(p => p.type === 'evidence'),
-            'after': photos.filter(p => p.type === 'after'),
-        };
-
-        // Renderizar cada galería
         Object.keys(photosByType).forEach(type => {
             const gallery = galleries[type];
             if (!gallery) return;
 
             const typePhotos = photosByType[type];
             if (typePhotos.length === 0) {
-                gallery.innerHTML = '<p style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>';
+                gallery.innerHTML = '<p class="photo-empty-msg" style="color:var(--text-muted);font-size:0.8rem;font-style:italic;">No hay fotos en esta categoría.</p>';
                 return;
             }
 

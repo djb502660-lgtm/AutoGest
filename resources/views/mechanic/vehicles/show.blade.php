@@ -15,6 +15,7 @@
     @if ($tab === 'historial')
         <div class="panel">
             <h3 style="margin:0 0 12px;">Historial de Mantenimientos</h3>
+            <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
@@ -43,6 +44,7 @@
                     @endforelse
                 </tbody>
             </table>
+            </div>
         </div>
     @else
         <div class="grid-2">

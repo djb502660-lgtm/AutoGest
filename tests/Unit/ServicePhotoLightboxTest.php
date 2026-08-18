@@ -14,4 +14,11 @@ class ServicePhotoLightboxTest extends TestCase
         $this->assertSame('Recepción', $photo->lightboxCaption());
         $this->assertSame('', $photo->lightboxMeta());
     }
+
+    public function test_relative_photo_path_is_served_from_public_storage(): void
+    {
+        $photo = new ServicePhoto(['photo_path' => 'service-photos/reception.jpg']);
+
+        $this->assertSame('/storage/service-photos/reception.jpg', $photo->url);
+    }
 }

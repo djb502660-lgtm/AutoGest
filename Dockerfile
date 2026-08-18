@@ -46,9 +46,11 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 COPY . .
 COPY --from=assets /app/public/build ./public/build
 
-RUN composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress \
-    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache /tmp/framework/views \
-    && chown -R www-data:www-data storage bootstrap/cache /tmp/framework
+RUN printf 'upload_max_filesize=12M\npost_max_size=12M\n' > /usr/local/etc/php/conf.d/uploads.ini \
+    && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress \
+    && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache /tmp/framework/views \
+    && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage \
+    && chown -R www-data:www-data storage bootstrap/cache /tmp/framework public/storage
 
 USER www-data
 

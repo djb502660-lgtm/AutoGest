@@ -31,6 +31,8 @@ window.AutoGestLightbox.escape = function (value) {
         .replace(/"/g, '&quot;');
 };
 
+window.AutoGestLightbox.placeholder = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180"><rect fill="#e2e8f0" width="320" height="180"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" fill="#94a3b8" font-family="sans-serif" font-size="14">Sin imagen</text></svg>');
+
 window.AutoGestLightbox.imgTag = function (photo, gallery) {
     const esc = window.AutoGestLightbox.escape;
     const caption = photo.type_label || '';
@@ -38,8 +40,9 @@ window.AutoGestLightbox.imgTag = function (photo, gallery) {
     const description = photo.description || '';
     const alt = description || caption || 'Evidencia fotográfica';
     const descAttr = description ? ` data-lightbox-description="${esc(description)}"` : '';
+    const fallback = window.AutoGestLightbox.placeholder;
 
-    return `<img src="${esc(photo.url)}" alt="${esc(alt)}" class="js-photo-lightbox" data-lightbox="${esc(gallery)}" data-lightbox-src="${esc(photo.url)}" data-lightbox-caption="${esc(caption)}" data-lightbox-meta="${esc(meta)}"${descAttr} role="button" tabindex="0">`;
+    return `<img src="${esc(photo.url)}" alt="${esc(alt)}" class="js-photo-lightbox" data-lightbox="${esc(gallery)}" data-lightbox-src="${esc(photo.url)}" data-lightbox-caption="${esc(caption)}" data-lightbox-meta="${esc(meta)}" data-fallback="${esc(fallback)}" onerror="this.onerror=null;this.src=this.dataset.fallback;this.classList.add('is-missing');"${descAttr} role="button" tabindex="0">`;
 };
 
 (function () {
