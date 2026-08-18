@@ -40,7 +40,7 @@
 
                 <p class="auth-back-home"><a href="{{ route('home') }}">← Volver al inicio</a></p>
 
-                <form method="POST" action="{{ route('login.submit', absolute: false) }}">
+                <form method="POST" action="{{ route('login.submit', absolute: false) }}" id="loginForm">
                     @csrf
                     <div class="mb-3">
                         <label for="email" class="form-label">Correo electrónico</label>
@@ -63,5 +63,39 @@
         </section>
     </div>
     @include('layouts.partials.bootstrap-scripts')
+    <script>
+        (function () {
+            const form = document.getElementById('loginForm');
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const csrfInput = form?.querySelector('input[name="_token"]');
+            let submitting = false;
+
+            function syncCsrfToken() {
+                if (!csrfMeta || !csrfInput) {
+                    return;
+                }
+
+                csrfInput.value = csrfMeta.content;
+            }
+
+            window.addEventListener('pageshow', (event) => {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            });
+
+            form?.addEventListener('submit', (event) => {
+                syncCsrfToken();
+
+                if (submitting) {
+                    event.preventDefault();
+                    return;
+                }
+
+                submitting = true;
+                form.querySelector('button[type="submit"]')?.setAttribute('disabled', 'disabled');
+            });
+        })();
+    </script>
 </body>
 </html>

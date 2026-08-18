@@ -6,6 +6,7 @@
         "build": "vite build",
         "dev": "vite",
         "test:e2e": "playwright test",
+        "test:e2e:mobile-prod": "playwright test tests/e2e/mobile-login-production.spec.ts --config=playwright.production.config.ts",
         "test:e2e:install": "playwright install chromium"
     },
     "devDependencies": {
