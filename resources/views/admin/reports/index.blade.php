@@ -13,7 +13,10 @@
   <!-- GENERADOR UNIFICADO -->
   <div class="panel">
     <h3>Configurar Expediente</h3>
-    <form id="unifiedReportForm">
+    <form id="unifiedReportForm"
+        data-vehicle-detail-pdf="{{ route('reports.vehicle.detail.pdf', ['vehicleId' => '__VEHICLE_ID__']) }}"
+        data-vehicle-fleet-pdf="{{ route('reports.vehicle.fleet.pdf') }}"
+        data-reports-pdf="{{ route('reports.pdf') }}">
       @csrf
       
       <div class="form-group">
@@ -41,16 +44,28 @@
       </div>
 
       <div style="margin-top: 24px;">
-        <button type="button" class="btn btn-primary" onclick="generatePdf()" style="width: 100%;">📥 Generar y Descargar PDF</button>
+        <button type="button" class="btn btn-primary btn-block" data-reports-generate>📥 Generar y Descargar PDF</button>
       </div>
     </form>
   </div>
 
+  @php
+      $reportsCatalog = [
+          'vehicles' => $vehicles ?? [],
+          'categories' => $categories ?? [],
+          'brands' => $brands ?? [],
+          'clients' => $clients ?? [],
+      ];
+  @endphp
+  <script type="application/json" id="reportsCatalogData">{!! json_encode($reportsCatalog, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) !!}</script>
+
   <script>
-    const vehicles = @json($vehicles ?? []);
-    const categories = @json($categories ?? []);
-    const brands = @json($brands ?? []);
-    const clients = @json($clients ?? []);
+    const reportsCatalog = JSON.parse(document.getElementById('reportsCatalogData').textContent);
+    const vehicles = reportsCatalog.vehicles;
+    const categories = reportsCatalog.categories;
+    const brands = reportsCatalog.brands;
+    const clients = reportsCatalog.clients;
+    const reportForm = document.getElementById('unifiedReportForm');
 
     function updateReportConfig() {
       const reportType = document.getElementById('reportType').value;
@@ -223,7 +238,7 @@
           alert('Debe seleccionar un vehículo para el expediente individual');
           return;
         }
-        window.location.href = "{{ route('reports.vehicle.detail.pdf', ':vehicleId') }}".replace(':vehicleId', vehicleId);
+        window.location.href = reportForm.dataset.vehicleDetailPdf.replace('__VEHICLE_ID__', vehicleId);
         return;
       }
 
@@ -241,7 +256,7 @@
         if (to) params.append('to', to);
         
         const queryString = params.toString();
-        window.location.href = "{{ route('reports.vehicle.fleet.pdf') }}" + (queryString ? '?' + queryString : '');
+        window.location.href = reportForm.dataset.vehicleFleetPdf + (queryString ? '?' + queryString : '');
         return;
       }
 
@@ -252,12 +267,14 @@
           params.append(key, value);
         }
       }
-      window.location.href = "{{ route('reports.pdf') }}?" + params.toString();
+      window.location.href = reportForm.dataset.reportsPdf + '?' + params.toString();
     }
 
     // Inicializar configuración al cargar
     document.addEventListener('DOMContentLoaded', function() {
       updateReportConfig();
+
+      document.querySelector('[data-reports-generate]')?.addEventListener('click', generatePdf);
     });
   </script>
 @endsection

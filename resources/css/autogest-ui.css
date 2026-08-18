@@ -2887,6 +2887,32 @@ body.home-page {
     cursor: pointer;
 }
 
+.photo-thumb-cover {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.photo-thumb-cover-sm {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.template-option-interactive {
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.modal-close-btn {
+    border: none;
+    background: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
 .photo-lightbox-img {
     display: block;
     width: 100%;

@@ -6,7 +6,7 @@
 
     <div id="{{ $containerId ?? 'templateSuggestions' }}">
         @forelse (($vehicleTemplates ?? collect()) as $template)
-            <div class="notif-item {{ ($interactive ?? false) ? 'template-option' : '' }}" @if(($interactive ?? false)) data-title="{{ $template->title }}" @endif style="margin-bottom:8px;{{ ($interactive ?? false) ? 'cursor:pointer;' : '' }}">
+            <div class="notif-item {{ ($interactive ?? false) ? 'template-option template-option-interactive' : '' }}" @if(($interactive ?? false)) data-title="{{ $template->title }}" @endif>
                 <strong>{{ $template->title }}</strong>
                 <span style="font-size:0.78rem;color:var(--muted);">
                     {{ $template->maintenanceTypeLabel() }}

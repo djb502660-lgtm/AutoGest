@@ -11,14 +11,14 @@
       <h2>📁 Productos e Inventario</h2>
       <p>Control centralizado de stock, familias de repuestos y órdenes de compra.</p>
     </div>
-    <button class="btn btn-primary" onclick="abrirModal('nuevo_producto')">+ Nuevo Producto / Repuesto</button>
+    <button type="button" class="btn btn-primary" data-modal-open="nuevo_producto">+ Nuevo Producto / Repuesto</button>
   </div>
 
   <!-- Pestañas -->
   <div class="tabs-bar">
-    <button class="tab-btn active" onclick="switchTab('productos', this)">📦 Productos y Stock</button>
-    <button class="tab-btn" onclick="switchTab('categorias', this)">🏷️ Categorías y Marcas</button>
-    <button class="tab-btn" onclick="switchTab('proveedores', this)">🚚 Compras y Proveedores</button>
+    <button type="button" class="tab-btn active" data-tab="productos">📦 Productos y Stock</button>
+    <button type="button" class="tab-btn" data-tab="categorias">🏷️ Categorías y Marcas</button>
+    <button type="button" class="tab-btn" data-tab="proveedores">🚚 Compras y Proveedores</button>
   </div>
 
   <!-- TAB 1: PRODUCTOS -->
@@ -42,8 +42,17 @@
             <td>${{ number_format((float) $product->sale_price, 2) }}</td>
             <td>{{ $product->stock_quantity }} unid.</td>
             <td>
-              <button class="actions-btn" onclick="abrirModal('editar_producto', @js($product->name), @js($product->sku), {{ (float) $product->sale_price }}, {{ $product->id }})">Editar</button>
-              <button class="actions-btn" style="color: #2563eb;" onclick="abrirModal('ajustar_stock', @js($product->name), {{ $product->stock_quantity }}, {{ $product->id }})">+ Stock</button>
+              <button type="button" class="actions-btn"
+                  data-modal-action="editar_producto"
+                  data-product-id="{{ $product->id }}"
+                  data-product-name="{{ $product->name }}"
+                  data-product-sku="{{ $product->sku }}"
+                  data-product-price="{{ (float) $product->sale_price }}">Editar</button>
+              <button type="button" class="actions-btn" style="color: #2563eb;"
+                  data-modal-action="ajustar_stock"
+                  data-product-id="{{ $product->id }}"
+                  data-product-name="{{ $product->name }}"
+                  data-product-stock="{{ $product->stock_quantity }}">+ Stock</button>
             </td>
           </tr>
           @endforeach
@@ -55,7 +64,7 @@
   <!-- TAB 2: CATEGORÍAS -->
   <div id="tab-categorias" class="tab-content">
     <div style="margin-bottom: 16px; text-align: right;">
-      <button class="btn btn-primary" style="background:#475569;" onclick="abrirModal('nueva_categoria')">+ Nueva Categoría / Marca</button>
+      <button type="button" class="btn btn-primary" style="background:#475569;" data-modal-open="nueva_categoria">+ Nueva Categoría / Marca</button>
     </div>
     <div class="table-responsive">
       <table>
@@ -73,7 +82,10 @@
             <td><strong>{{ $category->name }}</strong></td>
             <td>{{ $category->brands->pluck('name')->join(', ') ?: 'Sin marcas' }}</td>
             <td>{{ $category->products()->count() }} repuestos</td>
-            <td><button class="actions-btn" onclick="abrirModal('editar_categoria', {{ $category->id }}, @js($category->name))">Editar</button></td>
+            <td><button type="button" class="actions-btn"
+                data-modal-action="editar_categoria"
+                data-category-id="{{ $category->id }}"
+                data-category-name="{{ $category->name }}">Editar</button></td>
           </tr>
           @endforeach
         </tbody>
@@ -84,8 +96,8 @@
   <!-- TAB 3: PROVEEDORES Y COMPRAS -->
   <div id="tab-proveedores" class="tab-content">
     <div style="margin-bottom: 16px; text-align: right; display:flex; gap:8px; justify-content:flex-end; align-items:center;">
-      <button class="btn btn-secondary" onclick="abrirModal('nueva_compra')">+ Nueva Compra</button>
-      <button class="btn btn-primary" onclick="abrirModal('nuevo_proveedor')">+ Nuevo Proveedor</button>
+      <button type="button" class="btn btn-secondary" data-modal-open="nueva_compra">+ Nueva Compra</button>
+      <button type="button" class="btn btn-primary" data-modal-open="nuevo_proveedor">+ Nuevo Proveedor</button>
     </div>
     <div class="table-responsive">
       <table>
@@ -106,26 +118,25 @@
             <td>${{ number_format((float) $purchase->total, 2) }}</td>
             <td>{{ ucfirst($purchase->status) }}</td>
             <td>
-              <button
-                class="actions-btn"
-                type="button"
-                onclick="abrirModal('ver_detalle_compra', {{ json_encode([
-                  "purchase_number" => $purchase->purchase_number,
-                  "supplier_name" => $purchase->supplier->name,
-                  "purchase_date" => optional($purchase->purchase_date)->format("d/m/Y"),
-                  "subtotal" => (float) $purchase->subtotal,
-                  "tax" => (float) $purchase->tax,
-                  "total" => (float) $purchase->total,
-                  "items" => $purchase->items->map(fn ($item) => [
-                      "product_name" => $item->product?->name ?? "Producto no disponible",
-                      "quantity" => $item->quantity,
-                      "unit_price" => (float) $item->unit_price,
-                      "total" => (float) $item->total,
-                  ])->values(),
-                ]) }})"
-              >
-                Ver Detalle
-              </button>
+              @php
+                  $purchasePayload = [
+                      'purchase_number' => $purchase->purchase_number,
+                      'supplier_name' => $purchase->supplier->name,
+                      'purchase_date' => optional($purchase->purchase_date)->format('d/m/Y'),
+                      'subtotal' => (float) $purchase->subtotal,
+                      'tax' => (float) $purchase->tax,
+                      'total' => (float) $purchase->total,
+                      'items' => $purchase->items->map(fn ($item) => [
+                          'product_name' => $item->product?->name ?? 'Producto no disponible',
+                          'quantity' => $item->quantity,
+                          'unit_price' => (float) $item->unit_price,
+                          'total' => (float) $item->total,
+                      ])->values(),
+                  ];
+              @endphp
+              <button type="button" class="actions-btn"
+                  data-modal-action="ver_detalle_compra"
+                  data-purchase="{{ e(json_encode($purchasePayload)) }}">Ver Detalle</button>
             </td>
           </tr>
           @endforeach
@@ -143,10 +154,18 @@
   <div class="modal-box">
     <div class="modal-header">
       <h3 id="modalTitle">Título del Modal</h3>
-      <button onclick="cerrarModal()" style="border:none; background:none; font-size:1.2rem; cursor:pointer;">✕</button>
+      <button type="button" class="modal-close-btn" data-inventory-modal-close aria-label="Cerrar">✕</button>
     </div>
     
-    <form id="formInventarioModal" onsubmit="enviarFormulario(event)">
+    <form id="formInventarioModal" onsubmit="enviarFormulario(event)"
+        data-products-store="{{ route('products.store') }}"
+        data-products-update="{{ route('products.update', ['product' => '__PRODUCT_ID__']) }}"
+        data-suppliers-store="{{ route('suppliers.store') }}"
+        data-categories-store="{{ route('categories.store') }}"
+        data-categories-update="{{ route('categories.update', ['category' => '__CATEGORY_ID__']) }}"
+        data-stock-store="{{ route('stock.store') }}"
+        data-purchases-store="{{ route('purchases.store') }}"
+        data-csrf-token="{{ csrf_token() }}">
       <input type="hidden" name="accion" id="modalAccion" value="">
       <input type="hidden" name="product_id" id="modalProductId" value="">
 
@@ -155,12 +174,36 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+        <button type="button" class="btn btn-secondary" data-inventory-modal-close>Cancelar</button>
         <button type="submit" class="btn btn-primary" id="modalSubmitBtn">Guardar</button>
       </div>
     </form>
   </div>
 </div>
+
+<template id="inventory-category-options">
+@foreach ($categories as $cat)
+<option value="{{ $cat->id }}">{{ $cat->name }}</option>
+@endforeach
+</template>
+
+<template id="inventory-brand-options">
+@foreach ($brands as $brand)
+<option value="{{ $brand->id }}">{{ $brand->name }}</option>
+@endforeach
+</template>
+
+<template id="inventory-product-options">
+@foreach ($products as $product)
+<option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+@endforeach
+</template>
+
+<template id="inventory-supplier-options">
+@foreach ($suppliers as $supplier)
+<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
+@endforeach
+</template>
 
 <style>
   .module-card { background: #ffffff; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); overflow: hidden; }
@@ -199,6 +242,11 @@
 </style>
 
 <script>
+  const inventoryCategoryOptions = document.getElementById('inventory-category-options')?.innerHTML || '';
+  const inventoryBrandOptions = document.getElementById('inventory-brand-options')?.innerHTML || '';
+  const inventoryProductOptions = document.getElementById('inventory-product-options')?.innerHTML || '';
+  const inventorySupplierOptions = document.getElementById('inventory-supplier-options')?.innerHTML || '';
+
   // Cambio de Pestañas
   function switchTab(tabId, button) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -234,17 +282,13 @@
           <div class="form-group"><label>Categoría</label>
             <select name="category_id" class="input-box">
               <option value="">Seleccionar categoría...</option>
-              @foreach ($categories as $cat)
-              <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-              @endforeach
+              ${inventoryCategoryOptions}
             </select>
           </div>
           <div class="form-group"><label>Marca</label>
             <select name="brand_id" class="input-box">
               <option value="">Seleccionar marca...</option>
-              @foreach ($brands as $brand)
-              <option value="{{ $brand->id }}">{{ $brand->name }}</option>
-              @endforeach
+              ${inventoryBrandOptions}
             </select>
           </div>
           <div class="form-group"><label>Precio Compra ($)</label><input type="number" step="0.01" name="purchase_price" class="input-box" placeholder="0.00"></div>
@@ -390,9 +434,7 @@
           <div class="form-group full"><label>Proveedor *</label>
             <select name="supplier_id" class="input-box" required>
               <option value="">Seleccionar proveedor...</option>
-              @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->id }}">{{ $supplier->name }}</option>
-              @endforeach
+              ${inventorySupplierOptions}
             </select>
           </div>
           <div class="form-group"><label>Fecha de compra *</label><input type="date" name="purchase_date" class="input-box" required></div>
@@ -402,9 +444,7 @@
           <div class="item-row" style="display:grid; grid-template-columns: 1.7fr 0.9fr 0.9fr 0.4fr; gap:12px; align-items:center; margin-bottom:10px;">
             <select name="items[0][product_id]" class="input-box" required>
               <option value="">Seleccionar producto...</option>
-              @foreach ($products as $product)
-                <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
-              @endforeach
+              ${inventoryProductOptions}
             </select>
             <input type="number" name="items[0][quantity]" class="input-box" placeholder="Cantidad" min="1" required>
             <input type="number" step="0.01" name="items[0][unit_price]" class="input-box" placeholder="P. unitario" min="0" required>
@@ -435,9 +475,7 @@
     row.innerHTML = `
       <select name="items[${purchaseItemIndex}][product_id]" class="input-box" required>
         <option value="">Seleccionar producto...</option>
-        @foreach ($products as $product)
-          <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
-        @endforeach
+        ${inventoryProductOptions}
       </select>
       <input type="number" name="items[${purchaseItemIndex}][quantity]" class="input-box" placeholder="Cantidad" min="1" required>
       <input type="number" step="0.01" name="items[${purchaseItemIndex}][unit_price]" class="input-box" placeholder="P. unitario" min="0" required>
@@ -467,27 +505,27 @@
 
     switch (accion) {
       case 'nuevo_producto':
-        url = '{{ route("products.store") }}';
+        url = form.dataset.productsStore;
         break;
       case 'nuevo_proveedor':
-        url = '{{ route("suppliers.store") }}';
+        url = form.dataset.suppliersStore;
         break;
       case 'editar_producto':
-        url = '{{ route("products.update", ["product" => "__PRODUCT_ID__"]) }}'.replace('__PRODUCT_ID__', formData.get('product_id'));
+        url = form.dataset.productsUpdate.replace('__PRODUCT_ID__', formData.get('product_id'));
         method = 'PUT';
         break;
       case 'editar_categoria':
-        url = '{{ route("categories.update", ["category" => "__CATEGORY_ID__"]) }}'.replace('__CATEGORY_ID__', formData.get('product_id'));
+        url = form.dataset.categoriesUpdate.replace('__CATEGORY_ID__', formData.get('product_id'));
         method = 'PUT';
         break;
       case 'ajustar_stock':
-        url = '{{ route("stock.store") }}';
+        url = form.dataset.stockStore;
         break;
       case 'nueva_categoria':
-        url = '{{ route("categories.store") }}';
+        url = form.dataset.categoriesStore;
         break;
       case 'nueva_compra':
-        url = '{{ route("purchases.store") }}';
+        url = form.dataset.purchasesStore;
         break;
       default:
         alert('Acción no válida');
@@ -497,7 +535,7 @@
     if (method === 'PUT') {
       formData.append('_method', 'PUT');
     }
-    formData.append('_token', '{{ csrf_token() }}');
+    formData.append('_token', form.dataset.csrfToken);
 
     try {
       const response = await fetch(url, {
@@ -547,5 +585,50 @@
     requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateY(0)'; });
     setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateY(-6px)'; setTimeout(() => toast.remove(), 220); }, timeout);
   }
+
+  document.addEventListener('click', (event) => {
+    const tabButton = event.target.closest('.tab-btn[data-tab]');
+    if (tabButton) {
+      switchTab(tabButton.dataset.tab, tabButton);
+      return;
+    }
+
+    const openButton = event.target.closest('[data-modal-open]');
+    if (openButton) {
+      abrirModal(openButton.dataset.modalOpen);
+      return;
+    }
+
+    if (event.target.closest('[data-inventory-modal-close]')) {
+      cerrarModal();
+      return;
+    }
+
+    const button = event.target.closest('[data-modal-action]');
+    if (!button) {
+      return;
+    }
+
+    const action = button.dataset.modalAction;
+
+    if (action === 'editar_producto') {
+      abrirModal(action, button.dataset.productName, button.dataset.productSku, button.dataset.productPrice, button.dataset.productId);
+      return;
+    }
+
+    if (action === 'ajustar_stock') {
+      abrirModal(action, button.dataset.productName, button.dataset.productStock, button.dataset.productId);
+      return;
+    }
+
+    if (action === 'editar_categoria') {
+      abrirModal(action, button.dataset.categoryId, button.dataset.categoryName);
+      return;
+    }
+
+    if (action === 'ver_detalle_compra') {
+      abrirModal(action, JSON.parse(button.dataset.purchase || '{}'));
+    }
+  });
 </script>
 @endsection

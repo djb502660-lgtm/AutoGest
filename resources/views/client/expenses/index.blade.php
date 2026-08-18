@@ -9,7 +9,7 @@
 @section('content')
     <div class="panel">
         <div class="chart-wrap">
-            <div class="donut" style="background:{{ $donutGradient }};">
+            <div class="donut" @style(['background' => $donutGradient])>
                 <div class="donut-hole">
                     Total<br><strong style="color:var(--text);font-size:1rem;">${{ number_format($total, 0) }}</strong>
                 </div>
@@ -18,7 +18,7 @@
                 @foreach ($categories as $label => $cat)
                     @if ($cat['amount'] > 0)
                         <div class="legend-item">
-                            <span class="legend-dot" style="background:{{ $cat['color'] }};"></span>
+                            <span class="legend-dot" @style(['background' => $cat['color']])></span>
                             {{ $label }} — ${{ number_format($cat['amount'], 2) }}
                             ({{ $total > 0 ? round(($cat['amount'] / $total) * 100) : 0 }}%)
                         </div>

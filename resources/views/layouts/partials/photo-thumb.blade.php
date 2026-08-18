@@ -1,13 +1,12 @@
 @php
     /** @var \App\Models\ServicePhoto $photo */
     $gallery = $gallery ?? 'photos';
-    $style = $style ?? null;
+    $class = $class ?? null;
 @endphp
 <img
     src="{{ $photo->url }}"
     alt="{{ $photo->description ?: $photo->lightboxCaption() }}"
-    class="js-photo-lightbox"
-    @if ($style) style="{{ $style }}" @endif
+    class="js-photo-lightbox {{ $class ?? '' }}"
     data-lightbox="{{ $gallery }}"
     data-lightbox-src="{{ $photo->url }}"
     data-lightbox-caption="{{ $photo->lightboxCaption() }}"

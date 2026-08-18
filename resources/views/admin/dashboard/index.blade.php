@@ -83,25 +83,25 @@
                     <div class="badge green">OK</div>
                     <div class="num">{{ $summary['flota_saludable'] }}%</div>
                     <div class="subtle">Flota saludable</div>
-                    <div class="ruler"><span style="width:{{ $summary['flota_saludable'] }}%"></span></div>
+                    <div class="ruler"><span @style(['width' => $summary['flota_saludable'].'%'])></span></div>
                 </div>
                 <div class="report-box">
                     <div class="badge yellow">ATENCIÓN</div>
                     <div class="num">{{ $summary['tareas_proximas'] }}</div>
                     <div class="subtle">Tareas próximas</div>
-                    <div class="ruler"><span style="width:{{ min($summary['tareas_proximas'] * 8, 100) }}%"></span></div>
+                    <div class="ruler"><span @style(['width' => min($summary['tareas_proximas'] * 8, 100).'%'])></span></div>
                 </div>
                 <div class="report-box">
                     <div class="badge red">CRÍTICO</div>
                     <div class="num">{{ $summary['alertas_criticas'] }}</div>
                     <div class="subtle">Alertas urgentes</div>
-                    <div class="ruler"><span style="width:{{ min($summary['alertas_criticas'] * 15, 100) }}%"></span></div>
+                    <div class="ruler"><span @style(['width' => min($summary['alertas_criticas'] * 15, 100).'%'])></span></div>
                 </div>
                 <div class="report-box">
                     <div class="badge green">BITÁCORA</div>
                     <div class="num">{{ $summary['registros_hoy'] }}</div>
                     <div class="subtle">Registros del día</div>
-                    <div class="ruler"><span style="width:{{ min($summary['registros_hoy'] * 10, 100) }}%"></span></div>
+                    <div class="ruler"><span @style(['width' => min($summary['registros_hoy'] * 10, 100).'%'])></span></div>
                 </div>
             </div>
 
@@ -109,10 +109,13 @@
                 <h4>Costo mensual de mantenimiento</h4>
                 <div class="chart-bars">
                     @foreach (range(1, now()->month) as $m)
-                        @php $value = $monthlyCosts->get($m, 0); @endphp
+                        @php
+                            $value = $monthlyCosts->get($m, 0);
+                            $barHeight = $value ? max(min(($value / max($monthlyCosts->max(), 1)) * 100, 100), 8) : 8;
+                        @endphp
                         <div class="chart-bar">
                             <div class="bar-track">
-                                <span class="bar" style="height:{{ $value ? max(min(($value / max($monthlyCosts->max(), 1)) * 100, 100), 8) : 8 }}%;"></span>
+                                <span class="bar" @style(['height' => $barHeight.'%'])></span>
                             </div>
                             <small>{{ \Carbon\Carbon::create(now()->year, $m, 1)->translatedFormat('M') }}</small>
                         </div>

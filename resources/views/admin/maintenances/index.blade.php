@@ -59,7 +59,7 @@
                         <td><span class="badge {{ $maintenance->statusBadgeClass() }}">{{ $maintenance->statusLabel() }}</span></td>
                         <td>
                             <div class="actions-inline">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="viewMaintenanceDetails({{ $maintenance->id }})">Ver</button>
+                                <button type="button" class="btn btn-secondary btn-sm btn-view-maintenance" data-maintenance-id="{{ $maintenance->id }}">Ver</button>
                                 <a href="{{ route('maintenances.edit', $maintenance) }}" class="btn btn-secondary btn-sm">Editar</a>
                                 <form method="POST" action="{{ route('maintenances.destroy', $maintenance) }}" data-confirm="¿Eliminar este mantenimiento?" data-confirm-title="Eliminar mantenimiento" data-confirm-label="Eliminar">
                                     @csrf @method('DELETE')
@@ -77,12 +77,15 @@
         <div class="pagination">{{ $maintenances->links('pagination.simple') }}</div>
     </div>
 
+    <div id="maintenancePageConfig" hidden
+        data-show-url="{{ route('maintenances.show', ['maintenance' => '__ID__']) }}"></div>
+
     <!-- Modal de detalles de mantenimiento -->
     <div id="maintenanceModal" class="modal" style="display:none;">
         <div class="modal-content" style="max-width:800px;">
             <div class="modal-header">
                 <h3>Detalles del mantenimiento</h3>
-                <button type="button" class="modal-close" onclick="closeMaintenanceModal()">×</button>
+                <button type="button" class="modal-close" data-maintenance-modal-close aria-label="Cerrar">×</button>
             </div>
             <div class="modal-body" id="maintenanceDetails">
                 <!-- Contenido dinámico -->
@@ -93,9 +96,16 @@
 
 @push('scripts')
 <script>
+    const maintenancePageConfig = document.getElementById('maintenancePageConfig');
+
     async function viewMaintenanceDetails(maintenanceId) {
+        const template = maintenancePageConfig?.dataset.showUrl || '';
+        if (!template) {
+            return;
+        }
+
         try {
-            const res = await fetch(`{{ route('maintenances.show', ':id') }}`.replace(':id', maintenanceId));
+            const res = await fetch(template.replace('__ID__', maintenanceId));
             const html = await res.text();
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
@@ -117,6 +127,20 @@
         if (e.target === this) {
             closeMaintenanceModal();
         }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (event.target.closest('[data-maintenance-modal-close]')) {
+            closeMaintenanceModal();
+            return;
+        }
+
+        const button = event.target.closest('.btn-view-maintenance[data-maintenance-id]');
+        if (!button) {
+            return;
+        }
+
+        viewMaintenanceDetails(button.dataset.maintenanceId);
     });
 </script>
 @endpush

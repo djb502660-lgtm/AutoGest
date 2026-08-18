@@ -15,7 +15,7 @@
             <p><strong>Estado:</strong> <span class="badge {{ $order->statusBadgeClass() }}">{{ $order->statusLabel() }}</span></p>
             <p><strong>Progreso:</strong> {{ $order->progress ?? 0 }}%</p>
             <div class="progress-bar">
-                <span style="width:{{ $order->progress ?? 0 }}%;"></span>
+                <span @style(['width' => ($order->progress ?? 0).'%'])></span>
             </div>
             @if ($order->mechanic)
                 <p style="margin-top:12px;"><strong>Mecánico:</strong> {{ $order->mechanic->name }}</p>
@@ -80,7 +80,7 @@
                     @include('layouts.partials.photo-thumb', [
                         'photo' => $photo,
                         'gallery' => 'order-'.$order->id,
-                        'style' => 'width:100%; height:150px; object-fit:cover; cursor:pointer;',
+                        'class' => 'photo-thumb-cover',
                     ])
                     <div style="padding:8px; background:#f8fafc; border-top:1px solid #e2e8f0;">
                         <div style="font-size:0.75rem; font-weight:700; color:#64748b;">{{ $photo->type_label }}</div>
