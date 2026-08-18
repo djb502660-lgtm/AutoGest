@@ -1,221 +1,91 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>AutoGest • @yield('title', 'Cliente')</title>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    @include('layouts.partials.bootstrap-head')
-    @include('layouts.partials.pwa-firebase')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Estilos responsivos para client */
-        @media (max-width: 991px) {
-            .topbar {
-                padding: 1rem !important;
-                flex-wrap: wrap !important;
-            }
-            .topbar h2 {
-                font-size: 1.25rem !important;
-            }
-            .content {
-                padding: 1rem !important;
-            }
-            .stats, .stats-grid {
-                grid-template-columns: repeat(2, 1fr) !important;
-            }
-            .panel-grid, .form-grid, .grid-2 {
-                grid-template-columns: 1fr !important;
-            }
-            .filters {
-                flex-direction: column !important;
-            }
-            .filters input, .filters select {
-                width: 100% !important;
-            }
-            .top-actions {
-                flex-wrap: wrap !important;
-                width: 100% !important;
-            }
-        }
-        @media (max-width: 576px) {
-            .stats, .stats-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .topbar {
-                padding: 0.75rem 1rem !important;
-            }
-            .topbar h2 {
-                font-size: 1.1rem !important;
-            }
-            .content {
-                padding: 0.75rem 1rem !important;
-            }
-            .notification-btn {
-                width: 36px !important;
-                height: 36px !important;
-                font-size: 1rem !important;
-            }
-        }
-    </style>
-    <style>
-        .notification-btn {
-            position: relative;
-            background: #38bdf8;
-            border: 1px solid #0284c7;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #fff;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
-        }
-        .notification-btn:hover {
-            background: #0284c7;
-        }
-        .notification-badge {
-            position: absolute;
-            top: 6px;
-            right: 6px;
-            width: 10px;
-            height: 10px;
-            background: #ef4444;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-    </style>
-    @stack('styles')
-</head>
-<body data-theme="client">
-    <div class="container-fluid g-0 px-0">
-        <div class="row g-0 min-vh-100">
-            <div class="col-12 d-lg-none mobile-topbar border-bottom bg-white px-3 py-2 d-flex align-items-center justify-content-between sticky-top">
-                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#clientSidebar" aria-controls="clientSidebar">
-                    ☰ Menú
-                </button>
-                <span class="fw-bold">AutoGest</span>
-                <span class="small text-muted">{{ auth()->user()->name }}</span>
-            </div>
+@extends('layouts.panel')
 
-            <div class="offcanvas offcanvas-start d-lg-none" tabindex="-1" id="clientSidebar" aria-labelledby="clientSidebarLabel">
-                <div class="offcanvas-header border-bottom">
-                    <h5 class="offcanvas-title" id="clientSidebarLabel">Portal cliente</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
-                </div>
-                <div class="offcanvas-body sidebar p-3 d-flex flex-column">
-                    @include('layouts.partials.panel-brand', ['subtitle' => 'Portal cliente'])
-                    <div class="user-box">
-                        <strong>{{ auth()->user()->name }}</strong>
-                        Cliente
-                    </div>
-                    @include('layouts.partials.nav-client')
-                    <div class="sidebar-footer mt-auto">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="btn logout w-100">Cerrar sesión</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+@section('theme', 'client')
+@section('nav-partial', 'layouts.partials.nav-client')
+@section('brand-subtitle', 'Portal cliente')
+@section('sidebar-id', 'clientSidebar')
+@section('offcanvas-title', 'Portal cliente')
+@section('role-label', 'Cliente')
+@section('main-class', 'main-relative')
 
-            <aside class="col-lg-auto d-none d-lg-flex flex-column sidebar border-end">
-                @include('layouts.partials.panel-brand', ['subtitle' => 'Portal cliente'])
-                <div class="user-box">
-                    <strong>{{ auth()->user()->name }}</strong>
-                    Cliente
-                </div>
-                @include('layouts.partials.nav-client')
-                <div class="sidebar-footer mt-auto">
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="btn logout w-100">Cerrar sesión</button>
-                    </form>
-                </div>
-            </aside>
-
-            <main class="col min-vh-100 d-flex flex-column main position-relative">
-                <header class="topbar">
-                    <div class="top-copy">
-                        <h2>@yield('heading')</h2>
-                        @hasSection('subheading')<p>@yield('subheading')</p>@endif
-                    </div>
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="top-actions">@yield('top-actions')</div>
-                        <!-- Campanita con dropdown cliente -->
-                        <div class="dropdown">
-                            <a href="#" class="notification-btn" title="Notificaciones" id="clientNotifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fa-regular fa-bell"></i>
-                                @php
-                                    $clientAlerts = auth()->user()->alerts()->where('is_read', false)->latest()->take(5)->get();
-                                    $unreadCount = auth()->user()->alerts()->where('is_read', false)->count();
-                                @endphp
-                                @if($unreadCount > 0)
-                                    <span class="notification-badge"></span>
-                                @endif
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="clientNotifDropdown" style="min-width: 280px; max-width: 320px;">
-                                <li><h6 class="dropdown-header">Notificaciones</h6></li>
-                                @if($unreadCount > 0)
-                                    @foreach($clientAlerts as $alert)
-                                        <li>
-                                            <a class="dropdown-item d-flex flex-column py-2 border-bottom" href="{{ route('client.notifications.index') }}">
-                                                <strong class="text-primary" style="font-size:0.85rem;">{{ $alert->title }}</strong>
-                                                <span class="text-muted small" style="font-size:0.78rem;">{{ Str::limit($alert->message, 50) }}</span>
-                                            </a>
-                                        </li>
-                                    @endforeach
-                                    <li>
-                                        <a class="dropdown-item text-center text-primary fw-bold small py-2" href="{{ route('client.notifications.index') }}">
-                                            Ver todas las notificaciones ({{ $unreadCount }})
-                                        </a>
-                                    </li>
-                                @else
-                                    <li><span class="dropdown-item text-muted text-center py-3">Sin notificaciones</span></li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-                </header>
-                <section class="content flex-grow-1">
-                    @if (session('success'))
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            {{ session('success') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                        </div>
-                    @endif
-                    @yield('content')
-                </section>
-                @unless(request()->routeIs('client.chatbot.*'))
-                <button type="button" class="chatbot-fab" id="chatFab" title="AutoGest Bot">🤖</button>
-                <div class="chatbot-panel" id="chatPanel">
-                    <div class="chatbot-header">AutoGest Bot</div>
-                    <div class="chatbot-messages" id="chatMessages">
-                        <div class="chat-msg bot">¡Hola! Soy tu asistente. Pregúntame sobre el estado de tu vehículo, horarios o servicios.</div>
-                    </div>
-                    <form class="chatbot-input" id="chatForm">
-                        @csrf
-                        <input type="text" id="chatInput" class="form-control form-control-sm" placeholder="Escribe tu pregunta..." autocomplete="off">
-                        <button type="submit" class="btn btn-primary btn-sm">Enviar</button>
-                    </form>
-                </div>
-                @endunless
-            </main>
-        </div>
+@section('notifications')
+    <div class="dropdown">
+        <a href="#" class="notification-btn" title="Notificaciones" id="clientNotifDropdown" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+            <i class="fa-regular fa-bell"></i>
+            @php
+                $clientAlerts = auth()->user()->alerts()->where('is_read', false)->latest()->take(5)->get();
+                $unreadCount = auth()->user()->alerts()->where('is_read', false)->count();
+            @endphp
+            @if($unreadCount > 0)
+                <span class="notification-badge"></span>
+            @endif
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="clientNotifDropdown">
+            <li><h6 class="dropdown-header">Notificaciones</h6></li>
+            @if($unreadCount > 0)
+                @foreach($clientAlerts as $alert)
+                    <li>
+                        <a class="dropdown-item" href="{{ route('client.notifications.index') }}">
+                            <strong>{{ $alert->title }}</strong>
+                            <span class="muted">{{ Str::limit($alert->message, 50) }}</span>
+                        </a>
+                    </li>
+                @endforeach
+                <li>
+                    <a class="dropdown-item" href="{{ route('client.notifications.index') }}">
+                        Ver todas las notificaciones ({{ $unreadCount }})
+                    </a>
+                </li>
+            @else
+                <li><span class="dropdown-item muted">Sin notificaciones</span></li>
+            @endif
+        </ul>
     </div>
+@endsection
+
+@section('after-content')
     @unless(request()->routeIs('client.chatbot.*'))
+        <button type="button" class="chatbot-fab" id="chatFab" title="Abrir AutoGest Bot" aria-controls="chatPanel" aria-expanded="false">
+            🤖
+            <span class="visually-hidden">Abrir AutoGest Bot</span>
+        </button>
+        <div class="chatbot-panel" id="chatPanel" role="dialog" aria-labelledby="chatbotTitle" aria-hidden="true">
+            <div class="chatbot-header">
+                <strong id="chatbotTitle">AutoGest Bot</strong>
+            </div>
+            <div class="chatbot-messages" id="chatMessages">
+                <div class="chat-msg bot">¡Hola! Soy tu asistente. Pregúntame sobre el estado de tu vehículo, horarios o servicios.</div>
+            </div>
+            <form class="chatbot-input" id="chatForm" data-message-url="{{ route('client.chatbot.message') }}">
+                @csrf
+                <label class="visually-hidden" for="chatInput">Escribe tu pregunta</label>
+                <input type="text" id="chatInput" class="chatbot-field" placeholder="Escribe tu pregunta..." autocomplete="off">
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    @endunless
+@endsection
+
+@section('page-scripts')
+    @unless(request()->routeIs('client.chatbot.*'))
+    @include('layouts.partials.chatbot-markup')
     <script>
         const fab = document.getElementById('chatFab');
         const panel = document.getElementById('chatPanel');
         const form = document.getElementById('chatForm');
         const input = document.getElementById('chatInput');
         const messages = document.getElementById('chatMessages');
-        fab?.addEventListener('click', () => panel.classList.toggle('open'));
+
+        fab?.addEventListener('click', () => {
+            const willOpen = !panel.classList.contains('open');
+            panel.classList.toggle('open', willOpen);
+            panel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+            fab.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) {
+                input?.focus();
+            }
+        });
+
         form?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = input.value.trim();
@@ -225,7 +95,7 @@
             try {
                 const csrfToken = document.querySelector('meta[name=csrf-token]')?.content
                     || document.querySelector('input[name="_token"]')?.value;
-                const res = await fetch('{{ route('client.chatbot.message') }}', {
+                const res = await fetch(form.dataset.messageUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -244,16 +114,18 @@
                 appendMsg(data.reply || 'No pude procesar tu mensaje.', 'bot');
             } catch { appendMsg('Error de conexión. Intenta de nuevo.', 'bot'); }
         });
+
         function appendMsg(text, type) {
             const el = document.createElement('div');
             el.className = 'chat-msg ' + type;
-            el.textContent = text;
+            if (type === 'bot') {
+                el.innerHTML = window.AutoGestChat.formatReply(text);
+            } else {
+                el.textContent = text;
+            }
             messages.appendChild(el);
             messages.scrollTop = messages.scrollHeight;
         }
     </script>
     @endunless
-    @include('layouts.partials.bootstrap-scripts')
-    @stack('scripts')
-</body>
-</html>
+@endsection

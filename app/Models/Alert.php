@@ -10,6 +10,7 @@ class Alert extends Model
     protected $fillable = [
         'vehicle_id',
         'user_id',
+        'appointment_request_id',
         'type',
         'title',
         'message',
@@ -38,5 +39,32 @@ class Alert extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function appointmentRequest(): BelongsTo
+    {
+        return $this->belongsTo(AppointmentRequest::class);
+    }
+
+    public static function markChatbotAppointmentHandled(AppointmentRequest $appointment): void
+    {
+        static::query()
+            ->where(function ($query) use ($appointment) {
+                $query->where('appointment_request_id', $appointment->id);
+
+                if ($appointment->vehicle_id) {
+                    $query->orWhere(function ($fallback) use ($appointment) {
+                        $fallback->whereNull('appointment_request_id')
+                            ->where('vehicle_id', $appointment->vehicle_id)
+                            ->where('title', 'like', '%chatbot%');
+                    });
+                }
+            })
+            ->where('is_resolved', false)
+            ->update([
+                'is_read' => true,
+                'is_resolved' => true,
+                'resolved_at' => now(),
+            ]);
     }
 }

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
+use App\Models\User;
 use App\Services\AuditService;
 use Illuminate\Http\Request;
 
@@ -17,14 +19,14 @@ class AuditController extends Controller
 
     public function index(Request $request)
     {
-        $this->authorize('viewAny', \App\Models\AuditLog::class);
+        $this->authorize('viewAny', AuditLog::class);
 
         $module = $request->string('module')->toString();
         $action = $request->string('action')->toString();
         $userId = $request->input('user_id');
         $days = $request->integer('days', 30);
 
-        $query = \App\Models\AuditLog::with('user')
+        $query = AuditLog::with('user')
             ->when($module !== '', fn ($q) => $q->where('module', $module))
             ->when($action !== '', fn ($q) => $q->where('action', $action))
             ->when($userId, fn ($q) => $q->where('user_id', $userId))
@@ -33,14 +35,14 @@ class AuditController extends Controller
             ->paginate(25)
             ->withQueryString();
 
-        $modules = \App\Models\AuditLog::distinct()->pluck('module')->filter()->sort();
-        $actions = \App\Models\AuditLog::distinct()->pluck('action')->filter()->sort();
-        $users = \App\Models\User::where('role', '!=', 'cliente')->orderBy('name')->get();
+        $modules = AuditLog::distinct()->pluck('module')->filter()->sort();
+        $actions = AuditLog::distinct()->pluck('action')->filter()->sort();
+        $users = User::where('role', '!=', 'cliente')->orderBy('name')->get();
 
         return view('admin.audit.index', compact('query', 'module', 'action', 'userId', 'days', 'modules', 'actions', 'users'));
     }
 
-    public function show(\App\Models\AuditLog $auditLog)
+    public function show(AuditLog $auditLog)
     {
         $this->authorize('view', $auditLog);
 

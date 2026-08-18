@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServiceOrder;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ServiceOrderController extends Controller
 {
@@ -153,7 +153,7 @@ class ServiceOrderController extends Controller
             'priority' => $request->priority,
             'estimated_cost' => $request->estimated_cost,
             'status' => 'pendiente',
-            'order_number' => 'ORD-' . time() . rand(1000, 9999),
+            'order_number' => 'ORD-'.time().rand(1000, 9999),
         ]);
 
         return response()->json([
@@ -187,7 +187,7 @@ class ServiceOrderController extends Controller
 
         $order->update($request->only([
             'description', 'diagnosis', 'recommendations',
-            'priority', 'estimated_cost', 'total_cost'
+            'priority', 'estimated_cost', 'total_cost',
         ]));
 
         return response()->json([
@@ -206,7 +206,7 @@ class ServiceOrderController extends Controller
         $user = $request->user();
 
         // Solo mecánicos y asesores pueden actualizar el estado
-        if (!$user->isMechanic() && !$user->isAdvisor() && !$user->isAdmin()) {
+        if (! $user->isMechanic() && ! $user->isAdvisor() && ! $user->isAdmin()) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
@@ -215,11 +215,11 @@ class ServiceOrderController extends Controller
         ]);
 
         $order->status = $request->status;
-        
+
         if ($request->status === 'completado') {
             $order->completed_at = now();
         }
-        
+
         $order->save();
 
         return response()->json([

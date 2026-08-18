@@ -12,6 +12,7 @@ use Illuminate\Validation\Rule;
 class VehicleController extends Controller
 {
     private $userService;
+
     private $vehicleService;
 
     public function __construct(UserService $userService, VehicleService $vehicleService)

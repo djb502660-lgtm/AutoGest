@@ -9,7 +9,6 @@ use App\Http\Requests\UserRequest;
 use App\Models\ActivityLog;
 use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 
 class UserController extends Controller

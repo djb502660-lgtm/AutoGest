@@ -42,7 +42,7 @@
                         <td>
                             <div class="actions-inline">
                                 <a href="{{ route('categories.edit', $category) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                <form method="POST" action="{{ route('categories.destroy', $category) }}" onsubmit="return confirm('¿Eliminar esta categoría?')">
+                                <form method="POST" action="{{ route('categories.destroy', $category) }}" data-confirm="¿Eliminar esta categoría?" data-confirm-title="Eliminar categoría" data-confirm-label="Eliminar">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>

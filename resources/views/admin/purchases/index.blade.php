@@ -56,7 +56,7 @@
                                 <a href="{{ route('purchases.show', $purchase) }}" class="btn btn-secondary btn-sm">Ver</a>
                                 @if ($purchase->status === 'pendiente')
                                     <a href="{{ route('purchases.edit', $purchase) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                    <form method="POST" action="{{ route('purchases.receive', $purchase) }}" onsubmit="return confirm('¿Recibir esta compra y actualizar el stock?')">
+                                    <form method="POST" action="{{ route('purchases.receive', $purchase) }}" data-confirm="¿Recibir esta compra y actualizar el stock?" data-confirm-title="Recibir compra" data-confirm-label="Recibir" data-confirm-danger="0">
                                         @csrf
                                         <button type="submit" class="btn btn-success btn-sm">Recibir</button>
                                     </form>

@@ -193,7 +193,7 @@
                 @foreach($vehicleData['vehicle']->serviceOrders as $order)
                     @foreach($order->photos as $photo)
                     <div style="border: 1px solid #e2e8f0; border-radius: 4px; overflow: hidden;">
-                        <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="Foto" style="width: 100%; height: 80px; object-fit: cover;">
+                        <img src="{{ $photo->url }}" alt="Foto" style="width: 100%; height: 80px; object-fit: cover;">
                         <div style="padding: 4px; background: #f8fafc; font-size: 7px;">
                             <div>{{ $photo->type_label }}</div>
                             <div>{{ $photo->created_at->format('d/m/Y') }}</div>

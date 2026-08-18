@@ -120,7 +120,10 @@
                 <div class="photo-gallery">
                     @foreach ($maintenance->serviceOrder->photos as $photo)
                         <div class="photo-item">
-                            <img src="{{ Storage::url($photo->photo_path) }}" alt="{{ $photo->description ?? 'Foto' }}" onclick="window.open('{{ Storage::url($photo->photo_path) }}', '_blank')">
+                            @include('layouts.partials.photo-thumb', [
+                                'photo' => $photo,
+                                'gallery' => 'order-'.$maintenance->service_order_id,
+                            ])
                             <div class="photo-info">
                                 <span class="photo-type">{{ $photo->type_label }}</span>
                                 @if ($photo->description)

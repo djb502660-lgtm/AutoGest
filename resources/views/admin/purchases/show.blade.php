@@ -7,7 +7,7 @@
 @section('top-actions')
     @if ($purchase->status === 'pendiente')
         <a href="{{ route('purchases.edit', $purchase) }}" class="btn btn-secondary">Editar</a>
-        <form method="POST" action="{{ route('purchases.receive', $purchase) }}" style="display: inline;" onsubmit="return confirm('¿Recibir esta compra y actualizar el stock?')">
+        <form method="POST" action="{{ route('purchases.receive', $purchase) }}" style="display: inline;" data-confirm="¿Recibir esta compra y actualizar el stock?" data-confirm-title="Recibir compra" data-confirm-label="Recibir" data-confirm-danger="0">
             @csrf
             <button type="submit" class="btn btn-success">Recibir compra</button>
         </form>

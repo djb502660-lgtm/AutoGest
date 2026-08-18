@@ -23,10 +23,10 @@ Route::middleware(['auth', 'role:asesor'])
         Route::put('/ordenes/{order}', [OrderController::class, 'update'])->name('orders.update');
         Route::put('/ordenes/{order}/asignar-mecanico', [OrderController::class, 'assignMechanic'])->name('orders.assign');
 
-        Route::get('/solicitudes', [AppointmentRequestController::class, 'index'])->name('appointments.index');
-        Route::get('/solicitudes/{appointment}', [AppointmentRequestController::class, 'show'])->name('appointments.show');
-        Route::post('/solicitudes/{appointment}/confirmar', [AppointmentRequestController::class, 'confirm'])->name('appointments.confirm');
-        Route::post('/solicitudes/{appointment}/rechazar', [AppointmentRequestController::class, 'reject'])->name('appointments.reject');
+        Route::get('/solicitudes', [AppointmentRequestController::class, 'index'])->name('chatbot-appointments.index');
+        Route::get('/solicitudes/{appointment}', [AppointmentRequestController::class, 'show'])->name('chatbot-appointments.show');
+        Route::post('/solicitudes/{appointment}/confirmar', [AppointmentRequestController::class, 'confirm'])->name('chatbot-appointments.confirm');
+        Route::post('/solicitudes/{appointment}/rechazar', [AppointmentRequestController::class, 'reject'])->name('chatbot-appointments.reject');
         Route::get('/vehiculos/{vehicle}/plantillas', [AppointmentRequestController::class, 'vehicleTemplates'])->name('vehicles.templates');
 
         // Pre-orders (manual and chatbot-generated)

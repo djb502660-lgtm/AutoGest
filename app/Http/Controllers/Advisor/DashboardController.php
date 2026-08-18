@@ -20,15 +20,21 @@ class DashboardController extends Controller
 
         $baseQuery = ServiceOrder::query()->where(function ($q) use ($user) {
             $q->where('advisor_id', $user->id)
-                ->orWhere('created_by', $user->id);
+                ->orWhere('created_by', $user->id)
+                ->orWhereNull('advisor_id')
+                ->orWhere('source', 'chatbot');
         });
+
+        $pendingChatbotQuery = AppointmentRequest::query()
+            ->where('source', 'chatbot')
+            ->where('status', 'pendiente');
 
         $stats = [
             'total' => (clone $baseQuery)->count(),
             'sin_mecanico' => (clone $baseQuery)->whereNull('mechanic_id')->whereIn('status', ['recibida', 'en_proceso'])->count(),
             'en_proceso' => (clone $baseQuery)->where('status', 'en_proceso')->count(),
             'recibidas' => (clone $baseQuery)->where('status', 'recibida')->count(),
-            'solicitudes_chatbot' => AppointmentRequest::where('status', 'pendiente')->count(),
+            'solicitudes_chatbot' => (clone $pendingChatbotQuery)->count(),
         ];
 
         $recentOrders = (clone $baseQuery)
@@ -45,8 +51,8 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        $pendingAppointments = AppointmentRequest::with(['client', 'vehicle'])
-            ->where('status', 'pendiente')
+        $pendingAppointments = (clone $pendingChatbotQuery)
+            ->with(['client', 'vehicle'])
             ->orderBy('requested_date')
             ->take(5)
             ->get();
@@ -61,6 +67,7 @@ class DashboardController extends Controller
             ->get();
 
         $calendarAppointments = AppointmentRequest::with(['client', 'vehicle'])
+            ->where('source', 'chatbot')
             ->whereBetween('requested_date', [
                 $period['grid_start']->toDateString(),
                 $period['grid_end']->toDateString(),
@@ -83,7 +90,7 @@ class DashboardController extends Controller
                 'label' => fn (AppointmentRequest $appointment) => 'Cita '.$appointment->vehicle?->plate,
                 'meta' => fn (AppointmentRequest $appointment) => $appointment->client?->name.' · '.$appointment->statusLabel(),
                 'variant' => fn (AppointmentRequest $appointment) => $appointment->status === 'confirmada' ? 'event-green' : 'event-red',
-                'url' => fn (AppointmentRequest $appointment) => route('advisor.appointments.show', $appointment),
+                'url' => fn (AppointmentRequest $appointment) => route('advisor.chatbot-appointments.show', $appointment),
             ],
         ], [
             'title' => 'Agenda del asesor',

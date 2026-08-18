@@ -2,14 +2,14 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\ServiceOrder;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ReportRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('viewAny', \App\Models\ServiceOrder::class);
+        return $this->user()->can('viewAny', ServiceOrder::class);
     }
 
     public function rules(): array

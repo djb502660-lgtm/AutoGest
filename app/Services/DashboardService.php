@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\ActivityLog;
 use App\Models\Alert;
+use App\Models\AppointmentRequest;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
 use App\Models\ServiceOrder;
@@ -103,9 +104,15 @@ class DashboardService
             ])
             ->get();
 
+        $appointments = AppointmentRequest::with(['client', 'vehicle'])
+            ->whereBetween('requested_date', [$startDate, $endDate])
+            ->whereIn('status', ['pendiente', 'confirmada'])
+            ->get();
+
         return [
             'schedules' => $schedules,
             'orders' => $orders,
+            'appointments' => $appointments,
         ];
     }
 }

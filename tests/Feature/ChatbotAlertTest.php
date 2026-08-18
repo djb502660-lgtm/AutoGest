@@ -12,7 +12,18 @@ class ChatbotAlertTest extends TestCase
 {
     use RefreshDatabase;
 
-    // ELIMINADO: test_chatbot_dispatches_job_when_query_has_no_faq_match
-    // Funcionalidad de FAQ eliminada del chatbot (Sprint 5B)
-    // El chatbot ahora usa lógica directa sin sistema de FAQ
+    public function test_chatbot_dispatches_job_when_workshop_query_has_no_faq_match(): void
+    {
+        Bus::fake();
+
+        $client = User::factory()->client()->create();
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), [
+                'message' => 'el motor hace un ruido raro al frenar',
+            ])
+            ->assertOk();
+
+        Bus::assertDispatched(NotifyAdvisorsOfChatbotQuery::class);
+    }
 }

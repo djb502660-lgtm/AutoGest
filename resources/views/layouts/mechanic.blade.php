@@ -1,244 +1,35 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>AutoGest • @yield('title', 'Mecánico')</title>
-  <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  @include('layouts.partials.bootstrap-head')
-  @include('layouts.partials.pwa-firebase')
-  <style>
-    /* Estilos responsivos para mecánico */
-    @media (max-width: 991px) {
-        .top-header {
-            padding: 1rem !important;
-            flex-wrap: wrap !important;
-        }
-        .top-header h1 {
-            font-size: 1.25rem !important;
-        }
-        .main-content {
-            padding: 1rem !important;
-        }
-        .stats, .stats-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-        }
-        .panel-grid, .form-grid, .grid-2 {
-            grid-template-columns: 1fr !important;
-        }
-        .filters {
-            flex-direction: column !important;
-        }
-        .filters input, .filters select {
-            width: 100% !important;
-        }
-        .top-actions {
-            flex-wrap: wrap !important;
-            width: 100% !important;
-        }
-    }
-    @media (max-width: 576px) {
-        .stats, .stats-grid {
-            grid-template-columns: 1fr !important;
-        }
-        .top-header {
-            padding: 0.75rem 1rem !important;
-        }
-        .top-header h1 {
-            font-size: 1.1rem !important;
-        }
-        .main-content {
-            padding: 0.75rem 1rem !important;
-        }
-        .notification-btn {
-            width: 36px !important;
-            height: 36px !important;
-            font-size: 1rem !important;
-        }
-    }
-  </style>
-  <style>
-    :root {
-      --primary: #0284c7;
-      --primary-light: #e0f2fe;
-      --accent: #ea580c;
-      --accent-light: #fff7ed;
-      --bg-body: #f8fafc;
-      --bg-card: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border-color: #e2e8f0;
-      --sidebar-width: 250px;
-    }
+@extends('layouts.panel')
 
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg-body); color: var(--text-main); display: flex; min-height: 100vh; margin: 0; padding: 0; }
-    
-    /* Evitar conflicto con bootstrap row/col si no es necesario */
-    .container-fluid { padding: 0; }
-    .row { margin: 0; }
+@section('theme', 'mechanic')
+@section('nav-partial', 'layouts.partials.nav-mechanic')
+@section('brand-subtitle', 'Taller · Mecánico')
+@section('sidebar-id', 'mechanicSidebar')
+@section('offcanvas-title', 'Taller · Mecánico')
+@section('role-label', 'Técnico especialista')
 
-    /* NAVEGACIÓN LATERAL */
-    .sidebar {
-      width: var(--sidebar-width);
-      background-color: var(--bg-card);
-      border-right: 1px solid var(--border-color);
-      display: flex; flex-direction: column;
-      padding: 20px 16px; position: fixed; height: 100vh; z-index: 1000;
-    }
-
-    .brand { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); margin-bottom: 16px; }
-    .brand-logo { width: 38px; height: 38px; background: var(--accent); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; }
-
-    .user-profile { background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 20px; }
-    .user-profile h4 { font-size: 0.9rem; color: var(--text-main); margin:0 0 4px; }
-    .user-profile p { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin:0; }
-
-    .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 6px; padding: 0; margin: 0; }
-    .nav-item a {
-      display: flex; align-items: center; gap: 12px;
-      padding: 10px 12px; color: var(--text-muted);
-      text-decoration: none; border-radius: 8px;
-      font-size: 0.88rem; font-weight: 600; transition: all 0.2s;
-    }
-    .nav-item a:hover, .nav-item.active a { background-color: var(--accent-light); color: var(--accent); }
-
-    .logout-item { margin-top: auto; }
-    .logout-item a { color: #ef4444; }
-    .logout-item a:hover { background: #fef2f2; }
-
-    /* CONTENIDO PRINCIPAL */
-    .main-content { margin-left: var(--sidebar-width); flex: 1; padding: 28px; width: calc(100% - var(--sidebar-width)); }
-
-    /* ENCABEZADO CON NOTIFICACIONES */
-    .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .top-header h1 { font-size: 1.4rem; font-weight: 700; margin:0 0 4px; }
-    .top-header p { font-size: 0.85rem; color: var(--text-muted); margin:0; }
-
-    .notification-btn {
-      position: relative; background: #38bdf8; border: 1px solid #0284c7;
-      width: 42px; height: 42px; border-radius: 10px; display: flex;
-      align-items: center; justify-content: center; font-size: 1.2rem;
-      color: #fff; cursor: pointer; text-decoration: none; transition: background 0.2s;
-    }
-    .notification-btn:hover { background: #0284c7; }
-    .notification-badge {
-      position: absolute; top: 6px; right: 6px; width: 10px; height: 10px;
-      background: #ef4444; border-radius: 50%; border: 2px solid white;
-    }
-    
-    @media (max-width: 991px) {
-        .sidebar { display: none; }
-        .main-content { margin-left: 0; width: 100%; padding: 16px; }
-        .top-header { flex-wrap: wrap; gap: 1rem; }
-        .top-header h1 { font-size: 1.2rem; }
-        .top-header .d-flex { flex-wrap: wrap; }
-    }
-    
-    @media (max-width: 576px) {
-        .main-content { padding: 12px; }
-        .top-header h1 { font-size: 1.1rem; }
-        .notification-btn { width: 36px; height: 36px; font-size: 1rem; }
-        .top-header { flex-direction: column; align-items: flex-start; }
-        .top-header .d-flex { width: 100%; justify-content: space-between; margin-top: 0.5rem; }
-    }
-  </style>
-  @stack('styles')
-</head>
-<body data-theme="mechanic">
-
-  <!-- BARRA LATERAL -->
-  <aside class="sidebar d-none d-lg-flex">
-    <div class="brand">
-      <div class="brand-logo"><i class="fa-solid fa-wrench"></i></div>
-      <div>
-        <strong style="font-size: 1rem;">AutoGest</strong>
-        <p style="font-size: 0.72rem; color: var(--text-muted); margin:0;">Taller • Mecánico</p>
-      </div>
-    </div>
-
-    <div class="user-profile">
-      <h4>{{ auth()->user()->name ?? 'Mecánico' }}</h4>
-      <p><i class="fa-solid fa-screwdriver-wrench"></i> Técnico Especialista</p>
-    </div>
-
-    <ul class="nav-menu">
-      <li class="nav-item {{ request()->routeIs('mechanic.dashboard') ? 'active' : '' }}">
-        <a href="{{ route('mechanic.dashboard') }}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-      </li>
-      <li class="nav-item {{ request()->routeIs('mechanic.orders.*') ? 'active' : '' }}">
-        <a href="{{ route('mechanic.orders.index') }}"><i class="fa-solid fa-list-check"></i> Órdenes de Servicio</a>
-      </li>
-      <li class="nav-item {{ request()->routeIs('mechanic.vehicles.*') ? 'active' : '' }}">
-        <a href="{{ route('mechanic.vehicles.index') }}"><i class="fa-solid fa-car"></i> Vehículos en Taller</a>
-      </li>
-      <li class="nav-item {{ request()->routeIs('mechanic.history') ? 'active' : '' }}">
-        <a href="{{ route('mechanic.history') }}"><i class="fa-solid fa-clock-rotate-left"></i> Historial</a>
-      </li>
-      
-      <li class="nav-item logout-item">
-        <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="logout">
-            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
-        </a>
-        <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-            @csrf
-        </form>
-      </li>
-    </ul>
-  </aside>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <main class="main-content">
-    
-    <!-- ENCABEZADO CON CAMPANITA DE NOTIFICACIÓN -->
-    <div class="top-header">
-      <div>
-        <h1>@yield('heading', 'Panel de Trabajo del Mecánico')</h1>
-        <p>@yield('subheading', 'Agenda general del taller y resumen del estado de los servicios.')</p>
-      </div>
-      
-      <div class="d-flex align-items-center gap-3">
-          @yield('top-actions')
-          <!-- Campanita con dropdown -->
-          <div class="dropdown">
-            <a href="#" class="notification-btn" title="Notificaciones" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-              <i class="fa-regular fa-bell"></i>
-              @php $newOrders = \App\Models\ServiceOrder::where('status', 'recibida')->count(); @endphp
-              @if($newOrders > 0)
+@section('notifications')
+    <div class="dropdown">
+        <a href="#" class="notification-btn" title="Notificaciones" id="mechanicNotifDropdown" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+            <i class="fa-regular fa-bell"></i>
+            @php
+                $newOrders = \App\Models\ServiceOrder::where('mechanic_id', auth()->id())->where('status', 'recibida')->count();
+            @endphp
+            @if($newOrders > 0)
                 <span class="notification-badge"></span>
-              @endif
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="notifDropdown" style="min-width: 250px;">
-              <li><h6 class="dropdown-header">Notificaciones</h6></li>
-              @if($newOrders > 0)
+            @endif
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mechanicNotifDropdown">
+            <li><h6 class="dropdown-header">Notificaciones</h6></li>
+            @if($newOrders > 0)
                 <li>
-                  <a class="dropdown-item d-flex flex-column" href="{{ route('mechanic.orders.index') }}">
-                    <strong>Nueva orden recibida</strong>
-                    <span class="text-muted small">Tienes {{ $newOrders }} orden(es) por atender. Ver detalle.</span>
-                  </a>
+                    <a class="dropdown-item" href="{{ route('mechanic.orders.index') }}">
+                        <strong>Órdenes por iniciar</strong>
+                        <span class="muted">Tienes {{ $newOrders }} orden(es) recibidas.</span>
+                    </a>
                 </li>
-              @else
-                <li><span class="dropdown-item text-muted text-center py-3">Sin notificaciones</span></li>
-              @endif
-            </ul>
-          </div>
-      </div>
+            @else
+                <li><span class="dropdown-item muted">Sin notificaciones</span></li>
+            @endif
+        </ul>
     </div>
-
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-        </div>
-    @endif
-
-    @yield('content')
-
-  </main>
-
-  @include('layouts.partials.bootstrap-scripts')
-  @stack('scripts')
-</body>
-</html>
+@endsection

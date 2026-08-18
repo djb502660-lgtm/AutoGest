@@ -42,7 +42,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['vehicle', 'mechanic', 'maintenances', 'comments.user', 'photos']);
+        $order->load(['vehicle', 'mechanic', 'maintenances', 'comments.user', 'photos.user']);
 
         return view('client.orders.show', compact('order'));
     }

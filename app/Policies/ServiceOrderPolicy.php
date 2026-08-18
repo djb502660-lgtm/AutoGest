@@ -22,7 +22,7 @@ class ServiceOrderPolicy
         }
 
         if ($user->isAdvisor()) {
-            return $order->advisor_id === $user->id || $order->created_by === $user->id;
+            return $this->advisorCanAccess($user, $order);
         }
 
         if ($user->isMechanic()) {
@@ -44,7 +44,7 @@ class ServiceOrderPolicy
         }
 
         if ($user->isAdvisor()) {
-            return $order->advisor_id === $user->id || $order->created_by === $user->id;
+            return $this->advisorCanAccess($user, $order);
         }
 
         return $user->isMechanic() && $order->mechanic_id === $user->id;
@@ -57,6 +57,18 @@ class ServiceOrderPolicy
 
     public function assign(User $user, ServiceOrder $order): bool
     {
-        return $user->isAdmin() || $user->isAdvisor();
+        if ($user->isAdmin()) {
+            return true;
+        }
+
+        return $user->isAdvisor() && $this->advisorCanAccess($user, $order);
+    }
+
+    private function advisorCanAccess(User $user, ServiceOrder $order): bool
+    {
+        return $order->advisor_id === $user->id
+            || $order->created_by === $user->id
+            || $order->advisor_id === null
+            || $order->source === 'chatbot';
     }
 }

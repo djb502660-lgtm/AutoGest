@@ -3,34 +3,25 @@
 namespace App\Services;
 
 use App\Jobs\NotifyAdvisorsOfChatbotQuery;
+use App\Models\User;
 use App\Models\Vehicle;
+use App\Support\VehiclePlate;
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class ChatbotService
 {
     private const CONTEXT_KEY = 'chatbot_context';
 
-    private $appointments;
-
-    private $vehicleService;
-
-    private $serviceOrderService;
-
-    private $maintenanceService;
-
     public function __construct(
-        ChatbotAppointmentService $appointments,
-        VehicleService $vehicleService,
-        ServiceOrderService $serviceOrderService,
-        MaintenanceService $maintenanceService
-    ) {
-        $this->appointments = $appointments;
-        $this->vehicleService = $vehicleService;
-        $this->serviceOrderService = $serviceOrderService;
-        $this->maintenanceService = $maintenanceService;
-    }
+        private ChatbotAppointmentService $appointments,
+        private VehicleService $vehicleService,
+        private ServiceOrderService $serviceOrderService,
+        private MaintenanceService $maintenanceService,
+        private ChatbotFaqService $faqs,
+    ) {}
 
-    public function processMessage($user, string $message): string
+    public function processMessage(?User $user, string $message): string
     {
         $normalized = $this->normalize($message);
         $trimmed = trim($message);
@@ -56,32 +47,73 @@ class ChatbotService
             return $contextReply;
         }
 
-        // Saludos inteligentes
-        if ($this->isGreeting($normalized)) {
-            return $this->greeting($user);
+        return match ($this->classifyIntent($normalized, $message)) {
+            'hours' => $this->hoursAnswer(),
+            'services' => $this->servicesAnswer(),
+            'vehicle' => $this->vehicleStatus($user),
+            'expenses' => $this->expenseSummary($user),
+            'orders' => $this->orderStatus($user),
+            'plate' => $this->vehicleByPlate($user, (string) $this->extractPlate($message), $message),
+            'greeting' => $this->greeting($user),
+            'farewell' => $this->farewell($user),
+            'thanks' => $this->thanks($user),
+            'help' => $this->helpMenu(),
+            'datetime' => $this->datetimeClarify($message),
+            default => $this->faqs->answerFor($normalized) ?? $this->escalateToAdvisor($user, $message),
+        };
+    }
+
+    private function classifyIntent(string $normalized, string $original): string
+    {
+        if ($this->isHoursQuery($normalized)) {
+            return 'hours';
         }
 
-        // Estado del vehículo
         if ($this->isVehicleStatusQuery($normalized)) {
-            return $this->vehicleStatus($user);
+            return 'vehicle';
         }
 
-        // Gastos e historial
         if ($this->isExpenseQuery($normalized)) {
-            return $this->expenseSummary($user);
+            return 'expenses';
         }
 
-        // Órdenes de trabajo activas
         if ($this->isOrderQuery($normalized)) {
-            return $this->orderStatus($user);
+            return 'orders';
         }
 
-        // Placa en el mensaje
-        if ($plate = $this->extractPlate($message)) {
-            return $this->vehicleByPlate($user, $plate);
+        if ($this->isServicesCatalogQuery($normalized)) {
+            return 'services';
         }
 
-        // Escalar a asesor humano (funciones limitadas según decisión de diseño)
+        if ($this->isHelpRequest($normalized)) {
+            return 'help';
+        }
+
+        if ($this->appointments->looksLikeScheduleFragment($original)) {
+            return 'datetime';
+        }
+
+        if ($this->extractPlate($original)) {
+            return 'plate';
+        }
+
+        if ($this->isGreeting($normalized)) {
+            return 'greeting';
+        }
+
+        if ($this->isFarewell($normalized)) {
+            return 'farewell';
+        }
+
+        if ($this->isThanks($normalized)) {
+            return 'thanks';
+        }
+
+        return 'unknown';
+    }
+
+    private function escalateToAdvisor(?User $user, string $message): string
+    {
         if ($user) {
             NotifyAdvisorsOfChatbotQuery::dispatch($user, $message);
         }
@@ -93,7 +125,7 @@ class ChatbotService
     // SALUDO INTELIGENTE
     // ─────────────────────────────────────────────────────────────
 
-    private function greeting($user): string
+    private function greeting(?User $user): string
     {
         $nombre = $user ? ' '.explode(' ', trim($user->name))[0] : '';
 
@@ -108,7 +140,7 @@ class ChatbotService
         $vehicles = $this->vehicleService->getClientVehicles($user->id);
 
         if ($vehicles->isEmpty()) {
-            return $intro.'Aún no tienes vehículos registrados. Contacta al taller para registrarlos.';
+            return $intro.'Aún no tienes vehículos registrados. Escribe **agendar cita** y la placa para registrar uno nuevo y pedir el turno.';
         }
 
         if ($vehicles->count() === 1) {
@@ -121,9 +153,32 @@ class ChatbotService
             $intro .= "Veo que tienes registrados:\n\n{$lista}\n\n";
         }
 
-        return $intro."¿En qué puedo ayudarte hoy?\n\n"
-            ."• Consultar el estado del vehículo\n"
-            ."• Agendar, consultar o modificar una cita\n"
+        return $intro."¿En qué puedo ayudarte hoy?\n\n".$this->capabilityMenu();
+    }
+
+    private function farewell(?User $user): string
+    {
+        $nombre = $user ? ' '.explode(' ', trim($user->name))[0] : '';
+
+        return "¡Hasta luego{$nombre}! Cuando quieras, aquí estaré para ayudarte con tu vehículo.";
+    }
+
+    private function thanks(?User $user): string
+    {
+        $nombre = $user ? ' '.explode(' ', trim($user->name))[0] : '';
+
+        return "¡Con gusto{$nombre}! Si necesitas el estado de tu vehículo, una cita o el historial de gastos, dímelo.";
+    }
+
+    private function helpMenu(): string
+    {
+        return "Puedo ayudarte con esto:\n\n".$this->capabilityMenu();
+    }
+
+    private function capabilityMenu(): string
+    {
+        return "• Consultar la información y el estado de tu vehículo\n"
+            ."• Agendar, consultar, editar o cancelar una cita\n"
             ."• Revisar el historial de mantenimientos\n\n"
             .'Escribe lo que necesites con tus propias palabras.';
     }
@@ -132,7 +187,7 @@ class ChatbotService
     // ESTADO DEL VEHÍCULO
     // ─────────────────────────────────────────────────────────────
 
-    private function vehicleStatus($user): string
+    private function vehicleStatus(?User $user): string
     {
         if (! $user) {
             return '🔒 Debes iniciar sesión para consultar el estado de tus vehículos.';
@@ -141,16 +196,17 @@ class ChatbotService
         $vehicles = $this->vehicleService->getClientVehicles($user->id);
 
         if ($vehicles->isEmpty()) {
-            return '🚗 No tienes vehículos registrados actualmente en AutoGest.';
+            return '🚗 No tienes vehículos registrados. Escribe **agendar cita** y la placa para registrar uno nuevo.';
         }
 
         $vehicles = $vehicles->load([
             'serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1),
             'maintenances' => fn ($q) => $q->latest()->limit(3),
+            'appointmentRequests' => fn ($q) => $q->whereIn('status', ['pendiente', 'confirmada'])->orderBy('requested_date')->limit(1),
         ]);
 
         if ($vehicles->count() === 1) {
-            $reply = $this->buildVehicleStatusReply($vehicles->first(), detailed: false);
+            $reply = $this->buildVehicleStatusReply($vehicles->first(), detailed: true);
             $this->setContext(['last_topic' => 'vehicle_status', 'vehicle_id' => $vehicles->first()->id]);
 
             return $reply;
@@ -174,7 +230,7 @@ class ChatbotService
             .'Indícame la placa del vehículo que deseas consultar con más detalle.';
     }
 
-    private function vehicleByPlate($user, string $plate): string
+    private function vehicleByPlate(?User $user, string $plate, string $original = ''): string
     {
         if (! $user) {
             return '🔒 Inicia sesión para consultar el estado de tu vehículo.';
@@ -185,11 +241,21 @@ class ChatbotService
         });
 
         if (! $vehicle) {
-            return "❌ No encontré la placa **{$plate}** asociada a tu cuenta. ¿Deseas consultar otra placa?";
+            $display = VehiclePlate::display($original) ?? VehiclePlate::formatForStorage($plate);
+
+            if (VehiclePlate::isStandalone(trim($original))) {
+                return $this->appointments->handle($user, 'agendar cita '.$display);
+            }
+
+            return "No encontré la placa **{$display}** en tu cuenta. Si quieres agendar una cita con ese vehículo, escribe **agendar {$display}** y lo registramos.";
         }
 
-        $vehicle->load(['serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1)]);
-        $reply = $this->buildVehicleStatusReply($vehicle, detailed: false);
+        $vehicle->load([
+            'serviceOrders' => fn ($q) => $q->with('mechanic')->latest()->limit(1),
+            'maintenances' => fn ($q) => $q->latest()->limit(3),
+            'appointmentRequests' => fn ($q) => $q->whereIn('status', ['pendiente', 'confirmada'])->orderBy('requested_date')->limit(1),
+        ]);
+        $reply = $this->buildVehicleStatusReply($vehicle, detailed: true);
         $this->setContext(['last_topic' => 'vehicle_status', 'vehicle_id' => $vehicle->id]);
 
         return $reply;
@@ -207,8 +273,40 @@ class ChatbotService
             $summary .= " Última orden: {$order->description} — {$order->statusLabel()}.";
         }
 
+        $facts = [];
+        if ($vehicle->year) {
+            $facts[] = "Año: {$vehicle->year}";
+        }
+        if ($vehicle->color) {
+            $facts[] = "Color: {$vehicle->color}";
+        }
+        if ($vehicle->mileage !== null && $vehicle->mileage !== '') {
+            $facts[] = 'Kilometraje: '.number_format((int) $vehicle->mileage).' km';
+        }
+
+        $info = $summary;
+        if ($facts !== []) {
+            $info .= "\n\n".collect($facts)->map(fn (string $fact) => "• {$fact}")->join("\n");
+        }
+
+        $appointment = $vehicle->appointmentRequests
+            ->first(fn ($item) => in_array($item->status, ['pendiente', 'confirmada'], true));
+        if ($appointment) {
+            $time = $appointment->requested_time
+                ? Carbon::parse($appointment->requested_time)->format('g:i A')
+                : '—';
+            $info .= "\n\nPróxima cita: {$appointment->requested_date->format('d/m/Y')} a las {$time} ({$appointment->service_type}).";
+        }
+
+        $lastMaintenance = $vehicle->maintenances->first();
+        if ($lastMaintenance) {
+            $label = $lastMaintenance->type ?: $lastMaintenance->description;
+            $when = optional($lastMaintenance->performed_at ?? $lastMaintenance->created_at)->format('d/m/Y');
+            $info .= "\nÚltimo mantenimiento: {$label}".($when ? " ({$when})" : '').'.';
+        }
+
         if (! $detailed || ! $order || ! in_array($order->status, ['recibida', 'en_proceso'], true)) {
-            return $summary;
+            return $info;
         }
 
         $detail = "\n\nRevisando la información...\n\n"
@@ -237,7 +335,7 @@ class ChatbotService
             $detail .= "\n\nFecha estimada de entrega: **{$order->completed_at->format('d/m/Y H:i')}**.";
         }
 
-        return $summary.$detail;
+        return $info.$detail;
     }
 
     private function vehicleStatusLabel(Vehicle $vehicle): string
@@ -249,7 +347,7 @@ class ChatbotService
     // ÓRDENES Y GASTOS
     // ─────────────────────────────────────────────────────────────
 
-    private function orderStatus($user): string
+    private function orderStatus(?User $user): string
     {
         if (! $user) {
             return '🔒 Inicia sesión para ver tus órdenes de servicio.';
@@ -280,7 +378,7 @@ class ChatbotService
         return "📋 **Tus órdenes activas:**\n\n{$lista}";
     }
 
-    private function expenseSummary($user): string
+    private function expenseSummary(?User $user): string
     {
         if (! $user) {
             return '🔒 Inicia sesión para ver tu resumen de gastos.';
@@ -315,9 +413,28 @@ class ChatbotService
     // MEMORIA DE CONTEXTO
     // ─────────────────────────────────────────────────────────────
 
-    private function handleContextFollowUp($user, string $message, string $normalized): ?string
+    private function handleContextFollowUp(?User $user, string $message, string $normalized): ?string
     {
         $context = session(self::CONTEXT_KEY, []);
+
+        if (($context['last_topic'] ?? '') === 'datetime_hint') {
+            if ($this->isAffirmative($normalized)) {
+                $hint = trim((string) ($context['datetime_text'] ?? ''));
+                session()->forget(self::CONTEXT_KEY);
+
+                if (! $user) {
+                    return '🔒 Inicia sesión para que pueda agendar tu cita.';
+                }
+
+                return $this->appointments->handle($user, 'agendar cita'.($hint !== '' ? " {$hint}" : ''));
+            }
+
+            if ($this->isNegative($normalized)) {
+                session()->forget(self::CONTEXT_KEY);
+
+                return 'De acuerdo. Puedo ayudarte con el estado de tu vehículo, una cita o el historial de gastos.';
+            }
+        }
 
         // Confirmación para agendar tras diagnóstico
         if ($this->isAffirmative($normalized) && in_array($context['last_topic'] ?? '', ['brake_noise', 'tires', 'fuel'], true)) {
@@ -369,7 +486,7 @@ class ChatbotService
     // UTILIDADES
     // ─────────────────────────────────────────────────────────────
 
-    private function handleAppointment($user, string $message): string
+    private function handleAppointment(?User $user, string $message): string
     {
         if (! $user) {
             return '🔒 Debes iniciar sesión para gestionar citas de servicio.';
@@ -380,27 +497,206 @@ class ChatbotService
 
     private function isGreeting(string $normalized): bool
     {
-        return (bool) preg_match('/\b(hola|buenas|buenos|buen dia|buen día|saludos|que tal|hey|buen)\b/u', $normalized);
+        return $this->isPureConversational($normalized, [
+            'hola', 'holaa', 'holas', 'holi', 'holii',
+            'buenas', 'buenos', 'buen',
+            'saludos', 'saludo',
+            'hey', 'hi', 'hello', 'ey',
+            'klk', 'qlk', 'qtlk', 'klkk',
+            'habla', 'wena', 'wenas',
+            'alo', 'aloh',
+        ], [
+            'buen dia', 'buenos dias', 'buenas tardes', 'buenas noches',
+            'que tal', 'que mas', 'que hay', 'que hubo',
+            'que lo que', 'que lo q', 'que xopa',
+            'como estas', 'como esta', 'como te va', 'como andas',
+        ], [
+            'dias', 'dia', 'tardes', 'noches', 'noche',
+            'tal', 'mas', 'hay', 'hubo', 'quiubo', 'xopa',
+            'como', 'estas', 'esta', 'andas', 'lo',
+        ]);
+    }
+
+    private function isFarewell(string $normalized): bool
+    {
+        return $this->isPureConversational($normalized, [
+            'adios', 'chao', 'chau', 'bye',
+        ], [
+            'hasta luego', 'nos vemos', 'hasta pronto', 'cuidate',
+            'que te vaya bien', 'me despido',
+        ]);
+    }
+
+    private function isThanks(string $normalized): bool
+    {
+        return $this->isPureConversational($normalized, [
+            'gracias', 'grasias', 'thanks', 'thx',
+        ], [
+            'mil gracias', 'muchas gracias', 'te agradezco', 'muy amable',
+            'se agradece',
+        ]);
+    }
+
+    private function isHelpRequest(string $normalized): bool
+    {
+        return $this->isPureConversational($normalized, [
+            'ayuda', 'help', 'menu', 'opciones',
+        ], [
+            'que puedes hacer', 'que sabes hacer', 'en que me ayudas',
+            'que haces', 'como funciona', 'que opciones hay',
+        ]);
+    }
+
+    /**
+     * True si el mensaje es solo small talk (saludo/despedida/gracias/ayuda),
+     * sin palabras de negocio. Así «habla klk» saluda y «habla con un asesor» no.
+     *
+     * @param  list<string>  $strongTokens
+     * @param  list<string>  $phrases
+     * @param  list<string>  $weakTokens
+     */
+    private function isPureConversational(string $normalized, array $strongTokens, array $phrases, array $weakTokens = []): bool
+    {
+        $text = trim(preg_replace('/[^\p{L}\p{N}\s]+/u', ' ', $normalized) ?? $normalized);
+        $text = preg_replace('/\s+/u', ' ', $text) ?? $text;
+
+        if ($text === '') {
+            return false;
+        }
+
+        $allowed = array_merge($strongTokens, $weakTokens);
+
+        foreach ($phrases as $phrase) {
+            if ($text === $phrase || str_starts_with($text, $phrase.' ') || str_ends_with($text, ' '.$phrase)) {
+                $remainder = trim(preg_replace('/\b'.preg_quote($phrase, '/').'\b/u', '', $text) ?? '');
+                $remainder = trim(preg_replace('/\s+/u', ' ', $remainder) ?? $remainder);
+                if ($remainder === '' || $this->tokensAreConversationalFillers($remainder, $allowed)) {
+                    return true;
+                }
+            }
+        }
+
+        return $this->tokensAreConversationalFillers($text, $allowed)
+            && $this->containsAnyToken($text, $strongTokens);
+    }
+
+    /**
+     * @param  list<string>  $intentTokens
+     */
+    private function tokensAreConversationalFillers(string $text, array $intentTokens): bool
+    {
+        $fillers = [
+            'a', 'de', 'el', 'la', 'los', 'las', 'un', 'una', 'y', 'o', 'que', 'te', 'me',
+            'mi', 'tu', 'por', 'favor', 'please', 'eh', 'pues', 'ya', 'ok', 'vale',
+            'bro', 'pana', 'socio', 'amigo', 'parce', 'man', 'men', 'wey', 'q',
+        ];
+        $allowed = array_flip(array_merge($intentTokens, $fillers));
+
+        foreach (preg_split('/\s+/u', $text, -1, PREG_SPLIT_NO_EMPTY) as $token) {
+            if (! isset($allowed[$token])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param  list<string>  $tokens
+     */
+    private function containsAnyToken(string $text, array $tokens): bool
+    {
+        $present = array_flip(preg_split('/\s+/u', $text, -1, PREG_SPLIT_NO_EMPTY) ?: []);
+
+        foreach ($tokens as $token) {
+            if (isset($present[$token])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function hoursAnswer(): string
+    {
+        return $this->faqs->answerForIntent('hours')
+            ?? 'Atendemos de lunes a viernes de 8:00 a 18:00 y sábados de 8:00 a 13:00.';
+    }
+
+    private function servicesAnswer(): string
+    {
+        $fromFaq = $this->faqs->answerForIntent('services');
+        if ($fromFaq) {
+            return $fromFaq;
+        }
+
+        return 'Ofrecemos mantenimiento preventivo y correctivo: cambio de aceite, frenos, revisión general, diagnóstico y más. '
+            .'Si quieres un turno, escribe por ejemplo: agendar cita mañana cambio de aceite.';
+    }
+
+    private function datetimeClarify(string $message): string
+    {
+        $this->setContext([
+            'last_topic' => 'datetime_hint',
+            'datetime_text' => $message,
+        ]);
+
+        return '¿Quieres agendar una cita para ese día u horario? Escribe **agendar cita** o responde **sí** para continuar.';
+    }
+
+    private function isHoursQuery(string $normalized): bool
+    {
+        return Str::contains($normalized, [
+            'horario', 'horarios',
+            'a que hora abren', 'a que hora cierran', 'a que hora atienden',
+            'cuando abren', 'cuando cierran', 'cuando atienden',
+            'dias de atencion', 'dias que atienden', 'hora de atencion',
+            'estan abiertos', 'esta abierto', 'hasta que hora',
+        ]);
+    }
+
+    private function isServicesCatalogQuery(string $normalized): bool
+    {
+        if (Str::contains($normalized, [
+            'mis servicios', 'historial de servicio', 'orden de servicio',
+            'agendar', 'cita',
+        ])) {
+            return false;
+        }
+
+        return Str::contains($normalized, [
+            'que servicios', 'cuales servicios', 'servicios ofrecen',
+            'que ofrecen', 'mantenimiento preventivo', 'mantenimiento correctivo',
+            'que trabajos', 'catalogo de servicios', 'que hacen',
+            'servicios',
+        ]);
     }
 
     private function isVehicleStatusQuery(string $normalized): bool
     {
         return Str::contains($normalized, [
-            'estado', 'mi auto', 'mi carro', 'mi vehiculo', 'mis autos',
-            'como va', 'donde esta', 'donde está', 'consultar el estado',
-            'consultar estado', 'estado del vehiculo', 'estado de mi',
-            'mi vehiculo', 'mi vehículo', 'como esta', 'cómo está',
-            'que pasa con', 'qué pasa con', 'situacion de', 'situación de',
+            'estado del vehiculo', 'estado de mi', 'consultar el estado',
+            'consultar estado', 'estado de mi auto', 'estado de mi carro',
+            'mi auto', 'mi carro', 'mi vehiculo', 'mis autos', 'mi camioneta',
+            'como va mi', 'como va el', 'en que va', 'donde esta',
+            'que pasa con', 'situacion de',
+            'ya esta listo', 'cuando lo entregan', 'cuando esta listo',
+            'seguimiento de', 'listo mi auto',
+            'informacion de mi', 'informacion del vehiculo', 'info de mi',
+            'datos de mi vehiculo', 'datos de mi auto', 'datos del vehiculo',
+            'que vehiculo tengo', 'que carro tengo', 'mis vehiculos',
         ]);
     }
 
     private function isExpenseQuery(string $normalized): bool
     {
         return Str::contains($normalized, [
-            'gastos', 'cuanto he pagado', 'cuanto gaste', 'cuánto he gastado',
-            'historial de pago', 'mis pagos', 'costo', 'invertido', 'gastado',
-            'cuanto dinero', 'cuánto dinero', 'dinero gastado', 'gasto total',
-            'mis gastos', 'costo total', 'cuanto he invertido', 'cuánto he invertido',
+            'gastos', 'cuanto he pagado', 'cuanto gaste', 'cuanto he gastado',
+            'historial de pago', 'mis pagos', 'invertido', 'gastado',
+            'cuanto dinero', 'dinero gastado', 'gasto total',
+            'mis gastos', 'costo total', 'cuanto he invertido',
+            'cuanto debo', 'resumen de gastos', 'historial de mantenimientos',
+            'que he pagado', 'mis facturas',
         ]);
     }
 
@@ -408,8 +704,9 @@ class ChatbotService
     {
         return Str::contains($normalized, [
             'orden de servicio', 'ordenes activas', 'mis ordenes', 'trabajo en el taller',
-            'orden actual', 'ordenes en proceso', 'que se esta haciendo', 'qué se está haciendo',
+            'orden actual', 'ordenes en proceso', 'que se esta haciendo',
             'avance del trabajo', 'progreso del trabajo', 'estado del trabajo',
+            'mis servicios',
         ]);
     }
 
@@ -428,6 +725,11 @@ class ChatbotService
             || in_array(trim($normalized), ['si', 'sí', 'sí.', 'si.'], true);
     }
 
+    private function isNegative(string $normalized): bool
+    {
+        return (bool) preg_match('/^(no|nop|nope|nel|mejor no|no gracias)\b/u', $normalized);
+    }
+
     private function normalize(string $text): string
     {
         $text = mb_strtolower(trim($text), 'UTF-8');
@@ -442,10 +744,6 @@ class ChatbotService
 
     private function extractPlate(string $text): ?string
     {
-        if (preg_match('/\b([A-Z]{2,3}[-\s]?\d{2,4}[A-Z]?)\b/i', $text, $matches)) {
-            return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $matches[1]));
-        }
-
-        return null;
+        return VehiclePlate::extract($text);
     }
 }

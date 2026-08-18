@@ -25,7 +25,13 @@
                     <option value="entregada" @selected($status === 'entregada')>Entregada</option>
                     <option value="cancelada" @selected($status === 'cancelada')>Cancelada</option>
                 </select>
+                @if (! empty($unassigned))
+                    <input type="hidden" name="unassigned" value="1">
+                @endif
                 <button type="submit" class="btn btn-secondary">Filtrar</button>
+                @if ($status !== '' || ! empty($unassigned) || $search->isNotEmpty())
+                    <a href="{{ route('advisor.orders.index') }}" class="btn btn-secondary">Quitar filtros</a>
+                @endif
             </form>
             <a href="{{ route('advisor.orders.create') }}" class="btn btn-primary d-md-none">
                 + Nueva orden
@@ -60,7 +66,17 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7">No hay órdenes registradas.</td></tr>
+                        <tr>
+                            <td colspan="7">
+                                @if ($status === 'en_proceso')
+                                    No hay órdenes en proceso.
+                                @elseif (! empty($unassigned))
+                                    No hay órdenes sin mecánico.
+                                @else
+                                    No hay órdenes registradas.
+                                @endif
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

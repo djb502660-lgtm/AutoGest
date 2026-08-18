@@ -46,7 +46,7 @@
                         <td>
                             <div class="actions-inline">
                                 <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" onsubmit="return confirm('¿Eliminar este proveedor?')">
+                                <form method="POST" action="{{ route('suppliers.destroy', $supplier) }}" data-confirm="¿Eliminar este proveedor?" data-confirm-title="Eliminar proveedor" data-confirm-label="Eliminar">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>

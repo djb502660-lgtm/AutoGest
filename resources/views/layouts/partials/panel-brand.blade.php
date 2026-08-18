@@ -1,7 +1,7 @@
 <div class="brand">
-    <div class="brand-mark">AG</div>
-    <div>
+    <img src="{{ asset('images/logo-istae-automotriz.png') }}" alt="ISTAE Automotriz" class="brand-logo">
+    <div class="brand-copy">
         <h1>AutoGest</h1>
-        <p class="brand-text mb-0">{{ $subtitle ?? 'Panel' }}</p>
+        <p class="brand-text">{{ $subtitle ?? 'Panel' }}</p>
     </div>
 </div>

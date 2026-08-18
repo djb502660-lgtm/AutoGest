@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Maintenance;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class MaintenanceController extends Controller
 {
@@ -141,7 +141,7 @@ class MaintenanceController extends Controller
         ]);
 
         $maintenance->update($request->only([
-            'type', 'description', 'cost', 'performed_at', 'status'
+            'type', 'description', 'cost', 'performed_at', 'status',
         ]));
 
         return response()->json([

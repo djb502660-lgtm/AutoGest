@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Vehicle;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class VehicleController extends Controller
 {
@@ -15,7 +15,7 @@ class VehicleController extends Controller
 
         // Filtrar por rol del usuario
         $user = $request->user();
-        
+
         if ($user->isClient()) {
             $query->where('client_id', $user->id);
         } elseif ($user->isMechanic()) {
@@ -53,7 +53,7 @@ class VehicleController extends Controller
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
-        if ($user->isMechanic() && !$user->accessibleVehicleIds()->contains($vehicle->id)) {
+        if ($user->isMechanic() && ! $user->accessibleVehicleIds()->contains($vehicle->id)) {
             return response()->json(['message' => 'No autorizado'], 403);
         }
 
@@ -92,7 +92,7 @@ class VehicleController extends Controller
             'brand' => 'required|string|max:100',
             'model' => 'required|string|max:100',
             'sub_model' => 'nullable|string|max:100',
-            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+            'year' => 'required|integer|min:1900|max:'.(date('Y') + 1),
             'color' => 'nullable|string|max:50',
             'mileage' => 'required|integer|min:0',
             'vin' => 'nullable|string|max:50|unique:vehicles',
@@ -137,21 +137,21 @@ class VehicleController extends Controller
         }
 
         $request->validate([
-            'plate' => 'sometimes|required|string|max:20|unique:vehicles,plate,' . $vehicle->id,
+            'plate' => 'sometimes|required|string|max:20|unique:vehicles,plate,'.$vehicle->id,
             'brand' => 'sometimes|required|string|max:100',
             'model' => 'sometimes|required|string|max:100',
             'sub_model' => 'nullable|string|max:100',
-            'year' => 'sometimes|required|integer|min:1900|max:' . (date('Y') + 1),
+            'year' => 'sometimes|required|integer|min:1900|max:'.(date('Y') + 1),
             'color' => 'nullable|string|max:50',
             'mileage' => 'sometimes|required|integer|min:0',
-            'vin' => 'nullable|string|max:50|unique:vehicles,vin,' . $vehicle->id,
+            'vin' => 'nullable|string|max:50|unique:vehicles,vin,'.$vehicle->id,
             'engine_number' => 'nullable|string|max:50',
             'transmission_type' => 'nullable|string|max:50',
         ]);
 
         $vehicle->update($request->only([
             'plate', 'brand', 'model', 'sub_model', 'year', 'color',
-            'mileage', 'vin', 'engine_number', 'transmission_type'
+            'mileage', 'vin', 'engine_number', 'transmission_type',
         ]));
 
         return response()->json([

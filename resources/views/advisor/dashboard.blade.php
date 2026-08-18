@@ -11,10 +11,22 @@
 
 @section('content')
     <div class="stats">
-        <div class="stat"><span>Total órdenes</span><strong>{{ $stats['total'] }}</strong></div>
-        <div class="stat"><span>Solicitudes chatbot</span><strong>{{ $stats['solicitudes_chatbot'] }}</strong></div>
-        <div class="stat"><span>Sin mecánico</span><strong>{{ $stats['sin_mecanico'] }}</strong></div>
-        <div class="stat"><span>En proceso</span><strong>{{ $stats['en_proceso'] }}</strong></div>
+        <a class="stat" href="{{ route('advisor.orders.index') }}">
+            <span>Total órdenes</span>
+            <strong>{{ $stats['total'] }}</strong>
+        </a>
+        <a class="stat" href="{{ route('advisor.chatbot-appointments.index') }}">
+            <span>Solicitudes chatbot</span>
+            <strong>{{ $stats['solicitudes_chatbot'] }}</strong>
+        </a>
+        <a class="stat" href="{{ route('advisor.orders.index', ['unassigned' => 1]) }}">
+            <span>Sin mecánico</span>
+            <strong>{{ $stats['sin_mecanico'] }}</strong>
+        </a>
+        <a class="stat" href="{{ route('advisor.orders.index', ['status' => 'en_proceso']) }}">
+            <span>En proceso</span>
+            <strong>{{ $stats['en_proceso'] }}</strong>
+        </a>
     </div>
 
     <div class="panel">
@@ -52,12 +64,12 @@
                         <td>{{ $item->client->name }}</td>
                         <td>{{ $item->vehicle->plate }}</td>
                         <td>{{ Str::limit($item->service_type, 40) }} @if($item->requires_approval)<span class="badge yellow">Extra</span>@endif</td>
-                        <td><a href="{{ route('advisor.appointments.show', $item) }}" class="btn btn-primary btn-sm">Revisar</a></td>
+                        <td><a href="{{ route('advisor.chatbot-appointments.show', $item) }}" class="btn btn-primary btn-sm">Revisar</a></td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
-        <a href="{{ route('advisor.appointments.index') }}" class="btn btn-secondary btn-sm" style="margin-top:10px;">Ver todas</a>
+        <a href="{{ route('advisor.chatbot-appointments.index') }}" class="btn btn-secondary btn-sm" style="margin-top:10px;">Ver todas</a>
     </div>
     @endif
 

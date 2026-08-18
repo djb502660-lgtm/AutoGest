@@ -6,7 +6,6 @@ use App\Models\ServiceOrder;
 use App\Models\ServicePhoto;
 use App\Services\ServicePhotoService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ServicePhotoController extends Controller
 {
@@ -36,7 +35,7 @@ class ServicePhotoController extends Controller
             return response()->json([
                 'success' => true,
                 'photo' => $photo->load('user'),
-                'url' => Storage::url($photo->photo_path),
+                'url' => $photo->url,
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -64,7 +63,7 @@ class ServicePhotoController extends Controller
         return response()->json($photos->map(function ($photo) {
             return [
                 'id' => $photo->id,
-                'url' => Storage::url($photo->photo_path),
+                'url' => $photo->url,
                 'description' => $photo->description,
                 'type' => $photo->type,
                 'type_label' => $photo->type_label,
@@ -83,7 +82,7 @@ class ServicePhotoController extends Controller
             'before' => $beforePhotos->map(function ($photo) {
                 return [
                     'id' => $photo->id,
-                    'url' => Storage::url($photo->photo_path),
+                    'url' => $photo->url,
                     'description' => $photo->description,
                     'created_at' => $photo->created_at->format('d/m/Y H:i'),
                 ];
@@ -91,7 +90,7 @@ class ServicePhotoController extends Controller
             'after' => $afterPhotos->map(function ($photo) {
                 return [
                     'id' => $photo->id,
-                    'url' => Storage::url($photo->photo_path),
+                    'url' => $photo->url,
                     'description' => $photo->description,
                     'created_at' => $photo->created_at->format('d/m/Y H:i'),
                 ];

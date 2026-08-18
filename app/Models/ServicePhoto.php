@@ -32,6 +32,25 @@ class ServicePhoto extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getUrlAttribute(): string
+    {
+        $path = ltrim(str_replace('\\', '/', (string) $this->photo_path), '/');
+
+        if ($path === '') {
+            return '';
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            return '/'.$path;
+        }
+
+        return '/storage/'.$path;
+    }
+
     public function getTypeLabelAttribute(): string
     {
         return match ($this->type) {
@@ -41,5 +60,18 @@ class ServicePhoto extends Model
             'evidence' => 'Evidencia',
             default => 'General',
         };
+    }
+
+    public function lightboxCaption(): string
+    {
+        return $this->type_label;
+    }
+
+    public function lightboxMeta(): string
+    {
+        return collect([
+            $this->user?->name,
+            $this->created_at?->format('d/m/Y H:i'),
+        ])->filter()->implode(' · ');
     }
 }

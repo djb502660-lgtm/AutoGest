@@ -40,12 +40,18 @@ class ChatbotClientFlowTest extends TestCase
             'description' => 'Diagnóstico eléctrico',
         ]);
 
-        $this->actingAs($client)
+        $reply = $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), [
                 'message' => 'Quiero consultar el estado del ABC123',
             ])
             ->assertOk()
-            ->assertJsonPath('reply', 'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.');
+            ->json('reply');
+
+        $this->assertStringContainsString(
+            'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.',
+            $reply
+        );
+        $this->assertStringContainsString('Kilometraje:', $reply);
     }
 
     public function test_chatbot_can_consult_vehicle_status_without_plate_when_client_has_single_vehicle(): void
@@ -74,12 +80,17 @@ class ChatbotClientFlowTest extends TestCase
             'description' => 'Diagnóstico eléctrico',
         ]);
 
-        $this->actingAs($client)
+        $reply = $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), [
                 'message' => 'Quiero consultar el estado de mi auto',
             ])
             ->assertOk()
-            ->assertJsonPath('reply', 'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.');
+            ->json('reply');
+
+        $this->assertStringContainsString(
+            'Tu Toyota Corolla (ABC-123) está En taller. Última orden: Diagnóstico eléctrico — En proceso.',
+            $reply
+        );
     }
 
     public function test_chatbot_provides_open_vehicle_information_when_client_has_multiple_vehicles_and_no_plate(): void
@@ -178,12 +189,17 @@ class ChatbotClientFlowTest extends TestCase
             'description' => 'Chequeo general',
         ]);
 
-        $this->actingAs($client)
+        $reply = $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), [
                 'message' => 'consulta mi auto xyz987',
             ])
             ->assertOk()
-            ->assertJsonPath('reply', 'Tu Nissan Sentra (XYZ-987) está Activo. Última orden: Chequeo general — Recibida.');
+            ->json('reply');
+
+        $this->assertStringContainsString(
+            'Tu Nissan Sentra (XYZ-987) está Activo. Última orden: Chequeo general — Recibida.',
+            $reply
+        );
     }
 
     public function test_chatbot_answers_plate_only_vehicle_status_after_general_query(): void
@@ -228,10 +244,15 @@ class ChatbotClientFlowTest extends TestCase
 
         $this->assertStringContainsString('DEF-456', $response->json('reply'));
 
-        $this->actingAs($client)
+        $detail = $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), ['message' => 'DEF-456'])
             ->assertOk()
-            ->assertJsonPath('reply', 'Tu Hyundai Tucson (DEF-456) está En taller. Última orden: Revisión frenos — En proceso.');
+            ->json('reply');
+
+        $this->assertStringContainsString(
+            'Tu Hyundai Tucson (DEF-456) está En taller. Última orden: Revisión frenos — En proceso.',
+            $detail
+        );
     }
 
     // ELIMINADO: test_chatbot_suggests_next_available_date_when_day_is_full

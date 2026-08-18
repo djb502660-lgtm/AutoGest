@@ -74,13 +74,13 @@
                                         @csrf
                                         <button type="submit" class="btn btn-success btn-sm">Confirmar</button>
                                     </form>
-                                    <form method="POST" action="{{ route('advisor.pre-orders.reject', $preOrder) }}" style="display: inline;" onsubmit="return confirm('¿Rechazar esta preorden?')">
+                                    <form method="POST" action="{{ route('advisor.pre-orders.reject', $preOrder) }}" style="display: inline;" data-confirm="¿Rechazar esta preorden?" data-confirm-title="Rechazar preorden" data-confirm-label="Rechazar">
                                         @csrf
                                         <button type="submit" class="btn btn-danger btn-sm">Rechazar</button>
                                     </form>
                                 @endif
                                 @if (in_array($preOrder->status, ['pendiente', 'confirmada']))
-                                    <form method="POST" action="{{ route('advisor.pre-orders.convert', $preOrder) }}" style="display: inline;" onsubmit="return confirm('¿Convertir esta preorden en orden de servicio?')">
+                                    <form method="POST" action="{{ route('advisor.pre-orders.convert', $preOrder) }}" style="display: inline;" data-confirm="¿Convertir esta preorden en orden de servicio?" data-confirm-title="Convertir preorden" data-confirm-label="Convertir" data-confirm-danger="0">
                                         @csrf
                                         <button type="submit" class="btn btn-primary btn-sm">Convertir</button>
                                     </form>

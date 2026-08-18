@@ -57,13 +57,3 @@
         </div>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        @media print {
-            .top-actions, .btn { display:none !important; }
-            body { background: #fff; }
-            .panel { border:none; box-shadow:none; }
-        }
-    </style>
-@endpush

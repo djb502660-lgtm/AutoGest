@@ -64,7 +64,11 @@
     @if (isset($order))
         <div class="field" style="grid-column:1/-1;">
             <label>Fotos del vehículo (Recepción)</label>
-            <div id="photoUploadSection">
+            <div id="photoUploadSection"
+                data-order-id="{{ $order->id }}"
+                data-photos-index="{{ route('advisor.orders.photos.index', $order) }}"
+                data-photos-store="{{ route('advisor.orders.photos.store', $order) }}"
+                data-photos-destroy="{{ url('/asesor/fotos') }}">
                 <div class="photo-upload-area">
                     <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoInput').click()">
@@ -81,15 +85,19 @@
 @if (isset($order))
 @push('scripts')
 <script>
+    const photoConfig = document.getElementById('photoUploadSection');
     const photoInput = document.getElementById('photoInput');
     const photoGallery = document.getElementById('photoGallery');
-    const orderId = {{ $order->id }};
+    const orderId = Number(photoConfig?.dataset.orderId || 0);
+    const photosIndexUrl = photoConfig?.dataset.photosIndex || '';
+    const photosStoreUrl = photoConfig?.dataset.photosStore || '';
+    const photosDestroyUrl = photoConfig?.dataset.photosDestroy || '';
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
     // Cargar fotos existentes
     async function loadPhotos() {
         try {
-            const res = await fetch(`{{ url('/asesor/ordenes') }}/${orderId}/fotos`);
+            const res = await fetch(photosIndexUrl);
             const photos = await res.json();
             renderPhotos(photos);
         } catch (error) {
@@ -104,17 +112,27 @@
         }
 
         photoGallery.innerHTML = photos.map(photo => `
-            <div class="photo-item" data-id="${photo.id}" style="animation: fadeIn 0.3s ease-out;">
-                <img src="${photo.url}" alt="${photo.description || 'Foto'}" onclick="window.open('${photo.url}', '_blank')">
+            <div class="photo-item autogest-fade-in" data-id="${photo.id}">
+                ${window.AutoGestLightbox.imgTag(photo, 'order-' + orderId)}
                 <div class="photo-info">
                     <span class="photo-type">${photo.type_label}</span>
                     ${photo.description ? `<span class="photo-desc">${photo.description}</span>` : ''}
                     <span class="photo-user">${photo.user} - ${photo.created_at}</span>
                 </div>
-                <button type="button" class="photo-delete" onclick="deletePhoto(${photo.id})">×</button>
+                <button type="button" class="photo-delete" data-photo-id="${photo.id}" aria-label="Eliminar foto">×</button>
             </div>
         `).join('');
     }
+
+    document.addEventListener('click', (event) => {
+        const deleteButton = event.target.closest('#photoGallery .photo-delete[data-photo-id]');
+        if (!deleteButton) {
+            return;
+        }
+
+        event.preventDefault();
+        deletePhoto(Number(deleteButton.dataset.photoId));
+    });
 
     // Función para mostrar notificaciones toast
     function showToast(message, type = 'success') {
@@ -130,34 +148,16 @@
             font-weight: 600;
             z-index: 10000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease-out;
+            animation: autogest-slide-in 0.3s ease-out;
         `;
         toast.textContent = message;
         document.body.appendChild(toast);
         
         setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-out';
+            toast.style.animation = 'autogest-slide-out 0.3s ease-out';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
-
-    // Agregar animaciones CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.9); }
-            to { opacity: 1; transform: scale(1); }
-        }
-    `;
-    document.head.appendChild(style);
 
     // Subir fotos
     photoInput.addEventListener('change', async (e) => {
@@ -199,7 +199,7 @@
                     throw new Error('Token CSRF no encontrado. Recarga la página.');
                 }
 
-                const res = await fetch(`{{ url('/asesor/ordenes') }}/${orderId}/fotos`, {
+                const res = await fetch(photosStoreUrl, {
                     method: 'POST',
                     headers: {
                         'X-CSRF-TOKEN': csrfToken,
@@ -240,10 +240,16 @@
 
     // Eliminar foto
     async function deletePhoto(photoId) {
-        if (!confirm('¿Eliminar esta foto?')) return;
+        const confirmed = await window.AutoGestConfirm.ask({
+            title: 'Eliminar evidencia',
+            message: '¿Eliminar esta foto? Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            danger: true,
+        });
+        if (!confirmed) return;
 
         try {
-            const res = await fetch(`{{ url('/asesor/fotos') }}/${photoId}`, {
+            const res = await fetch(`${photosDestroyUrl}/${photoId}`, {
                 method: 'DELETE',
                 headers: {
                     'X-CSRF-TOKEN': csrfToken,

@@ -16,10 +16,15 @@ use App\Http\Controllers\Admin\StockController;
 use App\Http\Controllers\Admin\SupplierController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\VehicleController;
+use App\Http\Controllers\Advisor\AppointmentRequestController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/solicitudes-chatbot', [AppointmentRequestController::class, 'index'])->name('admin.chatbot-appointments.index');
+    Route::get('/solicitudes-chatbot/{appointment}', [AppointmentRequestController::class, 'show'])->name('admin.chatbot-appointments.show');
+    Route::post('/solicitudes-chatbot/{appointment}/confirmar', [AppointmentRequestController::class, 'confirm'])->name('admin.chatbot-appointments.confirm');
+    Route::post('/solicitudes-chatbot/{appointment}/rechazar', [AppointmentRequestController::class, 'reject'])->name('admin.chatbot-appointments.reject');
     Route::resource('users', UserController::class)->except(['show']);
     Route::resource('vehicles', VehicleController::class)->except(['show']);
     Route::resource('maintenances', MaintenanceController::class);

@@ -21,24 +21,48 @@ class AppointmentRequestController extends Controller
     {
         $status = $request->string('status')->toString() ?: 'pendiente';
 
-        $requests = AppointmentRequest::query()
+        $chatbotQuery = AppointmentRequest::query()->where('source', 'chatbot');
+
+        $statusCounts = (clone $chatbotQuery)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $requests = (clone $chatbotQuery)
             ->with(['client', 'vehicle', 'advisor'])
             ->when($status !== 'todas', fn ($q) => $q->where('status', $status))
             ->latest()
             ->paginate(10)
             ->withQueryString();
 
-        return view('advisor.appointments.index', compact('requests', 'status'));
+        $chatbotAlerts = $request->user()->alerts()
+            ->with('appointmentRequest')
+            ->where('title', 'like', '%chatbot%')
+            ->where('is_read', false)
+            ->latest()
+            ->take(8)
+            ->get();
+
+        return view('advisor.appointments.index', array_merge(
+            compact('requests', 'status', 'chatbotAlerts', 'statusCounts'),
+            $this->chatbotPanel($request),
+        ));
     }
 
     public function show(AppointmentRequest $appointment)
     {
         $appointment->load(['client', 'vehicle', 'serviceOrder', 'advisor']);
 
-        return view('advisor.appointments.show', [
+        Alert::query()
+            ->where('user_id', request()->user()?->id)
+            ->where('appointment_request_id', $appointment->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return view('advisor.appointments.show', array_merge([
             'appointment' => $appointment,
             'mechanics' => User::where('role', UserRole::Mechanic)->where('status', 'activo')->orderBy('name')->get(),
-        ]);
+        ], $this->chatbotPanel(request())));
     }
 
     public function confirm(AppointmentFormRequest $formRequest, AppointmentRequest $appointment)
@@ -61,7 +85,7 @@ class AppointmentRequestController extends Controller
             'vehicle_id' => $appointment->vehicle_id,
             'client_id' => $appointment->client_id,
             'mechanic_id' => $validated['mechanic_id'] ?? null,
-            'advisor_id' => $advisor->id,
+            'advisor_id' => $advisor->isAdvisor() ? $advisor->id : null,
             'created_by' => $advisor->id,
             'source' => 'chatbot',
             'status' => 'recibida',
@@ -78,6 +102,8 @@ class AppointmentRequestController extends Controller
             'advisor_notes' => $validated['advisor_notes'] ?? null,
         ]);
 
+        Alert::markChatbotAppointmentHandled($appointment);
+
         Alert::create([
             'vehicle_id' => $appointment->vehicle_id,
             'user_id' => $appointment->client_id,
@@ -91,12 +117,14 @@ class AppointmentRequestController extends Controller
 
         ActivityLog::record(
             'appointment.confirmed',
-            "Asesor confirmó solicitud chatbot → orden {$order->order_number}.",
+            "Se confirmó la solicitud chatbot → orden {$order->order_number}.",
             $order,
         );
 
+        $panel = $this->chatbotPanel($formRequest);
+
         return redirect()
-            ->route('advisor.orders.show', $order)
+            ->route($panel['orderRoute'], $order)
             ->with('success', 'Solicitud confirmada y convertida en orden de trabajo.');
     }
 
@@ -114,6 +142,8 @@ class AppointmentRequestController extends Controller
             'advisor_notes' => $validated['advisor_notes'],
         ]);
 
+        Alert::markChatbotAppointmentHandled($appointment);
+
         Alert::create([
             'vehicle_id' => $appointment->vehicle_id,
             'user_id' => $appointment->client_id,
@@ -124,7 +154,7 @@ class AppointmentRequestController extends Controller
         ]);
 
         return redirect()
-            ->route('advisor.appointments.index')
+            ->route($this->chatbotPanel($request)['indexRoute'])
             ->with('success', 'Solicitud rechazada. El cliente fue notificado.');
     }
 
@@ -144,5 +174,22 @@ class AppointmentRequestController extends Controller
                 'interval_months' => $t->interval_months,
             ]),
         ]);
+    }
+
+    /**
+     * @return array{layout: string, indexRoute: string, showRoute: string, confirmRoute: string, rejectRoute: string, orderRoute: string}
+     */
+    private function chatbotPanel(Request $request): array
+    {
+        $admin = $request->user()?->isAdmin() ?? false;
+
+        return [
+            'layout' => $admin ? 'layouts.admin' : 'layouts.advisor',
+            'indexRoute' => $admin ? 'admin.chatbot-appointments.index' : 'advisor.chatbot-appointments.index',
+            'showRoute' => $admin ? 'admin.chatbot-appointments.show' : 'advisor.chatbot-appointments.show',
+            'confirmRoute' => $admin ? 'admin.chatbot-appointments.confirm' : 'advisor.chatbot-appointments.confirm',
+            'rejectRoute' => $admin ? 'admin.chatbot-appointments.reject' : 'advisor.chatbot-appointments.reject',
+            'orderRoute' => $admin ? 'admin.orders.show' : 'advisor.orders.show',
+        ];
     }
 }

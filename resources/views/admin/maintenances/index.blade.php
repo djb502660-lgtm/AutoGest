@@ -61,7 +61,7 @@
                             <div class="actions-inline">
                                 <button type="button" class="btn btn-secondary btn-sm" onclick="viewMaintenanceDetails({{ $maintenance->id }})">Ver</button>
                                 <a href="{{ route('maintenances.edit', $maintenance) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                <form method="POST" action="{{ route('maintenances.destroy', $maintenance) }}" onsubmit="return confirm('¿Eliminar este mantenimiento?')">
+                                <form method="POST" action="{{ route('maintenances.destroy', $maintenance) }}" data-confirm="¿Eliminar este mantenimiento?" data-confirm-title="Eliminar mantenimiento" data-confirm-label="Eliminar">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                                 </form>

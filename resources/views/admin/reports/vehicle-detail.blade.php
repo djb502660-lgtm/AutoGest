@@ -238,9 +238,11 @@
                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
                     @foreach($order->photos as $photo)
                     <div style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
-                        <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->description ?? 'Foto' }}" 
-                             style="width: 100%; height: 120px; object-fit: cover; cursor: pointer;" 
-                             onclick="window.open('{{ asset('storage/' . $photo->photo_path) }}', '_blank')">
+                        @include('layouts.partials.photo-thumb', [
+                            'photo' => $photo,
+                            'gallery' => 'order-'.$order->id,
+                            'style' => 'width: 100%; height: 120px; object-fit: cover; cursor: pointer;',
+                        ])
                         <div style="padding: 8px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
                             <div style="font-size: 0.75rem; font-weight: 700; color: #64748b;">{{ $photo->type_label }}</div>
                             @if($photo->description)

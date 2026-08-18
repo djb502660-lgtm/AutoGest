@@ -111,14 +111,72 @@
                     @foreach (range(1, now()->month) as $m)
                         @php $value = $monthlyCosts->get($m, 0); @endphp
                         <div class="chart-bar">
-                            <span class="bar" style="height:{{ $value ? min(($value / max($monthlyCosts->max(), 1)) * 100, 100) : 10 }}%;"></span>
-                            <small>{{ \Carbon\Carbon::create(now()->year, $m, 1)->format('M') }}</small>
+                            <div class="bar-track">
+                                <span class="bar" style="height:{{ $value ? max(min(($value / max($monthlyCosts->max(), 1)) * 100, 100), 8) : 8 }}%;"></span>
+                            </div>
+                            <small>{{ \Carbon\Carbon::create(now()->year, $m, 1)->translatedFormat('M') }}</small>
                         </div>
                     @endforeach
                 </div>
             </div>
         </section>
     </div>
+
+    @if ($chatbotAlerts->isNotEmpty() || $pendingAppointments->isNotEmpty())
+        <section class="panel" style="margin-top:1rem;">
+            <h3>Notificaciones del chatbot</h3>
+            <p class="subtle">Citas agendadas, editadas o canceladas por el cliente desde el asistente.</p>
+
+            @if ($chatbotAlerts->isNotEmpty())
+                <ul class="compact-list">
+                    @foreach ($chatbotAlerts as $alert)
+                        @php
+                            $alertUrl = $alert->appointment_request_id
+                                ? route('admin.chatbot-appointments.show', $alert->appointment_request_id)
+                                : route('admin.chatbot-appointments.index');
+                        @endphp
+                        <li>
+                            <a href="{{ $alertUrl }}">
+                                <strong>{{ $alert->title }}</strong>
+                                <span>{{ $alert->message }}</span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            @if ($pendingAppointments->isNotEmpty())
+                <div class="table-responsive" style="margin-top:12px;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Placa</th>
+                                <th>Servicio</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($pendingAppointments as $item)
+                                <tr>
+                                    <td>{{ $item->requested_date->format('d/m/Y') }}</td>
+                                    <td>{{ $item->client->name }}</td>
+                                    <td>{{ $item->vehicle->plate }}</td>
+                                    <td>{{ \Illuminate\Support\Str::limit($item->service_type, 36) }}</td>
+                                    <td><span class="badge {{ $item->statusBadgeClass() }}">{{ $item->statusLabel() }}</span></td>
+                                    <td><a href="{{ route('admin.chatbot-appointments.show', $item) }}" class="btn btn-primary btn-sm">Ver</a></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+
+            <a href="{{ route('admin.chatbot-appointments.index') }}" class="btn btn-secondary btn-sm" style="margin-top:10px;">Ver todas las solicitudes</a>
+        </section>
+    @endif
 
     <section class="panel" style="margin-top:1rem;">
         <h3>Actividad reciente</h3>

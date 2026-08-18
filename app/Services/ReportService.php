@@ -7,8 +7,6 @@ use App\Models\Category;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
 use App\Models\Product;
-use App\Models\ServiceOrder;
-use App\Models\ServicePhoto;
 use App\Models\StockMovement;
 use App\Models\Vehicle;
 
@@ -237,7 +235,7 @@ class ReportService
                     'photos.user',
                     'stockMovements' => function ($smQuery) {
                         $smQuery->with('product');
-                    }
+                    },
                 ])->orderByDesc('created_at');
             },
             'maintenances' => function ($query) {
@@ -252,7 +250,7 @@ class ReportService
             },
             'appointmentRequests' => function ($query) {
                 $query->with(['advisor', 'serviceOrder'])->orderByDesc('requested_date');
-            }
+            },
         ])->findOrFail($vehicleId);
 
         return [
@@ -281,7 +279,7 @@ class ReportService
                     'photos.user',
                     'stockMovements' => function ($smQuery) {
                         $smQuery->with('product');
-                    }
+                    },
                 ])->orderByDesc('created_at');
             },
             'maintenances' => function ($query) {
@@ -296,12 +294,12 @@ class ReportService
             },
             'appointmentRequests' => function ($query) {
                 $query->with(['advisor', 'serviceOrder'])->orderByDesc('requested_date');
-            }
+            },
         ]);
 
         // Aplicar filtros
         $query->when($filters['client_id'] ?? null, fn ($q) => $q->where('client_id', $filters['client_id']))
-              ->when($filters['status'] ?? null, fn ($q) => $q->where('status', $filters['status']));
+            ->when($filters['status'] ?? null, fn ($q) => $q->where('status', $filters['status']));
 
         $vehicles = $query->orderBy('plate')->get();
 
@@ -332,7 +330,7 @@ class ReportService
     {
         $totalStockMovements = $vehicle->serviceOrders->sum(fn ($order) => $order->stockMovements->count());
         $totalPartsCost = $vehicle->serviceOrders->sum(fn ($order) => $order->stockMovements->sum('quantity'));
-        
+
         return [
             'total_maintenances' => $vehicle->maintenances->count(),
             'total_orders' => $vehicle->serviceOrders->count(),
@@ -447,13 +445,14 @@ class ReportService
             'title' => 'Reporte de Inventario General',
             'summary' => [
                 'Total productos' => $items->count(),
-                'Valor total' => '$'.number_format($items->sum(fn($p) => $p->stock_quantity * $p->purchase_price), 2),
+                'Valor total' => '$'.number_format($items->sum(fn ($p) => $p->stock_quantity * $p->purchase_price), 2),
                 'Stock bajo' => $items->filter(fn ($p) => $p->stock_quantity > 0 && $p->stock_quantity <= $p->min_stock)->count(),
                 'Sin stock' => $items->where('stock_quantity', '<=', 0)->count(),
             ],
             'columns' => ['SKU', 'Nombre', 'Categoría', 'Marca', 'Stock', 'Stock Mín', 'Precio Compra', 'Estado'],
             'rows' => $items->map(function ($p) {
                 $status = $p->stock_quantity <= 0 ? 'Sin stock' : ($p->stock_quantity <= $p->min_stock ? 'Stock bajo' : 'OK');
+
                 return [
                     $p->sku ?? 'N/A',
                     $p->name,
@@ -509,7 +508,7 @@ class ReportService
     public function getStockMovementsReport(?int $categoryId = null, ?string $from = null, ?string $to = null): array
     {
         $query = StockMovement::with(['product', 'product.category', 'movementable'])
-            ->when($categoryId, fn ($q) => $q->whereHas('product', fn($q) => $q->where('category_id', $categoryId)))
+            ->when($categoryId, fn ($q) => $q->whereHas('product', fn ($q) => $q->where('category_id', $categoryId)))
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
             ->orderByDesc('created_at');
@@ -525,9 +524,10 @@ class ReportService
             ],
             'columns' => ['Fecha', 'Producto', 'Categoría', 'Tipo', 'Cantidad', 'Stock Anterior', 'Stock Nuevo', 'Referencia'],
             'rows' => $items->map(function ($m) {
-                $reference = $m->movementable_type 
-                    ? class_basename($m->movementable_type).' #'.$m->movementable_id 
+                $reference = $m->movementable_type
+                    ? class_basename($m->movementable_type).' #'.$m->movementable_id
                     : 'Manual';
+
                 return [
                     $m->created_at->format('Y-m-d H:i'),
                     $m->product->name,
@@ -561,7 +561,8 @@ class ReportService
             'columns' => ['Categoría', 'Productos', 'Marcas', 'Valor Total'],
             'rows' => $categories->map(function ($c) {
                 $brands = $c->products->pluck('brand.name')->filter()->unique()->count();
-                $totalValue = $c->products->sum(fn($p) => $p->stock_quantity * $p->purchase_price);
+                $totalValue = $c->products->sum(fn ($p) => $p->stock_quantity * $p->purchase_price);
+
                 return [
                     $c->name,
                     $c->products_count,

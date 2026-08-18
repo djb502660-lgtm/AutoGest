@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -93,7 +93,7 @@ class UserController extends Controller
     {
         $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'email' => 'sometimes|required|string|email|max:255|unique:users,email,' . $user->id,
+            'email' => 'sometimes|required|string|email|max:255|unique:users,email,'.$user->id,
             'role' => 'sometimes|required|in:admin,asesor,mecanico,cliente',
             'phone' => 'nullable|string|max:20',
             'status' => 'sometimes|required|in:activo,inactivo',
@@ -101,7 +101,7 @@ class UserController extends Controller
         ]);
 
         $user->update($request->only([
-            'name', 'email', 'role', 'phone', 'status'
+            'name', 'email', 'role', 'phone', 'status',
         ]));
 
         if ($request->has('password')) {

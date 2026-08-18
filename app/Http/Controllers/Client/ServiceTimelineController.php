@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\ServiceOrder;
 use App\Services\ServiceTimelineService;
-use Illuminate\Http\Request;
 
 class ServiceTimelineController extends Controller
 {

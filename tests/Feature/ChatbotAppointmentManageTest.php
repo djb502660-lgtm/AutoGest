@@ -18,6 +18,7 @@ class ChatbotAppointmentManageTest extends TestCase
     {
         $client = User::factory()->client()->create();
         $advisor = User::factory()->advisor()->create(['status' => 'activo']);
+        $admin = User::factory()->admin()->create(['status' => 'activo']);
 
         $vehicle = Vehicle::create([
             'client_id' => $client->id,
@@ -40,7 +41,7 @@ class ChatbotAppointmentManageTest extends TestCase
             'source' => 'chatbot',
         ]);
 
-        return compact('client', 'advisor', 'vehicle', 'appointment');
+        return compact('client', 'advisor', 'admin', 'vehicle', 'appointment');
     }
 
     public function test_chatbot_lists_active_appointment(): void
@@ -59,7 +60,7 @@ class ChatbotAppointmentManageTest extends TestCase
 
     public function test_chatbot_cancels_appointment_after_confirmation(): void
     {
-        ['client' => $client, 'advisor' => $advisor, 'appointment' => $appointment] = $this->seedClientWithAppointment();
+        ['client' => $client, 'advisor' => $advisor, 'admin' => $admin, 'appointment' => $appointment] = $this->seedClientWithAppointment();
 
         $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), ['message' => 'Quiero cancelar mi cita'])
@@ -79,6 +80,12 @@ class ChatbotAppointmentManageTest extends TestCase
         $this->assertDatabaseHas('alerts', [
             'user_id' => $advisor->id,
             'vehicle_id' => $appointment->vehicle_id,
+            'title' => 'Cita cancelada por cliente (chatbot)',
+        ]);
+        $this->assertDatabaseHas('alerts', [
+            'user_id' => $admin->id,
+            'vehicle_id' => $appointment->vehicle_id,
+            'title' => 'Cita cancelada por cliente (chatbot)',
         ]);
     }
 
@@ -103,7 +110,7 @@ class ChatbotAppointmentManageTest extends TestCase
     {
         Carbon::setTestNow('2026-08-03 08:00:00');
 
-        ['client' => $client, 'advisor' => $advisor, 'appointment' => $appointment] = $this->seedClientWithAppointment();
+        ['client' => $client, 'advisor' => $advisor, 'admin' => $admin, 'appointment' => $appointment] = $this->seedClientWithAppointment();
 
         $this->actingAs($client)
             ->postJson(route('client.chatbot.message'), ['message' => '¿Tengo alguna cita?']);
@@ -122,6 +129,11 @@ class ChatbotAppointmentManageTest extends TestCase
 
         $this->assertTrue(
             Alert::where('user_id', $advisor->id)
+                ->where('title', 'Cita actualizada por cliente (chatbot)')
+                ->exists()
+        );
+        $this->assertTrue(
+            Alert::where('user_id', $admin->id)
                 ->where('title', 'Cita actualizada por cliente (chatbot)')
                 ->exists()
         );
@@ -173,6 +185,33 @@ class ChatbotAppointmentManageTest extends TestCase
         $this->assertStringContainsString('historial de citas', $response->json('reply'));
         $this->assertStringContainsString('Cambio de aceite', $response->json('reply'));
         $this->assertStringContainsString('Revisión de frenos', $response->json('reply'));
+    }
+
+    public function test_chatbot_deletes_appointment_with_eliminar_and_notifies_staff(): void
+    {
+        ['client' => $client, 'advisor' => $advisor, 'admin' => $admin, 'appointment' => $appointment] = $this->seedClientWithAppointment();
+
+        $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'eliminar la cita'])
+            ->assertOk();
+
+        $confirm = $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'Sí'])
+            ->assertOk();
+
+        $this->assertStringContainsString('cancelada correctamente', $confirm->json('reply'));
+        $this->assertDatabaseHas('appointment_requests', [
+            'id' => $appointment->id,
+            'status' => 'cancelada',
+        ]);
+        $this->assertDatabaseHas('alerts', [
+            'user_id' => $advisor->id,
+            'title' => 'Cita cancelada por cliente (chatbot)',
+        ]);
+        $this->assertDatabaseHas('alerts', [
+            'user_id' => $admin->id,
+            'title' => 'Cita cancelada por cliente (chatbot)',
+        ]);
     }
 
     // ELIMINADO: test_chatbot_guided_brake_symptom_flow

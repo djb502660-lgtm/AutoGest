@@ -44,7 +44,7 @@
                             @csrf
                             <button type="submit" class="btn btn-warning btn-sm">Reprogramar</button>
                         </form>
-                        <form method="POST" action="{{ route('advisor.appointments.cancel', $appointment) }}" style="display: inline;" onsubmit="return confirm('¿Cancelar esta cita?')">
+                        <form method="POST" action="{{ route('advisor.appointments.cancel', $appointment) }}" style="display: inline;" data-confirm="¿Cancelar esta cita?" data-confirm-title="Cancelar cita" data-confirm-label="Cancelar">
                             @csrf
                             <button type="submit" class="btn btn-danger btn-sm">Cancelar</button>
                         </form>

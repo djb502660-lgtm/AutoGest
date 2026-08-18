@@ -14,9 +14,6 @@ export default defineConfig({
         host: 'localhost',
         port: 5173,
         strictPort: true,
-<<<<<<< Updated upstream
-        cors: true,
-=======
         cors: {
             origin: ['http://localhost:8000', 'http://127.0.0.1:8000'],
             methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -26,7 +23,6 @@ export default defineConfig({
             protocol: 'ws',
             clientPort: 5173,
         },
->>>>>>> Stashed changes
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

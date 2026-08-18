@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\MaintenanceRepositoryInterface;
 use App\DTOs\MaintenanceDTO;
+use App\Models\Maintenance;
 use Carbon\Carbon;
 
 class MaintenanceService
@@ -57,9 +58,10 @@ class MaintenanceService
         $year = $year ?? (int) now()->year;
         $startOfYear = Carbon::create($year, 1, 1)->startOfDay();
 
-        $maintenances = $this->maintenanceRepository->whereHas('vehicle', function ($q) use ($clientId) {
-            $q->where('client_id', $clientId);
-        })
+        $maintenances = Maintenance::query()
+            ->whereHas('vehicle', function ($q) use ($clientId) {
+                $q->where('client_id', $clientId);
+            })
             ->where('status', 'completado')
             ->where('performed_at', '>=', $startOfYear)
             ->with('vehicle')

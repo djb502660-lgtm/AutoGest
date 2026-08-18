@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 class ReportController extends Controller
 {
     private ReportService $reportService;
+
     private AuditService $auditService;
 
     public function __construct(ReportService $reportService, AuditService $auditService)
@@ -109,24 +110,24 @@ class ReportController extends Controller
         );
 
         $filename = 'reporte-'.$validated['type'].'-'.now()->format('Y-m-d-His').'.csv';
-        
+
         $headers = [
-            "Content-type"        => "text/csv; charset=UTF-8",
-            "Content-Disposition" => "attachment; filename=$filename",
-            "Pragma"              => "no-cache",
-            "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
-            "Expires"             => "0"
+            'Content-type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=$filename",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         $columns = $report['columns'];
         $rows = $report['rows'];
 
-        $callback = function() use($columns, $rows) {
+        $callback = function () use ($columns, $rows) {
             $file = fopen('php://output', 'w');
-            
+
             // Add BOM for Excel UTF-8 support
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+
             fputcsv($file, $columns);
             foreach ($rows as $row) {
                 fputcsv($file, $row);
@@ -246,7 +247,7 @@ class ReportController extends Controller
 
         $this->auditService->logReportAction(
             'report_downloaded',
-            "Expediente completo de la flota descargado en PDF",
+            'Expediente completo de la flota descargado en PDF',
             auth()->id(),
             null,
             ['type' => 'vehicle_fleet', 'filters' => $filters]

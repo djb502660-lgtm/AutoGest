@@ -43,12 +43,7 @@ class AuthController extends Controller
 
             ActivityLog::record('login', 'Inicio de sesión en el sistema.', user: $user);
 
-            return redirect()->intended(match ($user->role) {
-                UserRole::Admin => route('dashboard'),
-                UserRole::Advisor => route('advisor.dashboard'),
-                UserRole::Mechanic => route('mechanic.dashboard'),
-                UserRole::Client => route('client.dashboard'),
-            });
+            return redirect()->to($this->homeUrl($user->role, $request));
         }
 
         return back()->withErrors([
@@ -68,5 +63,19 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
+    }
+
+    private function homeUrl(UserRole $role, Request $request): string
+    {
+        $home = route($role->homeRouteName());
+        $intended = $request->session()->pull('url.intended');
+
+        if (! is_string($intended) || $intended === '') {
+            return $home;
+        }
+
+        $path = parse_url($intended, PHP_URL_PATH) ?: '';
+
+        return $role->allowsPath($path) ? $intended : $home;
     }
 }

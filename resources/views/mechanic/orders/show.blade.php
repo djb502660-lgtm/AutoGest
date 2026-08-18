@@ -114,16 +114,11 @@
     .photo-delete:hover {
         background: rgba(220, 38, 38, 1);
     }
-
-    @media (max-width: 768px) { 
-        .grid-2col, .grid-3col { grid-template-columns: 1fr; }
-        .photo-gallery-row { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-    }
 </style>
 @endpush
 
 @section('content')
-    <form action="{{ route('mechanic.orders.status', $order) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('mechanic.orders.status', $order) }}" method="POST" enctype="multipart/form-data" class="mechanic-order-page">
       @csrf @method('PUT')
 
       <!-- SECCIÓN 1: DATOS DEL CLIENTE Y VEHÍCULO -->
@@ -304,20 +299,48 @@
         <!-- Subir nuevas fotos -->
         <div class="form-group">
           <label>Subir Evidencia Fotográfica</label>
-          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-            <button type="button" class="btn-submit" style="width:auto; background:#0ea5e9;" onclick="document.getElementById('photoInput').click()">
-              <i class="fa-solid fa-upload"></i> Agregar Foto
-            </button>
-            <select id="photoType" class="form-control" style="width:auto; min-width:150px;">
-              <option value="reception">📷 Recepción</option>
-              <option value="before">📷 Antes del trabajo</option>
-              <option value="after">📷 Después del trabajo</option>
-              <option value="evidence">📷 Evidencia de diagnóstico</option>
-            </select>
-            <input type="text" id="photoDescription" class="form-control" style="flex:1; min-width:200px;" placeholder="Descripción técnica (opcional)">
+          <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#photoUploadModal">
+            <i class="fa-solid fa-upload"></i> Agregar foto
+          </button>
+          <span style="display:block; font-size:0.75rem; color:var(--text-muted); margin-top:8px;">Máximo 10MB por foto. Formatos: JPG, PNG, GIF.</span>
+        </div>
+
+        <div class="modal fade" id="photoUploadModal" tabindex="-1" aria-labelledby="photoUploadModalTitle" aria-hidden="true"
+            data-order-id="{{ $order->id }}"
+            data-photos-index="{{ route('mechanic.orders.photos.index', $order) }}"
+            data-photos-store="{{ route('mechanic.orders.photos.store', $order) }}"
+            data-photos-destroy="{{ url('/mecanico/fotos') }}">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="photoUploadModalTitle">Nueva evidencia fotográfica</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+              </div>
+              <div class="modal-body">
+                <div class="field mb-3">
+                  <label class="form-label" for="photoType">Tipo *</label>
+                  <select id="photoType" class="form-control">
+                    <option value="reception">Recepción</option>
+                    <option value="before">Antes del trabajo</option>
+                    <option value="after">Después del trabajo</option>
+                    <option value="evidence">Evidencia de diagnóstico</option>
+                  </select>
+                </div>
+                <div class="field mb-3">
+                  <label class="form-label" for="photoDescription">Descripción técnica</label>
+                  <input type="text" id="photoDescription" class="form-control" placeholder="Ej: Golpe en parachoques delantero">
+                </div>
+                <div class="field">
+                  <label class="form-label" for="photoInput">Archivos *</label>
+                  <input type="file" id="photoInput" class="form-control" accept="image/*" multiple>
+                  <span class="form-text">Puedes seleccionar varias fotos. Máximo 10MB cada una.</span>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
           </div>
-          <input type="file" id="photoInput" accept="image/*" multiple style="display:none;">
-          <span style="font-size:0.75rem; color:var(--text-muted);">Máximo 10MB por foto. Formatos: JPG, PNG, GIF. La descripción técnica ayuda a respaldar el diagnóstico.</span>
         </div>
 
         <!-- Galería organizada por tipo -->
@@ -385,14 +408,15 @@
 
 @push('scripts')
 <script>
+    const photoConfig = document.getElementById('photoUploadModal');
     const photoInput = document.getElementById('photoInput');
     const photoType = document.getElementById('photoType');
     const photoDescription = document.getElementById('photoDescription');
-    const orderId = {{ $order->id }};
+    const orderId = Number(photoConfig?.dataset.orderId || 0);
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-    const photosIndexUrl = @json(route('mechanic.orders.photos.index', $order));
-    const photosStoreUrl = @json(route('mechanic.orders.photos.store', $order));
-    const photosDestroyUrl = @json(url('/mecanico/fotos'));
+    const photosIndexUrl = photoConfig?.dataset.photosIndex || '';
+    const photosStoreUrl = photoConfig?.dataset.photosStore || '';
+    const photosDestroyUrl = photoConfig?.dataset.photosDestroy || '';
 
     // Galerías por tipo (Sprint 5A.3)
     const galleries = {
@@ -459,30 +483,27 @@
             }
 
             gallery.innerHTML = typePhotos.map(photo => `
-                <div class="photo-item" data-id="${photo.id}" style="animation: fadeIn 0.3s ease-out;">
-                    <img src="${photo.url}" alt="${photo.description || 'Foto'}" onclick="window.open('${photo.url}', '_blank')">
+                <div class="photo-item autogest-fade-in" data-id="${photo.id}">
+                    ${window.AutoGestLightbox.imgTag(photo, 'order-' + orderId)}
                     <div class="photo-info">
                         ${photo.description ? `<span class="photo-desc">${photo.description}</span>` : ''}
                         <span class="photo-user">${photo.user} - ${photo.created_at}</span>
                     </div>
-                    <button type="button" class="photo-delete" onclick="deletePhoto(${photo.id})">×</button>
+                    <button type="button" class="photo-delete" data-photo-id="${photo.id}" aria-label="Eliminar foto">×</button>
                 </div>
             `).join('');
         });
-
-        // Agregar animación de fade-in
-        if (!document.getElementById('fadeInAnimation')) {
-            const fadeStyle = document.createElement('style');
-            fadeStyle.id = 'fadeInAnimation';
-            fadeStyle.textContent = `
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: scale(0.9); }
-                    to { opacity: 1; transform: scale(1); }
-                }
-            `;
-            document.head.appendChild(fadeStyle);
-        }
     }
+
+    document.addEventListener('click', (event) => {
+        const deleteButton = event.target.closest('.photo-delete[data-photo-id]');
+        if (!deleteButton) {
+            return;
+        }
+
+        event.preventDefault();
+        deletePhoto(Number(deleteButton.dataset.photoId));
+    });
 
     // Función para mostrar notificaciones toast
     function showToast(message, type = 'success') {
@@ -498,34 +519,16 @@
             font-weight: 600;
             z-index: 10000;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease-out;
+            animation: autogest-slide-in 0.3s ease-out;
         `;
         toast.textContent = message;
         document.body.appendChild(toast);
         
         setTimeout(() => {
-            toast.style.animation = 'slideOut 0.3s ease-out';
+            toast.style.animation = 'autogest-slide-out 0.3s ease-out';
             setTimeout(() => toast.remove(), 300);
         }, 3000);
     }
-
-    // Agregar animaciones CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(400px); opacity: 0; }
-        }
-        .uploading {
-            opacity: 0.6;
-            pointer-events: none;
-        }
-    `;
-    document.head.appendChild(style);
 
     // Subir fotos (Sprint 5A.3 - con descripción técnica)
     if (photoInput) {
@@ -605,6 +608,13 @@
         
         photoInput.value = '';
         photoDescription.value = '';
+
+        if (successCount > 0) {
+            const uploadModal = document.getElementById('photoUploadModal');
+            if (uploadModal && window.bootstrap?.Modal) {
+                window.bootstrap.Modal.getInstance(uploadModal)?.hide();
+            }
+        }
         
         // Resumen final
         if (files.length > 1) {
@@ -618,7 +628,13 @@
 
     // Eliminar foto
     async function deletePhoto(photoId) {
-        if (!confirm('¿Eliminar esta foto?')) return;
+        const confirmed = await window.AutoGestConfirm.ask({
+            title: 'Eliminar evidencia',
+            message: '¿Eliminar esta foto? Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            danger: true,
+        });
+        if (!confirmed) return;
 
         try {
             const res = await fetch(`${photosDestroyUrl}/${photoId}`, {

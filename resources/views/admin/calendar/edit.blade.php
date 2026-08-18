@@ -21,7 +21,7 @@
             </div>
         </form>
 
-        <form method="POST" action="{{ route('calendar.destroy', $schedule) }}" style="margin-top:12px;" onsubmit="return confirm('¿Eliminar este evento?')">
+        <form method="POST" action="{{ route('calendar.destroy', $schedule) }}" style="margin-top:12px;" data-confirm="¿Eliminar este evento?" data-confirm-title="Eliminar evento" data-confirm-label="Eliminar">
             @csrf @method('DELETE')
             <button type="submit" class="btn btn-danger">Eliminar evento</button>
         </form>

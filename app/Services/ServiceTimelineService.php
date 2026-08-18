@@ -79,6 +79,7 @@ class ServiceTimelineService
         usort($events, function ($a, $b) {
             $dateA = \DateTime::createFromFormat('d/m/Y H:i', $a['date']);
             $dateB = \DateTime::createFromFormat('d/m/Y H:i', $b['date']);
+
             return $dateA <=> $dateB;
         });
 

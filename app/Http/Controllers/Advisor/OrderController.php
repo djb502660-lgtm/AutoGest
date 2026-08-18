@@ -31,11 +31,14 @@ class OrderController extends Controller
         $status = $request->string('status')->toString();
         $priority = $request->string('priority')->toString();
         $mechanicId = $request->input('mechanic_id');
+        $unassigned = $request->boolean('unassigned');
 
         $orders = ServiceOrder::query()
             ->where(function ($q) use ($user) {
                 $q->where('advisor_id', $user->id)
-                    ->orWhere('created_by', $user->id);
+                    ->orWhere('created_by', $user->id)
+                    ->orWhereNull('advisor_id')
+                    ->orWhere('source', 'chatbot');
             })
             ->with(['vehicle', 'client', 'mechanic'])
             ->when($search->isNotEmpty(), function ($q) use ($search) {
@@ -47,6 +50,7 @@ class OrderController extends Controller
                 });
             })
             ->when($status !== '', fn ($q) => $q->where('status', $status))
+            ->when($unassigned, fn ($q) => $q->whereNull('mechanic_id')->whereIn('status', ['recibida', 'en_proceso']))
             ->when($priority !== '', fn ($q) => $q->where('priority', $priority))
             ->when($mechanicId, fn ($q) => $q->where('mechanic_id', $mechanicId))
             ->when($priority === 'alta' || $priority === 'urgente', fn ($q) => $q->orderByRaw("FIELD(priority, 'urgente', 'alta', 'normal', 'baja')"))
@@ -54,7 +58,7 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('advisor.orders.index', compact('orders', 'search', 'status', 'priority', 'mechanicId'));
+        return view('advisor.orders.index', compact('orders', 'search', 'status', 'priority', 'mechanicId', 'unassigned'));
     }
 
     public function create()

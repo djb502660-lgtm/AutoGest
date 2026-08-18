@@ -8,6 +8,7 @@ use App\Models\AppointmentRequest;
 use App\Models\User;
 use App\Models\Vehicle;
 use App\Models\VehicleModelTemplate;
+use App\Support\VehiclePlate;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -40,6 +41,23 @@ class ChatbotAppointmentService
             return true;
         }
 
+        return false;
+    }
+
+    /**
+     * Fecha u hora suelta, sin intención de agendar ni de gestionar una cita.
+     * No debe abrir el flujo de agenda por sí sola.
+     */
+    public function looksLikeScheduleFragment(string $text): bool
+    {
+        if ($this->wantsAppointment($text) || $this->wantsManage($text)) {
+            return false;
+        }
+
+        if (preg_match('/^\s*\d{1,2}\s*$/', trim($text))) {
+            return false;
+        }
+
         return $this->parseDate($text) !== null || $this->parseTime($text) !== null;
     }
 
@@ -52,12 +70,16 @@ class ChatbotAppointmentService
         $lower = Str::lower($text);
         $phrases = [
             'mis citas', 'ver citas', 'ver mis citas', 'listar citas', 'consultar citas',
+            'consultar cita', 'consultar mi cita', 'ver mi cita',
             'cancelar cita', 'cancelar mi cita', 'cancelar solicitud', 'anular cita',
             'quiero cancelar', 'quiero eliminar', 'eliminar cita', 'eliminar mi cita',
+            'eliminar la cita', 'elimina la cita', 'borrar cita', 'borra mi cita',
             'editar cita', 'editar mi cita', 'modificar cita', 'modificar mi cita',
-            'quiero editar', 'quiero modificar', 'cambiar cita', 'reprogramar cita',
+            'quiero editar', 'quiero modificar', 'quiero cambiar', 'cambiar cita', 'cambiar mi cita',
+            'reprogramar cita',
             'reprogramar mi cita', 'reprogramar', 'tengo alguna cita', 'tengo cita',
             'citas esta semana', 'historial de citas', 'mover cita', 'mover mi cita',
+            'mis turnos', 'ver turnos', 'ver mi turno',
             'pasala', 'pásala', 'moverla', 'cambiarla',
         ];
 
@@ -81,6 +103,9 @@ class ChatbotAppointmentService
             'necesito cita', 'necesito una cita', 'generar cita', 'hacer cita',
             'cita para', 'cita el', 'cita mañana', 'cita manana',
             'turno para', 'turno el', 'sacar cita', 'agendar turno',
+            'pedir turno', 'sacar turno', 'quiero turno', 'saco una cita', 'saco cita',
+            'como agendar', 'como pido cita', 'puedo agendar',
+            'creame', 'crea me', 'hazme una reserva', 'hazme una cita',
             'quiero que le hagan', 'quiero que me hagan', 'necesito que le hagan',
             'necesito que me hagan', 'quiero una revision', 'quiero revision',
             'necesito una revision', 'necesito revision',
@@ -92,12 +117,16 @@ class ChatbotAppointmentService
             }
         }
 
-        return false;
+        return $this->wantsAnotherVehicle($text);
     }
 
     public function handle(User $client, string $text): string
     {
         try {
+            if ($this->wantsAppointment($text) && ! $this->wantsManage($text)) {
+                session()->forget(self::SESSION_MANAGE_KEY);
+            }
+
             // Limpiar sesión completamente si el usuario inicia una nueva intención de gestión
             if ($this->wantsCancel($text) || $this->wantsEdit($text) || $this->wantsManage($text)) {
                 session()->forget(self::SESSION_KEY);
@@ -125,6 +154,10 @@ class ChatbotAppointmentService
 
     private function shouldManage(User $client, string $text): bool
     {
+        if ($this->wantsAppointment($text) && ! $this->wantsManage($text)) {
+            return false;
+        }
+
         if (session()->has(self::SESSION_MANAGE_KEY)) {
             return true;
         }
@@ -136,41 +169,30 @@ class ChatbotAppointmentService
             return true;
         }
 
-        if (! $this->wantsAppointment($text) && ($this->parseDate($text) !== null || $this->parseTime($text) !== null)) {
-            $hasManageable = AppointmentRequest::query()
-                ->where('client_id', $client->id)
-                ->whereIn('status', self::MANAGEABLE_STATUSES)
-                ->exists();
-
-            if ($hasManageable) {
-                session()->forget(self::SESSION_KEY);
-                session()->forget(self::SESSION_MANAGE_KEY);
-
-                return true;
-            }
-        }
-
         return false;
     }
 
     private function process(User $client, string $text): string
     {
-        /** @var array{vehicle_id?: int, requested_date?: string, service_hint?: string} $draft */
+        /** @var array{vehicle_id?: int, requested_date?: string, service_hint?: string, step?: string, pending_plate?: string} $draft */
         $draft = session(self::SESSION_KEY, []);
 
-        $vehicle = $this->resolveVehicle($client, $text)
-            ?? (isset($draft['vehicle_id']) ? $client->vehicles()->find($draft['vehicle_id']) : null);
+        if (($draft['step'] ?? '') === 'register_vehicle' && ! empty($draft['pending_plate'])) {
+            return $this->completeVehicleRegistration($client, $text, $draft);
+        }
+
+        $vehicle = $this->resolveVehicle($client, $text);
+
+        if (! $vehicle && VehiclePlate::extract($text)) {
+            return $this->promptForVehicle($client, $text, $draft);
+        }
+
+        if (! $vehicle && isset($draft['vehicle_id'])) {
+            $vehicle = $client->vehicles()->find($draft['vehicle_id']);
+        }
 
         if (! $vehicle) {
-            if ($client->vehicles()->count() === 0) {
-                session()->forget(self::SESSION_KEY);
-
-                return 'No tienes vehículos registrados. Contacta al taller para registrarlos antes de agendar.';
-            }
-
-            session([self::SESSION_KEY => ['step' => 'vehicle', 'service_hint' => $text]]);
-
-            return 'Indícame la placa del vehículo para agendar la cita (ej: ABC-123).';
+            return $this->promptForVehicle($client, $text, $draft);
         }
 
         $draft['vehicle_id'] = $vehicle->id;
@@ -256,7 +278,7 @@ class ChatbotAppointmentService
             'source' => 'chatbot',
         ]);
 
-        $this->notifyAdvisors($appointment);
+        $this->notifyStaffAboutAppointment($appointment, 'agendada');
         session()->forget(self::SESSION_KEY);
 
         $timeFormatted = $this->formatTime($time);
@@ -380,12 +402,16 @@ class ChatbotAppointmentService
 
     private function resolveVehicle(User $client, string $text): ?Vehicle
     {
-        if (preg_match('/\b([A-Z]{2,3}[-\s]?\d{2,4})\b/i', $text, $matches)) {
-            $plate = $this->normalizePlate($matches[1]);
+        $plate = VehiclePlate::extract($text);
 
+        if ($plate) {
             return $client->vehicles()
                 ->get()
-                ->first(fn (Vehicle $vehicle) => $this->normalizePlate($vehicle->plate) === $plate);
+                ->first(fn (Vehicle $vehicle) => VehiclePlate::normalize($vehicle->plate) === $plate);
+        }
+
+        if ($this->wantsAnotherVehicle($text)) {
+            return null;
         }
 
         if ($client->vehicles()->count() === 1) {
@@ -393,6 +419,228 @@ class ChatbotAppointmentService
         }
 
         return null;
+    }
+
+    private function promptForVehicle(User $client, string $text, array $draft): string
+    {
+        $displayPlate = VehiclePlate::display($text);
+        $hint = trim(($draft['service_hint'] ?? '').' '.$text);
+        $draft = $this->mergeScheduleFromText($draft, $text);
+        $draft['service_hint'] = $hint !== '' ? $hint : ($draft['service_hint'] ?? 'agendar cita');
+
+        if ($displayPlate) {
+            $normalized = VehiclePlate::normalize($displayPlate);
+            $taken = $this->findVehicleByNormalizedPlate($normalized);
+
+            if ($taken && $taken->client_id !== $client->id) {
+                session([self::SESSION_KEY => array_merge($draft, [
+                    'step' => 'vehicle',
+                    'service_hint' => $hint,
+                ])]);
+
+                return "La placa **{$displayPlate}** ya está registrada en otra cuenta. Escribe otra placa.";
+            }
+
+            session([self::SESSION_KEY => array_merge($draft, [
+                'step' => 'register_vehicle',
+                'pending_plate' => VehiclePlate::formatForStorage($displayPlate),
+                'service_hint' => $draft['service_hint'],
+            ])]);
+
+            $owned = $client->vehicles()->count() > 0
+                ? "\n\nTambién puedes usar una de las tuyas:\n".$this->formatVehicleChoices($client)
+                : '';
+
+            return "No tienes la placa **{$displayPlate}** registrada. Puedo agregarla ahora, con cualquier formato.{$owned}\n\n"
+                .'¿Cuál es la marca y el modelo? Ejemplo: Toyota Corolla 2020.';
+        }
+
+        session([self::SESSION_KEY => array_merge($draft, [
+            'step' => 'vehicle',
+            'service_hint' => $draft['service_hint'],
+        ])]);
+
+        if ($client->vehicles()->count() === 0) {
+            return 'Aún no tienes vehículos. Escribe la placa que quieres registrar (cualquier formato, ej: PVP-7506).';
+        }
+
+        return "Indícame la placa del vehículo para agendar la cita. Puedes usar una de las tuyas o escribir una nueva para registrarla.\n\n"
+            .$this->formatVehicleChoices($client);
+    }
+
+    private function completeVehicleRegistration(User $client, string $text, array $draft): string
+    {
+        if ($this->isRegistrationDecline($text)) {
+            unset($draft['pending_plate'], $draft['step']);
+            $draft['step'] = 'vehicle';
+            session([self::SESSION_KEY => $draft]);
+
+            return $this->promptForVehicle($client, '', $draft);
+        }
+
+        $ownedPlate = VehiclePlate::extract($text);
+        if ($ownedPlate) {
+            $owned = $this->resolveVehicle($client, $text);
+            if ($owned) {
+                unset($draft['pending_plate']);
+                $draft['vehicle_id'] = $owned->id;
+                $draft['step'] = 'date';
+                $draft = $this->mergeScheduleFromText($draft, $text);
+                session([self::SESSION_KEY => $draft]);
+
+                return $this->process($client, $text);
+            }
+        }
+
+        $details = $this->parseNewVehicleDetails($text);
+        if ($details !== null) {
+            $normalized = VehiclePlate::normalize((string) $draft['pending_plate']);
+            $taken = $this->findVehicleByNormalizedPlate($normalized);
+            if ($taken) {
+                unset($draft['pending_plate']);
+                $draft['step'] = 'vehicle';
+                session([self::SESSION_KEY => $draft]);
+
+                return 'Esa placa se registró en otra cuenta mientras conversábamos. Escribe otra placa.';
+            }
+
+            $registeredPlate = VehiclePlate::formatForStorage((string) $draft['pending_plate']);
+            $vehicle = Vehicle::create([
+                'client_id' => $client->id,
+                'plate' => $registeredPlate,
+                'brand' => $details['brand'],
+                'model' => $details['model'],
+                'year' => $details['year'],
+                'mileage' => 0,
+                'status' => 'activo',
+                'notes' => 'Registrado desde el chatbot.',
+            ]);
+
+            unset($draft['pending_plate']);
+            $draft['vehicle_id'] = $vehicle->id;
+            $draft['step'] = 'date';
+            $draft = $this->mergeScheduleFromText($draft, $text);
+            session([self::SESSION_KEY => $draft]);
+
+            $hint = trim((string) ($draft['service_hint'] ?? ''));
+            $continueWith = trim($registeredPlate.' '.$hint.' '.$text);
+            $yearLabel = $vehicle->year ? " {$vehicle->year}" : '';
+            $reply = $this->process($client, $continueWith !== '' ? $continueWith : $text);
+
+            return "Registré **{$vehicle->plate}** ({$vehicle->brand} {$vehicle->model}{$yearLabel}).\n\n".$reply;
+        }
+
+        $otherPlate = VehiclePlate::display($text);
+        if ($otherPlate && VehiclePlate::normalize($otherPlate) !== VehiclePlate::normalize((string) $draft['pending_plate'])) {
+            return $this->promptForVehicle($client, $text, $draft);
+        }
+
+        return 'Para registrar **'.$draft['pending_plate'].'** indícame marca y modelo (ej: Toyota Corolla o Kia Rio 2021).';
+    }
+
+    private function mergeScheduleFromText(array $draft, string $text): array
+    {
+        $date = $this->parseDate($text);
+        if ($date && empty($draft['requested_date'])) {
+            $draft['requested_date'] = $date->toDateString();
+        }
+
+        $time = $this->parseTime($text);
+        if ($time && empty($draft['requested_time'])) {
+            $draft['requested_time'] = $time;
+        }
+
+        if (empty($draft['service_reason']) && $this->hasExplicitServiceReason($text)) {
+            $draft['service_reason'] = trim($text);
+        }
+
+        return $draft;
+    }
+
+    private function wantsAnotherVehicle(string $text): bool
+    {
+        $lower = Str::lower($text);
+
+        return Str::contains($lower, [
+            'carro nuevo', 'auto nuevo', 'vehiculo nuevo', 'vehículo nuevo',
+            'otro carro', 'otro auto', 'otro vehiculo', 'otro vehículo',
+            'nueva placa', 'otra placa', 'registrar placa',
+            'registrar carro', 'registrar auto', 'registrar vehiculo', 'registrar vehículo',
+            'agregar carro', 'agregar auto', 'agregar vehiculo', 'agregar vehículo',
+        ]);
+    }
+
+    /**
+     * @return array{brand: string, model: string, year: ?int}|null
+     */
+    private function parseNewVehicleDetails(string $text): ?array
+    {
+        $trimmed = $this->stripScheduleFragments(trim($text));
+        $trimmed = $this->stripServiceFragments($trimmed);
+
+        if (mb_strlen($trimmed) < 3 || VehiclePlate::isStandalone($trimmed)) {
+            return null;
+        }
+
+        $year = null;
+        if (preg_match('/\b((?:19|20)\d{2})\b/', $trimmed, $match)) {
+            $year = (int) $match[1];
+            $trimmed = trim(preg_replace('/\b(?:19|20)\d{2}\b/', '', $trimmed) ?? $trimmed);
+        }
+
+        $parts = preg_split('/\s+/', $trimmed) ?: [];
+        $brand = $parts[0] ?? '';
+        $model = $parts[1] ?? '';
+
+        if (mb_strlen($brand) < 2) {
+            return null;
+        }
+
+        return [
+            'brand' => Str::title($brand),
+            'model' => $model !== '' ? Str::title($model) : 'Sin modelo',
+            'year' => $year,
+        ];
+    }
+
+    private function stripScheduleFragments(string $text): string
+    {
+        $cleaned = preg_replace('/\b(hoy|mañana|manana|pasado\s+mañ?ana|lunes|martes|miércoles|miercoles|jueves|viernes|sábado|sabado|domingo)\b/iu', ' ', $text) ?? $text;
+        $cleaned = preg_replace('/\b\d{1,2}[\/\-]\d{1,2}(?:[\/\-]\d{2,4})?\b/', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/(?:a\s+las|alas|a la)\s+\d{1,2}(?::\d{2})?\b/iu', ' ', $cleaned) ?? $cleaned;
+        $cleaned = preg_replace('/\d{1,2}:\d{2}/', ' ', $cleaned) ?? $cleaned;
+
+        return trim(preg_replace('/\s+/', ' ', $cleaned) ?? $cleaned);
+    }
+
+    private function stripServiceFragments(string $text): string
+    {
+        $cleaned = preg_replace('/\b(cambio de aceite|revision de frenos|revisión de frenos|revision general|revisión general|diagnostico|diagnóstico)\b/iu', ' ', $text) ?? $text;
+
+        return trim(preg_replace('/\s+/', ' ', $cleaned) ?? $cleaned);
+    }
+
+    private function isRegistrationDecline(string $text): bool
+    {
+        $normalized = Str::lower(trim($text));
+
+        return (bool) preg_match('/^(no|nop|nope|nel|mejor no|no gracias|cancelar|otra placa)\b/u', $normalized);
+    }
+
+    private function findVehicleByNormalizedPlate(string $normalized): ?Vehicle
+    {
+        return Vehicle::query()
+            ->whereRaw("UPPER(REPLACE(REPLACE(plate, '-', ''), ' ', '')) = ?", [$normalized])
+            ->first();
+    }
+
+    private function formatVehicleChoices(User $client): string
+    {
+        return $client->vehicles()
+            ->orderBy('plate')
+            ->get()
+            ->map(fn (Vehicle $vehicle) => "• {$vehicle->plate} — {$vehicle->brand} {$vehicle->model}")
+            ->join("\n");
     }
 
     private function parseDate(string $text): ?Carbon
@@ -608,41 +856,52 @@ class ChatbotAppointmentService
         return Str::limit($base, 900);
     }
 
-    private function notifyAdvisors(AppointmentRequest $appointment): void
+    private function notifyStaffAboutAppointment(AppointmentRequest $appointment, string $action, ?string $detail = null): void
     {
-        $appointment->load('client', 'vehicle');
+        $appointment->loadMissing('client', 'vehicle');
 
-        $message = "Cliente {$appointment->client->name} — {$appointment->vehicle->plate} — "
-            ."{$appointment->service_type} el ".$appointment->requested_date->format('d/m/Y').'.';
+        $titles = [
+            'agendada' => 'Nueva solicitud de cita (chatbot)',
+            'actualizada' => 'Cita actualizada por cliente (chatbot)',
+            'cancelada' => 'Cita cancelada por cliente (chatbot)',
+            'eliminada' => 'Cita eliminada por cliente (chatbot)',
+        ];
 
-        if ($appointment->requires_approval) {
+        $message = "Cliente {$appointment->client->name} — "
+            .($appointment->vehicle?->plate ?? 'sin placa').' — '
+            ."{$appointment->service_type} el ".$appointment->requested_date->format('d/m/Y')
+            .' a las '.$this->formatTime($appointment->requested_time).'.';
+
+        if ($detail) {
+            $message .= " Cambio: {$detail}.";
+        }
+
+        if ($appointment->requires_approval && $action === 'agendada') {
             $message .= ' Requiere revisión de trabajos adicionales.';
         }
 
+        $severity = in_array($action, ['cancelada', 'eliminada'], true)
+            ? 'warning'
+            : ($appointment->requires_approval ? 'warning' : 'info');
+
+        Alert::markChatbotAppointmentHandled($appointment);
+
         User::query()
-            ->where('role', UserRole::Advisor)
+            ->whereIn('role', [UserRole::Advisor->value, UserRole::Admin->value])
             ->where('status', 'activo')
-            ->each(function (User $advisor) use ($appointment, $message) {
+            ->each(function (User $staff) use ($appointment, $message, $titles, $action, $severity) {
                 Alert::create([
                     'vehicle_id' => $appointment->vehicle_id,
-                    'user_id' => $advisor->id,
+                    'user_id' => $staff->id,
+                    'appointment_request_id' => $appointment->id,
                     'type' => 'custom',
-                    'title' => 'Nueva solicitud de cita (chatbot)',
+                    'title' => $titles[$action] ?? 'Actualización de cita (chatbot)',
                     'message' => $message,
-                    'severity' => $appointment->requires_approval ? 'warning' : 'info',
+                    'severity' => $severity,
                     'due_date' => $appointment->requested_date,
                 ]);
             });
     }
-
-    private function normalizePlate(string $plate): string
-    {
-        return strtoupper(preg_replace('/[^A-Z0-9]/i', '', $plate) ?? '');
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // GESTIÓN DE CITAS: CONSULTAR, EDITAR, CANCELAR
-    // ─────────────────────────────────────────────────────────────
 
     private function processManage(User $client, string $text): string
     {
@@ -737,8 +996,9 @@ class ChatbotAppointmentService
         $lower = Str::lower($text);
 
         return Str::contains($lower, [
-            'cancelar cita', 'cancelar mi cita', 'cancelar solicitud',
-            'anular cita', 'eliminar cita', 'eliminar mi cita',
+            'cancelar cita', 'cancelar mi cita', 'cancelar solicitud', 'cancelar la cita',
+            'anular cita', 'eliminar cita', 'eliminar mi cita', 'eliminar la cita',
+            'elimina la cita', 'elimina mi cita', 'borrar cita', 'borra mi cita',
             'quiero cancelar', 'quiero eliminar', 'quiero anular',
         ]);
     }
@@ -771,6 +1031,7 @@ class ChatbotAppointmentService
 
         return Str::contains($lower, [
             'mis citas', 'ver citas', 'ver mis citas', 'listar citas', 'consultar citas',
+            'consultar cita', 'consultar mi cita', 'ver mi cita',
             'tengo alguna cita', 'tengo cita', 'citas esta semana', 'historial de citas',
             'todas mis citas', 'muéstrame mis citas', 'muestrame mis citas',
         ]);
@@ -1037,7 +1298,7 @@ class ChatbotAppointmentService
             'status' => 'pendiente',
         ]);
 
-        $this->notifyAdvisorsOfChange($appointment, 'actualizada', 'Motivo actualizado');
+        $this->notifyStaffAboutAppointment($appointment->fresh(['client', 'vehicle']), 'actualizada', 'Motivo actualizado');
         session()->forget(self::SESSION_MANAGE_KEY);
 
         return "Listo. 😊\n\nTu cita fue actualizada correctamente.\n\n"
@@ -1070,8 +1331,8 @@ class ChatbotAppointmentService
             return 'No pude cancelar la cita. Es posible que ya haya sido procesada.';
         }
 
-        $this->notifyAdvisorsOfChange($appointment->fresh(['client', 'vehicle']), 'cancelada');
         $appointment->update(['status' => 'cancelada']);
+        $this->notifyStaffAboutAppointment($appointment->fresh(['client', 'vehicle']), 'cancelada');
         session()->forget(self::SESSION_MANAGE_KEY);
 
         return "Tu cita ha sido cancelada correctamente.\n\n"
@@ -1092,7 +1353,7 @@ class ChatbotAppointmentService
             'status' => 'pendiente',
         ]);
 
-        $this->notifyAdvisorsOfChange($appointment->fresh(['client', 'vehicle']), 'actualizada', "Fecha: {$previousDate} → {$date->format('d/m/Y')}");
+        $this->notifyStaffAboutAppointment($appointment->fresh(['client', 'vehicle']), 'actualizada', "Fecha: {$previousDate} → {$date->format('d/m/Y')}");
 
         session([
             self::SESSION_MANAGE_KEY => [
@@ -1114,7 +1375,7 @@ class ChatbotAppointmentService
             'status' => 'pendiente',
         ]);
 
-        $this->notifyAdvisorsOfChange($appointment->fresh(['client', 'vehicle']), 'actualizada', "Hora: {$previousTime} → {$this->formatTime($time)}");
+        $this->notifyStaffAboutAppointment($appointment->fresh(['client', 'vehicle']), 'actualizada', "Hora: {$previousTime} → {$this->formatTime($time)}");
         session()->forget(self::SESSION_MANAGE_KEY);
 
         return "Listo. 😊\n\nTu cita fue actualizada correctamente.\n\n"
@@ -1264,39 +1525,6 @@ class ChatbotAppointmentService
         $all = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00'];
 
         return array_values(array_filter($all, fn (string $slot) => ! in_array($slot, $booked, true)));
-    }
-
-    private function notifyAdvisorsOfChange(AppointmentRequest $appointment, string $action, ?string $detail = null): void
-    {
-        $appointment->loadMissing('client', 'vehicle');
-
-        $titles = [
-            'actualizada' => 'Cita actualizada por cliente (chatbot)',
-            'cancelada' => 'Cita cancelada por cliente (chatbot)',
-        ];
-
-        $message = "Cliente {$appointment->client->name} — {$appointment->vehicle->plate} — "
-            ."{$appointment->service_type} el ".$appointment->requested_date->format('d/m/Y')
-            .' a las '.$this->formatTime($appointment->requested_time).'.';
-
-        if ($detail) {
-            $message .= " Cambio: {$detail}.";
-        }
-
-        User::query()
-            ->where('role', UserRole::Advisor)
-            ->where('status', 'activo')
-            ->each(function (User $advisor) use ($appointment, $message, $titles, $action) {
-                Alert::create([
-                    'vehicle_id' => $appointment->vehicle_id,
-                    'user_id' => $advisor->id,
-                    'type' => 'custom',
-                    'title' => $titles[$action] ?? 'Actualización de cita (chatbot)',
-                    'message' => $message,
-                    'severity' => $action === 'cancelada' ? 'warning' : 'info',
-                    'due_date' => $appointment->requested_date,
-                ]);
-            });
     }
 
     private function isAffirmative(string $text): bool

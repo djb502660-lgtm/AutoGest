@@ -28,7 +28,7 @@ class AppointmentController extends Controller
 
         $appointments = $query->paginate(10)->withQueryString();
 
-        return view('advisor.appointments.index', [
+        return view('advisor.appointments.agenda', [
             'appointments' => $appointments,
             'date' => $date,
             'status' => $status,

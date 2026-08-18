@@ -51,7 +51,7 @@
                             <td>
                                 <div class="actions-inline">
                                     <a href="{{ route('vehicles.edit', $vehicle) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                    <form method="POST" action="{{ route('vehicles.destroy', $vehicle) }}" onsubmit="return confirm('¿Eliminar o desactivar este vehículo?')">
+                                    <form method="POST" action="{{ route('vehicles.destroy', $vehicle) }}" data-confirm="¿Eliminar o desactivar este vehículo?" data-confirm-title="Eliminar vehículo" data-confirm-label="Eliminar">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
                                     </form>

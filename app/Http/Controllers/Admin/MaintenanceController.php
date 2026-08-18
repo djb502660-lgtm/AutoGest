@@ -88,7 +88,7 @@ class MaintenanceController extends Controller
     {
         $this->authorize('view', $maintenance);
 
-        $maintenance->load(['vehicle', 'mechanic', 'serviceOrder.photos']);
+        $maintenance->load(['vehicle', 'mechanic', 'serviceOrder.photos.user']);
 
         return view('admin.maintenances.show', compact('maintenance'));
     }

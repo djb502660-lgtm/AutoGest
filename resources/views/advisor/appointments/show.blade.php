@@ -1,4 +1,4 @@
-@extends('layouts.advisor')
+@extends($layout ?? 'layouts.advisor')
 
 @section('title', 'Solicitud #'.$appointment->id)
 @section('heading', 'Solicitud de cita vía chatbot')
@@ -7,7 +7,7 @@
 @endsection
 
 @section('top-actions')
-    <a href="{{ route('advisor.appointments.index') }}" class="btn btn-secondary">← Volver</a>
+    <a href="{{ route($indexRoute ?? 'advisor.chatbot-appointments.index') }}" class="btn btn-secondary">← Volver</a>
 @endsection
 
 @section('content')
@@ -37,7 +37,7 @@
         <div class="grid-2">
             <div class="panel">
                 <h3 style="margin:0 0 12px;">Confirmar y crear orden</h3>
-                <form method="POST" action="{{ route('advisor.appointments.confirm', $appointment) }}">
+                <form method="POST" action="{{ route($confirmRoute ?? 'advisor.chatbot-appointments.confirm', $appointment) }}">
                     @csrf
                     <div class="field">
                         <label for="mechanic_id">Mecánico (opcional)</label>
@@ -57,7 +57,7 @@
             </div>
             <div class="panel">
                 <h3 style="margin:0 0 12px;">Rechazar solicitud</h3>
-                <form method="POST" action="{{ route('advisor.appointments.reject', $appointment) }}">
+                <form method="POST" action="{{ route($rejectRoute ?? 'advisor.chatbot-appointments.reject', $appointment) }}" data-confirm="¿Rechazar esta solicitud? El cliente será notificado con el motivo indicado." data-confirm-title="Rechazar solicitud" data-confirm-label="Rechazar">
                     @csrf
                     <div class="field">
                         <label for="reject_notes">Motivo (se notifica al cliente) *</label>
@@ -69,7 +69,7 @@
         </div>
     @elseif ($appointment->serviceOrder)
         <div class="panel">
-            <p>Orden generada: <a href="{{ route('advisor.orders.show', $appointment->serviceOrder) }}">{{ $appointment->serviceOrder->order_number }}</a></p>
+            <p>Orden generada: <a href="{{ route($orderRoute ?? 'advisor.orders.show', $appointment->serviceOrder) }}">{{ $appointment->serviceOrder->order_number }}</a></p>
         </div>
     @endif
 @endsection

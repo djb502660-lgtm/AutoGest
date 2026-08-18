@@ -42,7 +42,7 @@
                         <td>
                             <div class="actions-inline">
                                 <a href="{{ route('brands.edit', $brand) }}" class="btn btn-secondary btn-sm">Editar</a>
-                                <form method="POST" action="{{ route('brands.destroy', $brand) }}" onsubmit="return confirm('¿Eliminar esta marca?')">
+                                <form method="POST" action="{{ route('brands.destroy', $brand) }}" data-confirm="¿Eliminar esta marca?" data-confirm-title="Eliminar marca" data-confirm-label="Eliminar">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
