@@ -29,6 +29,7 @@ RUN apk add --no-cache \
     oniguruma-dev \
     unzip \
     zip \
+    ca-certificates \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
     bcmath \

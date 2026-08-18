@@ -26,7 +26,9 @@ services:
       - key: DB_HOST
         sync: false
       - key: DB_PORT
-        value: "3306"
+        value: "23663"
+      - key: MYSQL_ATTR_SSL_VERIFY_SERVER_CERT
+        value: "false"
       - key: DB_DATABASE
         sync: false
       - key: DB_USERNAME
