@@ -1,5 +1,5 @@
-import { Badge, Button, Card, Loading, Muted, ScrollScreen, Title } from '../../../src/components/ui';
-import { api, type Appointment } from '../../../src/lib/api';
+import { Badge, Button, Card, Empty, Loading, Muted, ScrollScreen, Title } from '../../../src/components/ui';
+import { api, apiErrorMessage, type Appointment } from '../../../src/lib/api';
 import { useAuth } from '../../../src/lib/auth';
 import { colors, statusTone } from '../../../src/lib/theme';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +28,7 @@ export default function AppointmentDetailScreen() {
       Alert.alert('Confirmada', 'La solicitud se convirtió en orden.');
       router.replace('/(app)/orders');
     },
-    onError: (error: any) => Alert.alert('Error', error?.response?.data?.message ?? 'No se pudo confirmar.'),
+    onError: (error: unknown) => Alert.alert('Error', apiErrorMessage(error, 'No se pudo confirmar.')),
   });
 
   const reject = useMutation({
@@ -38,11 +38,26 @@ export default function AppointmentDetailScreen() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();
     },
-    onError: (error: any) => Alert.alert('Error', error?.response?.data?.message ?? 'Indica una nota para rechazar.'),
+    onError: (error: unknown) => Alert.alert('Error', apiErrorMessage(error, 'Indica una nota para rechazar.')),
   });
 
-  if (query.isLoading || !query.data) {
+  if (query.isLoading) {
     return <Loading />;
+  }
+
+  if (query.isError || !query.data) {
+    return (
+      <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+        <Empty
+          icon="warning-outline"
+          title="No se pudo cargar la solicitud"
+          actionLabel="Reintentar"
+          onAction={() => void query.refetch()}
+        >
+          {apiErrorMessage(query.error, 'Revisa tu conexión e intenta de nuevo.')}
+        </Empty>
+      </ScrollScreen>
+    );
   }
 
   const item = query.data;
@@ -69,8 +84,8 @@ export default function AppointmentDetailScreen() {
             style={styles.input}
             multiline
           />
-          <Button title="Confirmar" onPress={() => confirm.mutate()} />
-          <Button title="Rechazar" variant="danger" onPress={() => reject.mutate()} />
+          <Button title="Confirmar" disabled={confirm.isPending || reject.isPending} onPress={() => confirm.mutate()} />
+          <Button title="Rechazar" variant="danger" disabled={confirm.isPending || reject.isPending} onPress={() => reject.mutate()} />
         </Card>
       ) : null}
     </ScrollScreen>

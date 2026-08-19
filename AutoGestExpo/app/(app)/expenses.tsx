@@ -1,5 +1,5 @@
 import { Card, Empty, Loading, Muted, ScrollScreen } from '../../src/components/ui';
-import { api } from '../../src/lib/api';
+import { api, apiErrorMessage } from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
 import { colors } from '../../src/lib/theme';
 import { useQuery } from '@tanstack/react-query';
@@ -19,8 +19,13 @@ export default function ExpensesScreen() {
   if (query.isError) {
     return (
       <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
-        <Empty icon="wallet-outline" title="Gastos no disponibles">
-          El resumen aparecerá cuando haya servicios facturados en el taller.
+        <Empty
+          icon="warning-outline"
+          title="No se pudieron cargar los gastos"
+          actionLabel="Reintentar"
+          onAction={() => void query.refetch()}
+        >
+          {apiErrorMessage(query.error, 'Revisa tu conexión e intenta de nuevo.')}
         </Empty>
       </ScrollScreen>
     );

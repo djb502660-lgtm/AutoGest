@@ -55,7 +55,7 @@ export default function UserDetailScreen() {
       </Card>
       {vehicles.length ? (
         <Card>
-          {vehicles.map((vehicle) => (
+          {vehicles.map((vehicle: NonNullable<StaffUser['vehicles']>[number]) => (
             <Muted key={vehicle.id}>{`${vehicle.plate} · ${vehicle.brand} ${vehicle.model}`}</Muted>
           ))}
         </Card>

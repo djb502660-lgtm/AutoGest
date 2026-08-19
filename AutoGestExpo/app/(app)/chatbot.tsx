@@ -1,5 +1,5 @@
 import { Empty, Loading } from '../../src/components/ui';
-import { api } from '../../src/lib/api';
+import { api, apiErrorMessage } from '../../src/lib/api';
 import { useAuth } from '../../src/lib/auth';
 import { colors } from '../../src/lib/theme';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -42,6 +42,7 @@ export default function ChatbotScreen() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
+  const [sendError, setSendError] = useState('');
 
   const query = useQuery({
     queryKey: ['chatbot', user?.id],
@@ -52,7 +53,11 @@ export default function ChatbotScreen() {
     mutationFn: async (message: string) => (await api.post('/chatbot/messages', { message })).data as { reply: string },
     onSuccess: () => {
       setText('');
+      setSendError('');
       queryClient.invalidateQueries({ queryKey: ['chatbot'] });
+    },
+    onError: (error: unknown) => {
+      setSendError(apiErrorMessage(error, 'No se pudo enviar el mensaje. Intenta de nuevo.'));
     },
   });
 
@@ -61,6 +66,7 @@ export default function ChatbotScreen() {
     if (!value || send.isPending) {
       return;
     }
+    setSendError('');
     send.mutate(value);
   }
 
@@ -71,8 +77,13 @@ export default function ChatbotScreen() {
   if (query.isError) {
     return (
       <View style={styles.screen}>
-        <Empty icon="chatbubbles-outline" title="Chat no disponible" actionLabel="Reintentar" onAction={() => query.refetch()}>
-          El asistente no responde ahora. Vehículos y órdenes sí funcionan.
+        <Empty
+          icon="chatbubbles-outline"
+          title="Chat no disponible"
+          actionLabel="Reintentar"
+          onAction={() => void query.refetch()}
+        >
+          {apiErrorMessage(query.error, 'El asistente no responde ahora. Vehículos y órdenes sí funcionan.')}
         </Empty>
       </View>
     );
@@ -120,6 +131,7 @@ export default function ChatbotScreen() {
           ))}
         </View>
       ) : null}
+      {sendError ? <Text style={styles.sendError}>{sendError}</Text> : null}
       <View style={styles.composer}>
         <TextInput
           value={text}
@@ -196,4 +208,5 @@ const styles = StyleSheet.create({
   },
   sendOff: { opacity: 0.45 },
   sendText: { color: '#fff', fontWeight: '800' },
+  sendError: { color: colors.danger, fontWeight: '600', fontSize: 13, paddingHorizontal: 4 },
 });

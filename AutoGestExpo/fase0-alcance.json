@@ -1,0 +1,42 @@
+{
+  "version": "1.3.0",
+  "frozenAt": "2026-08-19",
+  "expoGoApi": "http://192.168.1.9/AutoGest/public/api",
+  "apkApi": "https://autogest-jlm7.onrender.com/api",
+  "inScope": {
+    "cliente": ["login", "home", "vehiculos", "ordenes", "chat", "gastos", "salir"],
+    "asesor": ["login", "home", "ordenes", "solicitudes", "salir"],
+    "mecanico": ["login", "home", "ordenes", "evidencias", "salir"],
+    "admin": ["login", "home", "flota", "ordenes", "solicitudes", "equipo", "salir"]
+  },
+  "outOfScope": [
+    "inventario",
+    "reportes",
+    "auditoria",
+    "alta_edicion_usuarios",
+    "crear_orden",
+    "asignar_mecanico",
+    "mantenimientos",
+    "registro_publico"
+  ],
+  "matrixScript": "scripts/fase0-matriz.ps1",
+  "lastRun": {
+    "date": "2026-08-19",
+    "phpunit": "ApiV1MobileTest 6/6",
+    "local": "4/4 roles PASS",
+    "render": "4/4 roles PASS"
+  },
+  "apk": {
+    "version": "1.3.0",
+    "versionCode": 5,
+    "builtAt": "2026-08-19",
+    "method": "gradle-local",
+    "files": [
+      "AutoGestExpo/AutoGest-release-1.3.0.apk",
+      "public/downloads/AutoGest-1.3.0.apk"
+    ],
+    "downloadUrlLocal": "http://autogest.test/downloads/AutoGest-1.3.0.apk",
+    "downloadUrlRender": "https://autogest-jlm7.onrender.com/downloads/AutoGest-1.3.0.apk",
+    "notes": "Render API login 500 al 19-ago; revisar logs/DB antes de probar APK en producción."
+  }
+}

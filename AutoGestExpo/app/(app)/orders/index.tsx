@@ -19,7 +19,7 @@ export default function OrdersScreen() {
   const { role, user } = useAuth();
   const router = useRouter();
   const [filter, setFilter] = useState<(typeof filters)[number]['value']>('abiertas');
-  const query = useQuery({
+  const query = useQuery<Order[]>({
     queryKey: ['orders', user?.id],
     queryFn: async () =>
       ((await api.get('/orders')).data.orders ?? []).map((item: Record<string, unknown>) => normalizeOrder(item)),
@@ -33,12 +33,12 @@ export default function OrdersScreen() {
       return items;
     }
     if (filter === 'abiertas') {
-      return items.filter((order) => !['completada', 'entregada', 'cancelada'].includes(order.status));
+      return items.filter((order: Order) => !['completada', 'entregada', 'cancelada'].includes(order.status));
     }
     if (filter === 'completada') {
-      return items.filter((order) => ['completada', 'entregada'].includes(order.status));
+      return items.filter((order: Order) => ['completada', 'entregada'].includes(order.status));
     }
-    return items.filter((order) => order.status === filter);
+    return items.filter((order: Order) => order.status === filter);
   }, [filter, isStaff, query.data]);
 
   if (query.isLoading) {

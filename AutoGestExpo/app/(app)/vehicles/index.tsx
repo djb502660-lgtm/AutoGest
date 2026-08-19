@@ -18,6 +18,21 @@ export default function VehiclesScreen() {
     return <Loading />;
   }
 
+  if (query.isError) {
+    return (
+      <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+        <Empty
+          icon="warning-outline"
+          title="No se pudo cargar la flota"
+          actionLabel="Reintentar"
+          onAction={() => void query.refetch()}
+        >
+          Revisa tu conexión e intenta de nuevo.
+        </Empty>
+      </ScrollScreen>
+    );
+  }
+
   const vehicles = query.data ?? [];
 
   return (

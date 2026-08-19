@@ -8,6 +8,7 @@ import {
   statusesForRole,
   updateOrderStatus,
   uploadOrderPhoto,
+  type Order,
   type Photo,
   type PhotoType,
 } from '../../../src/lib/api';
@@ -17,6 +18,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Redirect, useLocalSearchParams } from 'expo-router';
+
+type OrderComment = NonNullable<Order['comments']>[number];
 import { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
@@ -264,7 +267,7 @@ export default function OrderDetailScreen() {
       {(order.comments ?? []).length ? (
         <Card>
           <Text style={styles.strong}>Observaciones</Text>
-          {(order.comments ?? []).map((item) => (
+          {(order.comments ?? []).map((item: OrderComment) => (
             <View key={item.id} style={styles.comment}>
               <Text style={styles.commentAuthor}>{item.user?.name ?? 'Taller'}</Text>
               <Muted>{item.comment}</Muted>

@@ -1,3 +1,5 @@
+import Constants from 'expo-constants';
+
 export const colors = {
   bg: '#0F52A3',
   page: '#EEF4FB',
@@ -51,7 +53,32 @@ export function statusTone(status?: string): 'info' | 'success' | 'warning' | 'd
   return 'info';
 }
 
-export const apiUrl =
-  process.env.EXPO_PUBLIC_API_URL ?? 'https://autogest-jlm7.onrender.com/api';
+export const RENDER_API_URL = 'https://autogest-jlm7.onrender.com/api';
+
+function firstHttpUrl(...values: Array<string | undefined>): string {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed && /^https?:\/\//i.test(trimmed)) {
+      return trimmed.replace(/\/+$/, '');
+    }
+  }
+  return RENDER_API_URL;
+}
+
+export const apiUrl = __DEV__
+  ? firstHttpUrl(process.env.EXPO_PUBLIC_API_URL, RENDER_API_URL)
+  : firstHttpUrl(
+      Constants.expoConfig?.extra?.apiUrl as string | undefined,
+      process.env.EXPO_PUBLIC_API_URL,
+      RENDER_API_URL,
+    );
 
 export const apiOrigin = apiUrl.replace(/\/api(\/v1)?\/?$/, '');
+
+export const apiHost = (() => {
+  try {
+    return new URL(apiUrl).host;
+  } catch {
+    return apiUrl;
+  }
+})();

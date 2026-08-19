@@ -30,7 +30,7 @@ export default function UsersScreen() {
     if (filter === 'todos') {
       return items;
     }
-    return items.filter((user) => user.role === filter);
+    return items.filter((user: StaffUser) => user.role === filter);
   }, [filter, query.data]);
 
   if (role !== 'admin') {
@@ -69,7 +69,7 @@ export default function UsersScreen() {
           El alta y la edición completa de cuentas se hace en la web.
         </Empty>
       ) : null}
-      {users.map((user) => (
+      {users.map((user: StaffUser) => (
         <Link key={user.id} href={`/(app)/users/${user.id}`} asChild>
           <Pressable>
             <ListRow

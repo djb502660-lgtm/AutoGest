@@ -1,23 +1,85 @@
-import axios, { isAxiosError } from 'axios';
+import axios, { isAxiosError, type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { Platform } from 'react-native';
-import { getToken } from './session';
-import { apiOrigin, apiUrl } from './theme';
+import { clearSession, getToken } from './session';
+import { apiHost, apiOrigin, apiUrl } from './theme';
+
+type RetryConfig = InternalAxiosRequestConfig & { __retryCount?: number };
+
+function isFormDataBody(data: unknown): boolean {
+  return typeof FormData !== 'undefined' && data instanceof FormData;
+}
+
+let unauthorizedHandler: (() => void) | null = null;
+
+export function onUnauthorized(handler: (() => void) | null): void {
+  unauthorizedHandler = handler;
+}
+
+function requestPath(config?: InternalAxiosRequestConfig): string {
+  return `${config?.url ?? ''}`;
+}
 
 export const api = axios.create({
   baseURL: apiUrl,
-  timeout: 20000,
+  timeout: Platform.OS === 'web' ? 45000 : 20000,
   headers: {
     Accept: 'application/json',
   },
+  transitional: {
+    clarifyTimeoutError: true,
+  },
+  ...(Platform.OS === 'web' ? {} : { adapter: 'fetch' as const }),
 });
+
+if (__DEV__) {
+  console.log(`[AutoGest API] ${Platform.OS} → ${apiUrl}`);
+}
 
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (config.data && !isFormDataBody(config.data) && !config.headers['Content-Type']) {
+    config.headers['Content-Type'] = 'application/json';
+  }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const config = error.config as RetryConfig | undefined;
+    const method = (config?.method ?? 'get').toLowerCase();
+    const path = requestPath(config);
+    const networkFail = !error.response;
+    const retries = config?.__retryCount ?? 0;
+
+    if (config && networkFail && method === 'get' && retries < 1) {
+      config.__retryCount = retries + 1;
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      return api.request(config);
+    }
+
+    if (error.response?.status === 401 && !path.includes('/login')) {
+      await clearSession();
+      unauthorizedHandler?.();
+    }
+
+    if (__DEV__) {
+      console.warn('[AutoGest API] request failed', {
+        url: `${config?.baseURL ?? apiUrl}${path}`,
+        method,
+        code: error.code,
+        message: error.message,
+        status: error.response?.status ?? null,
+        platform: Platform.OS,
+      });
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export type Role = 'admin' | 'asesor' | 'mecanico' | 'cliente';
 
@@ -135,6 +197,13 @@ export type PhotoType = 'reception' | 'before' | 'after' | 'evidence';
 
 export function apiErrorMessage(error: unknown, fallback = 'Ocurrió un error'): string {
   if (isAxiosError(error)) {
+    if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.code === 'ERR_CANCELED') {
+      return `El servidor (${apiHost}) tardó demasiado. Espera unos segundos e intenta de nuevo.`;
+    }
+    if (!error.response) {
+      const detail = error.code ? `${error.message} [${error.code}]` : error.message;
+      return `Sin conexión con ${apiHost}. ${detail}`;
+    }
     const data = error.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
     if (data?.message) {
       return data.message;

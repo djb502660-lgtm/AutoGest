@@ -1,5 +1,5 @@
-import { Badge, Card, Loading, Muted, ScrollScreen, Title } from '../../../src/components/ui';
-import { api, type Vehicle } from '../../../src/lib/api';
+import { Badge, Card, Empty, Loading, Muted, ScrollScreen, Title } from '../../../src/components/ui';
+import { api, apiErrorMessage, type Vehicle } from '../../../src/lib/api';
 import { statusTone } from '../../../src/lib/theme';
 import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
@@ -15,8 +15,23 @@ export default function VehicleDetailScreen() {
     },
   });
 
-  if (query.isLoading || !query.data) {
+  if (query.isLoading) {
     return <Loading />;
+  }
+
+  if (query.isError || !query.data) {
+    return (
+      <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+        <Empty
+          icon="warning-outline"
+          title="No se pudo cargar el vehículo"
+          actionLabel="Reintentar"
+          onAction={() => void query.refetch()}
+        >
+          {apiErrorMessage(query.error, 'Revisa tu conexión e intenta de nuevo.')}
+        </Empty>
+      </ScrollScreen>
+    );
   }
 
   const vehicle = query.data;

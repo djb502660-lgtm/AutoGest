@@ -3,7 +3,7 @@ import { colors } from '../../src/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 function tabIcon(on: keyof typeof Ionicons.glyphMap, off: keyof typeof Ionicons.glyphMap) {
   return ({ color, focused }: { color: string; focused: boolean }) => (
@@ -73,7 +73,15 @@ function LogoutButton() {
 }
 
 export default function AppLayout() {
-  const { user, role } = useAuth();
+  const { user, role, ready, loggingIn } = useAuth();
+
+  if (!ready || loggingIn) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator color="#fff" size="large" />
+      </View>
+    );
+  }
 
   if (!user) {
     return <Redirect href="/(auth)/login" />;

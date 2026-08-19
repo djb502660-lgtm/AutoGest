@@ -53,12 +53,7 @@ Configurar en el panel de Vercel, no en el repositorio:
 
 ## 2. Plan para app movil con Expo
 
-El repositorio ya contiene dos experimentos moviles:
-
-- `AutoGestExpo/`: base Expo
-- `AutoGestMobile/`: base React Native CLI
-
-La recomendacion es consolidar en **Expo** y dejar `AutoGestMobile/` como legado o referencia temporal.
+La app movil viva esta en `AutoGestExpo/` (Expo + Expo Router).
 
 ## 3. Objetivo de la app movil
 
@@ -99,7 +94,6 @@ Aunque ya existe `routes/api.php`, antes de construir la app completa conviene:
 ### Fase 0. Decision tecnica
 
 - tomar `AutoGestExpo/` como punto de partida
-- congelar `AutoGestMobile/`
 - definir si la primera entrega sera solo Android
 
 ### Fase 1. Base Expo
