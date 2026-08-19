@@ -131,20 +131,27 @@ Mantener la base actual si ya tienes un host remoto accesible desde internet.
 
 ## 10. Migraciones
 
-No metas migraciones destructivas en el `build command` al primer intento.
-
-Hazlas manualmente primero:
+El contenedor Docker ejecuta migraciones al arrancar (`docker/render-entrypoint.sh`):
 
 ```bash
-php artisan migrate --force
+php artisan migrate --force --no-interaction
 ```
 
-En Render puedes correr esto desde:
+Si el login falla con cuentas demo tras un deploy vacío, activa temporalmente en Render:
 
-- `Shell` del servicio, o
-- un job puntual
+```env
+AUTOGEST_RESET_DEMO_PASSWORDS=true
+```
 
-Cuando confirmes estabilidad, se puede automatizar.
+y redeploya. Luego vuelve a `false`.
+
+Para diagnóstico manual desde Shell:
+
+```bash
+php artisan migrate:status
+php artisan migrate --force
+php artisan autogest:reset-demo-passwords
+```
 
 ## 11. Storage y fotos
 

@@ -49,3 +49,7 @@ services:
         value: public
       - key: VIEW_COMPILED_PATH
         value: /tmp/framework/views
+      - key: ANDROID_APK_URL
+        value: https://autogest-jlm7.onrender.com/downloads/AutoGest-1.3.0.apk
+      - key: AUTOGEST_RESET_DEMO_PASSWORDS
+        value: "false"

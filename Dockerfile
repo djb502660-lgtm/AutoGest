@@ -50,10 +50,11 @@ RUN printf 'upload_max_filesize=12M\npost_max_size=12M\n' > /usr/local/etc/php/c
     && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --no-progress \
     && mkdir -p storage/app/public storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache /tmp/framework/views \
     && ln -sfn /var/www/html/storage/app/public /var/www/html/public/storage \
-    && chown -R www-data:www-data storage bootstrap/cache /tmp/framework public/storage
+    && chmod +x /var/www/html/docker/render-entrypoint.sh \
+    && chown -R www-data:www-data storage bootstrap/cache /tmp/framework public/storage docker/render-entrypoint.sh
 
 USER www-data
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-10000}"]
+CMD ["/var/www/html/docker/render-entrypoint.sh"]
