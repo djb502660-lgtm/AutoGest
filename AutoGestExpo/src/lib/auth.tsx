@@ -20,18 +20,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     (async () => {
-      const token = await getToken();
-      const stored = await getStoredUser();
-      if (token && stored) {
-        try {
-          const { data } = await api.get('/user');
-          setUser(data.user);
-        } catch {
-          await clearSession();
-          setUser(null);
+      try {
+        const token = await getToken();
+        const stored = await getStoredUser();
+        if (token && stored) {
+          try {
+            const { data } = await api.get('/user');
+            setUser(data.user);
+          } catch {
+            await clearSession();
+            setUser(null);
+          }
         }
+      } catch {
+        await clearSession();
+        setUser(null);
+      } finally {
+        setReady(true);
       }
-      setReady(true);
     })();
   }, []);
 

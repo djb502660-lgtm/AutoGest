@@ -2,16 +2,25 @@
   "expo": {
     "name": "AutoGest",
     "slug": "autogest",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "autogest",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "backgroundColor": "#0F52A3",
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F52A3"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#0F52A3",
+      "barStyle": "light-content"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#0F52A3",
+      "barStyle": "light-content"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -26,6 +35,7 @@
         "backgroundColor": "#0F52A3"
       },
       "package": "com.autogest.app",
+      "backgroundColor": "#0F52A3",
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.CAMERA",

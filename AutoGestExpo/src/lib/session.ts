@@ -16,8 +16,12 @@ export async function saveSession(token: string, user: AuthUser): Promise<void> 
 }
 
 export async function getStoredUser(): Promise<AuthUser | null> {
-  const raw = await AsyncStorage.getItem(USER_KEY);
-  return raw ? (JSON.parse(raw) as AuthUser) : null;
+  try {
+    const raw = await AsyncStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as AuthUser) : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function clearSession(): Promise<void> {
