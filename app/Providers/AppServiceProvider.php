@@ -18,11 +18,24 @@ class AppServiceProvider extends ServiceProvider
     {
         if ($rootUrl = config('app.url')) {
             $rootUrl = rtrim($rootUrl, '/');
-            URL::forceRootUrl($rootUrl);
 
-            if (str_starts_with($rootUrl, 'https://')) {
-                URL::forceScheme('https');
-                config(['session.secure' => true]);
+            if ($this->app->runningInConsole()) {
+                URL::forceRootUrl($rootUrl);
+            } else {
+                $request = request();
+                $requestHost = $request->getHost();
+                $configuredHost = parse_url($rootUrl, PHP_URL_HOST) ?: '';
+
+                if ($requestHost && $configuredHost && strcasecmp($requestHost, $configuredHost) !== 0) {
+                    URL::forceRootUrl($request->getSchemeAndHttpHost());
+                } else {
+                    URL::forceRootUrl($rootUrl);
+
+                    if (str_starts_with($rootUrl, 'https://')) {
+                        URL::forceScheme('https');
+                        config(['session.secure' => true]);
+                    }
+                }
             }
         }
 

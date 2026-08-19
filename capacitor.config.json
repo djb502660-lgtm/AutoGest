@@ -3,7 +3,7 @@
   "appName": "AutoGest",
   "webDir": "capacitor-www",
   "server": {
-    "url": "http://192.168.1.38/",
+    "url": "http://192.168.1.9/",
     "cleartext": true
   },
   "android": {
