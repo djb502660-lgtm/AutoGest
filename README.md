@@ -91,6 +91,7 @@ MySQL, base `autogest` (ver `.env`).
 
 ## Documentación
 
+- **[Manual operativo](docs/MANUAL_GUIA.md)** — Laragon, Expo Go, APK, Render, Aiven y troubleshooting
 - [Casos de uso](docs/CASOS_DE_USO.md)
 - [Esquema de base de datos](docs/ESQUEMA_BASE_DATOS.md)
 - [Estructura detallada](docs/ESTRUCTURA_PROYECTO.md)

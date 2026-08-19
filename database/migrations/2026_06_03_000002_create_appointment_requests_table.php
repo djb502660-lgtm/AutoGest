@@ -20,7 +20,7 @@ return new class extends Migration
             $table->text('description');
             $table->text('additional_work')->nullable();
             $table->boolean('requires_approval')->default(false);
-            $table->enum('status', ['pendiente', 'confirmada', 'rechazada', 'convertida'])->default('pendiente');
+            $table->enum('status', ['pendiente', 'confirmada', 'rechazada', 'convertida', 'cancelada'])->default('pendiente');
             $table->string('source', 20)->default('chatbot');
             $table->text('advisor_notes')->nullable();
             $table->timestamps();
