@@ -1,21 +1,40 @@
 export const colors = {
-  bg: '#0f172a',
-  page: '#f0f4f9',
+  bg: '#0F52A3',
+  page: '#EEF4FB',
   card: '#ffffff',
-  muted: '#64748b',
-  text: '#0f172a',
+  muted: '#5B6B80',
+  text: '#0F1F33',
   textSecondary: '#334155',
-  primary: '#0284c7',
-  primarySoft: '#e0f2fe',
-  accent: '#0d9488',
-  warning: '#f59e0b',
-  warningSoft: '#fef3c7',
-  danger: '#ef4444',
-  dangerSoft: '#fee2e2',
-  success: '#10b981',
-  successSoft: '#d1fae5',
-  border: '#e2e8f0',
-  soft: '#f8fafc',
+  primary: '#0284C7',
+  primaryDark: '#0369A1',
+  primarySoft: '#E0F2FE',
+  accent: '#0F52A3',
+  warning: '#D97706',
+  warningSoft: '#FEF3C7',
+  danger: '#DC2626',
+  dangerSoft: '#FEE2E2',
+  success: '#059669',
+  successSoft: '#D1FAE5',
+  border: '#D7E3F0',
+  soft: '#F8FBFF',
+};
+
+export const radius = {
+  sm: 10,
+  md: 14,
+  lg: 20,
+  xl: 28,
+  pill: 999,
+};
+
+export const shadow = {
+  card: {
+    shadowColor: '#0F1F33',
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
 };
 
 export function statusTone(status?: string): 'info' | 'success' | 'warning' | 'danger' | 'neutral' {

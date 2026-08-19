@@ -417,6 +417,15 @@ class ChatbotService
     {
         $context = session(self::CONTEXT_KEY, []);
 
+        if (($context['last_topic'] ?? '') === 'vehicle_list' && $user) {
+            $matched = $this->appointments->matchOwnedVehicle($user, $message);
+            if ($matched) {
+                $plate = (string) ($this->extractPlate($matched->plate) ?: strtoupper((string) preg_replace('/[^A-Z0-9]/i', '', $matched->plate)));
+
+                return $this->vehicleByPlate($user, $plate, $matched->plate);
+            }
+        }
+
         if (($context['last_topic'] ?? '') === 'datetime_hint') {
             if ($this->isAffirmative($normalized)) {
                 $hint = trim((string) ($context['datetime_text'] ?? ''));

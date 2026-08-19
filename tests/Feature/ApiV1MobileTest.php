@@ -131,6 +131,28 @@ class ApiV1MobileTest extends TestCase
             ->assertJsonStructure(['reply']);
     }
 
+    public function test_admin_can_load_operations_dashboard(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $client = User::factory()->client()->create();
+        $mechanic = User::factory()->mechanic()->create();
+        $vehicle = $this->makeVehicle($client);
+        $this->makeOrder($client, $vehicle, $mechanic);
+
+        $token = $admin->createToken('mobile-app')->plainTextToken;
+
+        $this->withToken($token)
+            ->getJson('/api/v1/dashboard')
+            ->assertOk()
+            ->assertJsonPath('role', 'admin')
+            ->assertJsonPath('stats.open_orders', 1)
+            ->assertJsonStructure([
+                'stats' => ['open_orders', 'pending_appointments', 'vehicles', 'users'],
+                'recent_orders',
+                'pending_appointments',
+            ]);
+    }
+
     private function seedClientFleet(User $client): void
     {
         $vehicle = $this->makeVehicle($client);

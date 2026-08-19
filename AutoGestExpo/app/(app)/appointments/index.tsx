@@ -1,9 +1,9 @@
-import { Badge, Card, Empty, Loading, Muted, ScrollScreen } from '../../../src/components/ui';
+import { Empty, ListRow, Loading, ScrollScreen } from '../../../src/components/ui';
 import { api, type Appointment } from '../../../src/lib/api';
-import { colors, statusTone } from '../../../src/lib/theme';
+import { statusTone } from '../../../src/lib/theme';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable } from 'react-native';
 
 export default function AppointmentsScreen() {
   const query = useQuery({
@@ -17,8 +17,10 @@ export default function AppointmentsScreen() {
 
   if (query.isError) {
     return (
-      <ScrollScreen>
-        <Empty>Las solicitudes chatbot aún no están disponibles en la API de producción.</Empty>
+      <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+        <Empty icon="cloud-offline-outline" title="No se pudieron cargar" actionLabel="Reintentar" onAction={() => query.refetch()}>
+          Las solicitudes del chatbot no están disponibles ahora.
+        </Empty>
       </ScrollScreen>
     );
   }
@@ -26,27 +28,25 @@ export default function AppointmentsScreen() {
   const items = query.data ?? [];
 
   return (
-    <ScrollScreen>
-      {items.length === 0 ? <Empty>No hay solicitudes pendientes.</Empty> : null}
+    <ScrollScreen onRefresh={() => query.refetch()} refreshing={query.isRefetching}>
+      {items.length === 0 ? (
+        <Empty icon="calendar-outline" title="Bandeja vacía">
+          No hay solicitudes pendientes del chatbot.
+        </Empty>
+      ) : null}
       {items.map((item: Appointment) => (
         <Link key={item.id} href={`/(app)/appointments/${item.id}`} asChild>
           <Pressable>
-            <Card>
-              <View style={styles.head}>
-                <Text style={styles.strong}>{item.client?.name ?? 'Cliente'}</Text>
-                <Badge tone={statusTone(item.status)}>{item.status_label ?? item.status}</Badge>
-              </View>
-              <Muted>{item.vehicle ? `${item.vehicle.plate} · ${item.service_type}` : item.service_type ?? ''}</Muted>
-              <Muted>{`${item.requested_date ?? ''} ${item.requested_time ?? ''}`}</Muted>
-            </Card>
+            <ListRow
+              icon="calendar-outline"
+              title={item.client?.name ?? 'Cliente'}
+              subtitle={item.vehicle ? `${item.vehicle.plate} · ${item.service_type}` : item.service_type ?? ''}
+              badge={item.status_label ?? item.status}
+              tone={statusTone(item.status)}
+            />
           </Pressable>
         </Link>
       ))}
     </ScrollScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  head: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
-  strong: { fontWeight: '800', color: colors.text, fontSize: 16, flex: 1 },
-});

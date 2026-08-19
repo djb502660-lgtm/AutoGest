@@ -2,7 +2,7 @@
   "expo": {
     "name": "AutoGest",
     "slug": "autogest",
-    "version": "1.0.2",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "autogest",
@@ -26,6 +26,7 @@
         "backgroundColor": "#0F52A3"
       },
       "package": "com.autogest.app",
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"

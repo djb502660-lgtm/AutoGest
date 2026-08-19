@@ -402,6 +402,25 @@ class ChatbotAppointmentService
 
     private function resolveVehicle(User $client, string $text): ?Vehicle
     {
+        $matched = $this->matchOwnedVehicle($client, $text);
+
+        if ($matched) {
+            return $matched;
+        }
+
+        if ($this->wantsAnotherVehicle($text)) {
+            return null;
+        }
+
+        if ($client->vehicles()->count() === 1) {
+            return $client->vehicles()->first();
+        }
+
+        return null;
+    }
+
+    public function matchOwnedVehicle(User $client, string $text): ?Vehicle
+    {
         $plate = VehiclePlate::extract($text);
 
         if ($plate) {
@@ -414,8 +433,44 @@ class ChatbotAppointmentService
             return null;
         }
 
-        if ($client->vehicles()->count() === 1) {
-            return $client->vehicles()->first();
+        return $this->matchVehicleByDescription($client, $text);
+    }
+
+    private function matchVehicleByDescription(User $client, string $text): ?Vehicle
+    {
+        $vehicles = $client->vehicles()->orderBy('plate')->get();
+
+        if ($vehicles->isEmpty()) {
+            return null;
+        }
+
+        $normalized = Str::lower(trim($text));
+        $normalized = preg_replace('/\b(el|la|los|las|mi|mis|auto|carro|camioneta|vehiculo|vehículo|de)\b/u', ' ', $normalized) ?? $normalized;
+        $normalized = trim(preg_replace('/\s+/', ' ', $normalized) ?? $normalized);
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        $draft = session(self::SESSION_KEY, []);
+        $awaitingVehicle = ($draft['step'] ?? '') === 'vehicle' && empty($draft['vehicle_id']);
+
+        if ($awaitingVehicle && preg_match('/^\s*(\d{1,2})\s*$/', $text, $match)) {
+            return $vehicles->values()->get(((int) $match[1]) - 1);
+        }
+
+        $hits = $vehicles->filter(function (Vehicle $vehicle) use ($normalized) {
+            $brand = Str::lower($vehicle->brand);
+            $model = Str::lower($vehicle->model);
+
+            $brandHit = $brand !== '' && mb_strlen($brand) >= 3 && preg_match('/\b'.preg_quote($brand, '/').'\b/u', $normalized);
+            $modelHit = $model !== '' && mb_strlen($model) >= 3 && preg_match('/\b'.preg_quote($model, '/').'\b/u', $normalized);
+
+            return $brandHit || $modelHit;
+        });
+
+        if ($hits->count() === 1) {
+            return $hits->first();
         }
 
         return null;
@@ -464,7 +519,7 @@ class ChatbotAppointmentService
             return 'Aún no tienes vehículos. Escribe la placa que quieres registrar (cualquier formato, ej: PVP-7506).';
         }
 
-        return "Indícame la placa del vehículo para agendar la cita. Puedes usar una de las tuyas o escribir una nueva para registrarla.\n\n"
+        return "Indícame la placa, la marca o el modelo del vehículo para agendar la cita. Puedes usar uno de los tuyos o escribir una placa nueva para registrarla.\n\n"
             .$this->formatVehicleChoices($client);
     }
 

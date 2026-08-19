@@ -8,6 +8,8 @@ use App\Models\AppointmentRequest;
 use App\Models\Maintenance;
 use App\Models\MaintenanceSchedule;
 use App\Models\ServiceOrder;
+use App\Models\User;
+use App\Models\Vehicle;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -29,6 +31,10 @@ class DashboardController extends Controller
 
         if ($user->isMechanic()) {
             return $this->mechanicDashboard($request);
+        }
+
+        if ($user->isAdmin()) {
+            return $this->adminDashboard($request);
         }
 
         return response()->json([
@@ -131,6 +137,36 @@ class DashboardController extends Controller
                 'received' => $user->assignedOrders()->where('status', 'recibida')->count(),
             ],
             'recent_orders' => $orders->map(fn ($order) => $this->orderSummary($order))->values(),
+        ]);
+    }
+
+    private function adminDashboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $orders = ServiceOrder::query()->with(['vehicle', 'client', 'mechanic'])->latest()->take(8)->get();
+        $pendingAppointments = AppointmentRequest::query()
+            ->where('source', 'chatbot')
+            ->where('status', 'pendiente')
+            ->with(['client', 'vehicle'])
+            ->latest()
+            ->take(8)
+            ->get();
+
+        return response()->json([
+            'role' => $user->role->value,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'stats' => [
+                'open_orders' => ServiceOrder::query()->whereNotIn('status', ['completada', 'entregada', 'cancelada'])->count(),
+                'pending_appointments' => AppointmentRequest::query()->where('source', 'chatbot')->where('status', 'pendiente')->count(),
+                'vehicles' => Vehicle::query()->count(),
+                'users' => User::query()->where('status', 'activo')->count(),
+            ],
+            'recent_orders' => $orders->map(fn ($order) => $this->orderSummary($order))->values(),
+            'pending_appointments' => $pendingAppointments->map(fn ($item) => $this->appointmentPayload($item))->values(),
         ]);
     }
 }

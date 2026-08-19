@@ -11,7 +11,7 @@ export default function VehicleDetailScreen() {
     queryFn: async () => (await api.get(`/vehicles/${id}`)).data.vehicle as Vehicle & {
       color?: string;
       vin?: string;
-      client?: { name: string };
+      client?: { name: string; email?: string; phone?: string };
     },
   });
 
@@ -30,6 +30,8 @@ export default function VehicleDetailScreen() {
         <Muted>{`Año: ${vehicle.year ?? '—'}`}</Muted>
         <Muted>{`Km: ${vehicle.mileage ?? 0}`}</Muted>
         {vehicle.client ? <Muted>{`Cliente: ${vehicle.client.name}`}</Muted> : null}
+        {vehicle.client?.phone ? <Muted>{`Teléfono: ${vehicle.client.phone}`}</Muted> : null}
+        {vehicle.client?.email ? <Muted>{vehicle.client.email}</Muted> : null}
       </Card>
     </ScrollScreen>
   );

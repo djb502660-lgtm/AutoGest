@@ -1,8 +1,8 @@
 import { useAuth } from '../../src/lib/auth';
-import { colors } from '../../src/lib/theme';
+import { colors, radius } from '../../src/lib/theme';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const { login, user } = useAuth();
@@ -30,9 +30,10 @@ export default function LoginScreen() {
   return (
     <KeyboardAvoidingView style={styles.wrap} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.hero}>
+        <Image source={require('../../assets/icon.png')} style={styles.logo} />
         <Text style={styles.badge}>AutoGest</Text>
         <Text style={styles.heroTitle}>Tu taller, en el celular</Text>
-        <Text style={styles.heroCopy}>Consulta vehículos, órdenes y evidencias con tu cuenta Sanctum.</Text>
+        <Text style={styles.heroCopy}>Consulta vehículos, órdenes y evidencias con tu cuenta.</Text>
       </View>
       <View style={styles.card}>
         <Text style={styles.title}>Inicia sesión</Text>
@@ -65,29 +66,30 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   wrap: { flex: 1, backgroundColor: colors.bg },
-  hero: { padding: 28, paddingTop: 80, paddingBottom: 32 },
-  badge: { color: '#7dd3fc', fontWeight: '800', marginBottom: 10, letterSpacing: 1, textTransform: 'uppercase', fontSize: 12 },
-  heroTitle: { color: '#fff', fontSize: 30, fontWeight: '800', letterSpacing: -0.6 },
-  heroCopy: { color: '#cbd5e1', marginTop: 10, fontSize: 15, lineHeight: 22 },
+  hero: { padding: 28, paddingTop: 64, paddingBottom: 28, alignItems: 'center' },
+  logo: { width: 88, height: 88, borderRadius: 22, marginBottom: 16 },
+  badge: { color: '#BFDBFE', fontWeight: '800', marginBottom: 8, letterSpacing: 1.4, textTransform: 'uppercase', fontSize: 12 },
+  heroTitle: { color: '#fff', fontSize: 28, fontWeight: '800', letterSpacing: -0.6, textAlign: 'center' },
+  heroCopy: { color: '#DBEAFE', marginTop: 8, fontSize: 15, lineHeight: 22, textAlign: 'center', maxWidth: 280 },
   card: {
     flex: 1,
     backgroundColor: colors.page,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
+    borderTopLeftRadius: radius.xl,
+    borderTopRightRadius: radius.xl,
     padding: 24,
     gap: 14,
   },
-  title: { fontSize: 22, fontWeight: '800', color: colors.text },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text, marginBottom: 4 },
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: 14,
     fontSize: 16,
     backgroundColor: colors.card,
     color: colors.text,
   },
-  button: { backgroundColor: colors.primary, borderRadius: 12, padding: 16, alignItems: 'center', marginTop: 4 },
+  button: { backgroundColor: colors.primary, borderRadius: radius.md, padding: 16, alignItems: 'center', marginTop: 4 },
   buttonOff: { opacity: 0.7 },
   buttonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   error: { color: colors.danger, fontWeight: '600' },

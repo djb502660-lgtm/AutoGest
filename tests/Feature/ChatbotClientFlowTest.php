@@ -255,6 +255,49 @@ class ChatbotClientFlowTest extends TestCase
         );
     }
 
+    public function test_chatbot_selects_vehicle_by_brand_when_scheduling(): void
+    {
+        $client = User::factory()->client()->create();
+        User::factory()->advisor()->create(['status' => 'activo']);
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
+            'year' => 2021,
+            'mileage' => 42000,
+            'status' => 'activo',
+        ]);
+
+        Vehicle::create([
+            'client_id' => $client->id,
+            'plate' => 'DEF-456',
+            'brand' => 'Hyundai',
+            'model' => 'Tucson',
+            'year' => 2020,
+            'mileage' => 51000,
+            'status' => 'activo',
+        ]);
+
+        $ask = $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'quiero una cita'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('DEF-456', $ask);
+        $this->assertStringContainsString('Hyundai', $ask);
+
+        $reply = $this->actingAs($client)
+            ->postJson(route('client.chatbot.message'), ['message' => 'la Hyundai'])
+            ->assertOk()
+            ->json('reply');
+
+        $this->assertStringContainsString('Hyundai Tucson', $reply);
+        $this->assertStringContainsString('fecha', mb_strtolower($reply));
+        $this->assertStringNotContainsString('Indícame la placa', $reply);
+    }
+
     // ELIMINADO: test_chatbot_suggests_next_available_date_when_day_is_full
     // ELIMINADO: test_chatbot_uses_current_year_for_day_month_and_requests_future_date_if_already_passed
     // ELIMINADO: test_chatbot_respects_explicit_full_year_date_and_uses_the_same_year

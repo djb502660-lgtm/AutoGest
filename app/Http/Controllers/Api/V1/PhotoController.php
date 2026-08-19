@@ -10,6 +10,7 @@ use App\Models\ServicePhoto;
 use App\Services\ServicePhotoService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 class PhotoController extends Controller
 {
@@ -42,14 +43,25 @@ class PhotoController extends Controller
         }
 
         $validated = $request->validate([
-            'photo' => 'required|image|max:10240',
+            'photo' => ['required', 'file', 'max:10240'],
             'description' => 'nullable|string|max:255',
             'type' => 'required|in:reception,before,after,evidence',
         ]);
 
+        $file = $request->file('photo');
+
+        if (! $file instanceof UploadedFile || ! $this->looksLikeImage($file)) {
+            return response()->json([
+                'message' => 'El archivo debe ser una imagen (JPG, PNG, WEBP o similar).',
+                'errors' => [
+                    'photo' => ['El archivo debe ser una imagen (JPG, PNG, WEBP o similar).'],
+                ],
+            ], 422);
+        }
+
         $photo = $this->servicePhotoService->storePhoto(
             $order,
-            $request->file('photo'),
+            $file,
             $validated['type'],
             $validated['description'] ?? null,
             $user->id,
@@ -74,5 +86,22 @@ class PhotoController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    private function looksLikeImage(?UploadedFile $file): bool
+    {
+        if (! $file) {
+            return false;
+        }
+
+        $mime = strtolower((string) $file->getMimeType());
+
+        if (str_starts_with($mime, 'image/')) {
+            return true;
+        }
+
+        $path = $file->getRealPath();
+
+        return is_string($path) && $path !== '' && @getimagesize($path) !== false;
     }
 }

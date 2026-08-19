@@ -46,14 +46,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.user);
       },
       logout: async () => {
-        try {
-          await api.post('/logout');
-        } catch {
-          // still clear local session
-        }
         await clearSession();
         setUser(null);
         queryClient.clear();
+        api.post('/logout').catch(() => undefined);
       },
     }),
     [ready, user],

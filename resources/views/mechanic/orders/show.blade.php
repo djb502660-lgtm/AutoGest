@@ -221,7 +221,7 @@
             <div class="form-group">
               <label for="nuevo_estado">Actualizar Estado</label>
               <select id="nuevo_estado" name="status" class="form-control">
-                @foreach (['recibida' => 'En Espera', 'en_proceso' => 'En Proceso de Reparación', 'pausado' => 'Pausado (Esperando Repuestos)', 'completada' => 'Trabajo Terminado'] as $val => $label)
+                @foreach (['recibida' => 'En Espera', 'en_proceso' => 'En Proceso de Reparación', 'completada' => 'Trabajo Terminado'] as $val => $label)
                     <option value="{{ $val }}" @selected(old('status', $order->status) === $val)>{{ $label }}</option>
                 @endforeach
               </select>

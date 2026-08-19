@@ -1,6 +1,7 @@
 import axios, { isAxiosError } from 'axios';
-import { apiOrigin, apiUrl } from './theme';
+import { Platform } from 'react-native';
 import { getToken } from './session';
+import { apiOrigin, apiUrl } from './theme';
 
 export const api = axios.create({
   baseURL: apiUrl,
@@ -37,6 +38,7 @@ export type Vehicle = {
   mileage?: number;
   status?: string;
   status_label?: string;
+  client?: { id: number; name: string } | null;
 };
 
 export type Order = {
@@ -80,43 +82,78 @@ export type Appointment = {
   order_number?: string | null;
 };
 
+export type StaffUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: Role | string;
+  phone?: string | null;
+  status?: string;
+  vehicles_count?: number;
+  assigned_orders_count?: number;
+  last_login_at?: string | null;
+  created_at?: string;
+  vehicles?: { id: number; plate: string; brand: string; model: string; year?: number }[];
+};
+
 export type DashboardPayload = {
   role?: string;
+  message?: string;
   stats?: Record<string, number | string>;
   recent_orders?: Order[];
   pending_appointments?: Appointment[];
   appointments?: Appointment[];
 };
 
-export const modernStatuses = [
+export const mechanicStatuses = [
+  { value: 'recibida', label: 'En espera' },
+  { value: 'en_proceso', label: 'En proceso' },
+  { value: 'completada', label: 'Trabajo terminado' },
+] as const;
+
+export const advisorStatuses = [
   { value: 'recibida', label: 'Recibida' },
   { value: 'en_proceso', label: 'En proceso' },
   { value: 'completada', label: 'Completada' },
   { value: 'entregada', label: 'Entregada' },
 ] as const;
 
-export const legacyStatuses = [
-  { value: 'pendiente', label: 'Pendiente' },
-  { value: 'en_proceso', label: 'En proceso' },
-  { value: 'completado', label: 'Completado' },
-  { value: 'cancelado', label: 'Cancelado' },
-] as const;
+export const modernStatuses = advisorStatuses;
 
-let mobileV1Available: boolean | null = null;
+export function statusesForRole(role: string | null) {
+  return role === 'asesor' || role === 'admin' ? advisorStatuses : mechanicStatuses;
+}
 
-export async function hasMobileV1(): Promise<boolean> {
-  if (mobileV1Available !== null) {
-    return mobileV1Available;
+export type OrderStatusPayload = {
+  status: string;
+  progress?: number;
+  diagnosis?: string | null;
+  recommendations?: string | null;
+};
+
+export type PhotoType = 'reception' | 'before' | 'after' | 'evidence';
+
+export function apiErrorMessage(error: unknown, fallback = 'Ocurrió un error'): string {
+  if (isAxiosError(error)) {
+    const data = error.response?.data as { message?: string; errors?: Record<string, string[]> } | undefined;
+    if (data?.message) {
+      return data.message;
+    }
+    const first = data?.errors ? Object.values(data.errors).flat()[0] : undefined;
+    if (typeof first === 'string') {
+      return first;
+    }
   }
-
-  try {
-    await api.get('/dashboard');
-    mobileV1Available = true;
-  } catch (error) {
-    mobileV1Available = isAxiosError(error) && error.response?.status === 404 ? false : false;
+  if (error instanceof Error && error.message) {
+    return error.message;
   }
+  return fallback;
+}
 
-  return mobileV1Available;
+export function photoRequirements(photos: Photo[] = []) {
+  const hasInitial = photos.some((photo) => photo.type === 'reception' || photo.type === 'before');
+  const hasFinal = photos.some((photo) => photo.type === 'after');
+  return { hasInitial, hasFinal, ready: hasInitial && hasFinal };
 }
 
 function statusLabel(status: string): string {
@@ -176,50 +213,134 @@ export async function fetchOrder(id: string | number): Promise<Order> {
   return normalizeOrder(data.order as Record<string, unknown>);
 }
 
-export async function updateOrderStatus(id: string | number, status: string, progress?: number): Promise<void> {
-  const v1 = await hasMobileV1();
+const toApiStatus: Record<string, string> = {
+  pendiente: 'recibida',
+  completado: 'completada',
+  cancelado: 'cancelada',
+};
 
-  if (v1) {
-    await api.put(`/orders/${id}/status`, { status, progress: progress ?? 0 });
-    return;
+export async function updateOrderStatus(id: string | number, payload: OrderStatusPayload): Promise<void> {
+  await api.put(`/orders/${id}/status`, {
+    status: toApiStatus[payload.status] ?? payload.status,
+    progress: payload.progress,
+    diagnosis: payload.diagnosis?.trim() || undefined,
+    recommendations: payload.recommendations?.trim() || undefined,
+  });
+}
+
+function jpegFileName(original?: string | null, ext = 'jpg'): string {
+  const stamp = Date.now();
+  const base = (original ?? 'evidence')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[^\w.-]+/g, '_')
+    .slice(0, 40) || 'evidence';
+  return `${base}-${stamp}.${ext}`;
+}
+
+function extensionForMime(mime: string): string {
+  if (mime.includes('png')) {
+    return 'png';
+  }
+  if (mime.includes('webp')) {
+    return 'webp';
+  }
+  if (mime.includes('gif')) {
+    return 'gif';
+  }
+  return 'jpg';
+}
+
+async function photoPart(asset: { uri: string; fileName?: string | null; mimeType?: string | null }) {
+  if (Platform.OS === 'web') {
+    const blob = await (await fetch(asset.uri)).blob();
+    const type = blob.type?.startsWith('image/') ? blob.type : 'image/jpeg';
+    const ext = extensionForMime(type);
+    return new File([blob], jpegFileName(asset.fileName, ext), { type });
   }
 
-  const legacyMap: Record<string, string> = {
-    recibida: 'pendiente',
-    completada: 'completado',
-    entregada: 'completado',
-    cancelada: 'cancelado',
+  return {
+    uri: asset.uri,
+    name: jpegFileName(asset.fileName),
+    type: 'image/jpeg',
   };
+}
 
-  await api.put(`/orders/${id}/status`, {
-    status: legacyMap[status] ?? status,
+export async function uploadOrderPhoto(
+  id: string | number,
+  asset: { uri: string; fileName?: string | null; mimeType?: string | null },
+  type: PhotoType,
+  description?: string,
+): Promise<void> {
+  const token = await getToken();
+  const form = new FormData();
+  form.append('type', type);
+  if (description?.trim()) {
+    form.append('description', description.trim());
+  }
+  form.append('photo', (await photoPart(asset)) as unknown as Blob);
+
+  const response = await fetch(`${apiUrl}/orders/${id}/photos`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: form,
   });
+
+  if (!response.ok) {
+    const data = (await response.json().catch(() => ({}))) as { message?: string; errors?: Record<string, string[]> };
+    const first = data.errors ? Object.values(data.errors).flat()[0] : undefined;
+    throw new Error(data.message || first || 'No se pudo subir la foto');
+  }
+}
+
+function hasDashboardStats(data: DashboardPayload): boolean {
+  return Boolean(data.stats && Object.keys(data.stats).length);
+}
+
+async function composeOperationsDashboard(role = 'admin'): Promise<DashboardPayload> {
+  const [{ data: vehiclesData }, { data: ordersData }, appointmentsRes, usersRes] = await Promise.all([
+    api.get('/vehicles'),
+    api.get('/orders'),
+    api.get('/appointments?status=pendiente').catch(() => ({ data: { appointments: [] } })),
+    api.get('/users').catch(() => ({ data: { users: [] } })),
+  ]);
+
+  const vehicles: Vehicle[] = vehiclesData.vehicles ?? [];
+  const orders: Order[] = (ordersData.orders ?? []).map((item: Record<string, unknown>) => normalizeOrder(item));
+  const appointments: Appointment[] = appointmentsRes.data.appointments ?? [];
+  const users: StaffUser[] = usersRes.data.users ?? [];
+  const closed = new Set(['completada', 'entregada', 'cancelada', 'completado', 'cancelado']);
+
+  return {
+    role,
+    stats: {
+      vehicles: vehicles.length,
+      open_orders: orders.filter((order) => !closed.has(order.status)).length,
+      pending_appointments: appointments.length,
+      users: users.length,
+    },
+    recent_orders: orders.slice(0, 8),
+    pending_appointments: appointments.slice(0, 8),
+  };
 }
 
 export async function fetchDashboard(): Promise<DashboardPayload> {
   try {
-    return (await api.get('/dashboard')).data as DashboardPayload;
+    const data = (await api.get('/dashboard')).data as DashboardPayload;
+    if (hasDashboardStats(data)) {
+      return data;
+    }
+    if (data.role === 'admin' || data.message) {
+      return composeOperationsDashboard(data.role ?? 'admin');
+    }
+    return data;
   } catch (error) {
     if (!isAxiosError(error) || error.response?.status !== 404) {
       throw error;
     }
 
-    const [{ data: vehiclesData }, { data: ordersData }] = await Promise.all([
-      api.get('/vehicles'),
-      api.get('/orders'),
-    ]);
-
-    const vehicles: Vehicle[] = (vehiclesData.vehicles ?? []).map((item: Vehicle) => item);
-    const orders: Order[] = (ordersData.orders ?? []).map((item: Record<string, unknown>) => normalizeOrder(item));
-    const closed = new Set(['completada', 'entregada', 'cancelada', 'completado', 'cancelado']);
-
-    return {
-      stats: {
-        vehicles: vehicles.length,
-        open_orders: orders.filter((order) => !closed.has(order.status)).length,
-      },
-      recent_orders: orders.slice(0, 5),
-      appointments: [],
-    };
+    return composeOperationsDashboard();
   }
 }

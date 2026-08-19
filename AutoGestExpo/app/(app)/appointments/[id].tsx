@@ -23,8 +23,10 @@ export default function AppointmentDetailScreen() {
     mutationFn: async () => api.post(`/appointments/${id}/confirm`, { advisor_notes: notes || null }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
       Alert.alert('Confirmada', 'La solicitud se convirtió en orden.');
-      router.replace('/(app)/orders/index');
+      router.replace('/(app)/orders');
     },
     onError: (error: any) => Alert.alert('Error', error?.response?.data?.message ?? 'No se pudo confirmar.'),
   });
@@ -33,6 +35,7 @@ export default function AppointmentDetailScreen() {
     mutationFn: async () => api.post(`/appointments/${id}/reject`, { advisor_notes: notes }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['appointments'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       router.back();
     },
     onError: (error: any) => Alert.alert('Error', error?.response?.data?.message ?? 'Indica una nota para rechazar.'),
@@ -79,7 +82,7 @@ const styles = StyleSheet.create({
   input: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 12,
     minHeight: 80,
     backgroundColor: colors.soft,
