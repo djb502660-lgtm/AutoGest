@@ -1,12 +1,14 @@
 import { Card, Empty, Loading, Muted, ScrollScreen } from '../../src/components/ui';
 import { api } from '../../src/lib/api';
+import { useAuth } from '../../src/lib/auth';
 import { colors } from '../../src/lib/theme';
 import { useQuery } from '@tanstack/react-query';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function ExpensesScreen() {
+  const { user } = useAuth();
   const query = useQuery({
-    queryKey: ['expenses'],
+    queryKey: ['expenses', user?.id],
     queryFn: async () => (await api.get('/expenses')).data,
   });
 

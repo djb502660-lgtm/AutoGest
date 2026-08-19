@@ -1,12 +1,12 @@
 import 'react-native-gesture-handler';
 import { AuthProvider, useAuth } from '../src/lib/auth';
 import { colors } from '../src/lib/theme';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { Component, useEffect, type ErrorInfo, type ReactNode } from 'react';
+import { Component, useEffect, useState, type ErrorInfo, type ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActivityIndicator, Text, View } from 'react-native';
 
@@ -43,21 +43,28 @@ class RootErrorBoundary extends Component<{ children: ReactNode }, { error: Erro
 
 function RootNav() {
   const { ready } = useAuth();
-  const [fontsLoaded, fontError] = useFonts(Ionicons.font);
-  const canHideSplash = ready && (fontsLoaded || Boolean(fontError));
+  const [fontsLoaded] = useFonts({
+    ...Ionicons.font,
+  });
+  const [fontWaitExpired, setFontWaitExpired] = useState(false);
+  const uiReady = ready && (fontsLoaded || fontWaitExpired);
 
   useEffect(() => {
-    if (canHideSplash) {
+    if (uiReady) {
       hideSplash();
     }
-  }, [canHideSplash]);
+  }, [uiReady]);
 
   useEffect(() => {
-    const timer = setTimeout(hideSplash, 2500);
-    return () => clearTimeout(timer);
+    const splashTimer = setTimeout(hideSplash, 4000);
+    const fontTimer = setTimeout(() => setFontWaitExpired(true), 6000);
+    return () => {
+      clearTimeout(splashTimer);
+      clearTimeout(fontTimer);
+    };
   }, []);
 
-  if (!ready) {
+  if (!uiReady) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
         <ActivityIndicator color="#fff" />

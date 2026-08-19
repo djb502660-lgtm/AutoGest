@@ -26,11 +26,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (token && stored) {
           try {
             const { data } = await api.get('/user');
-            setUser(data.user);
+            setUser(data.user ?? stored);
           } catch {
             await clearSession();
             setUser(null);
           }
+        } else {
+          await clearSession();
+          setUser(null);
         }
       } catch {
         await clearSession();
@@ -47,15 +50,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       role: user?.role ?? null,
       ready,
       login: async (email: string, password: string) => {
-        const { data } = await api.post('/login', { email, password });
+        await clearSession();
+        queryClient.clear();
+        setUser(null);
+        const { data } = await api.post('/login', { email: email.trim().toLowerCase(), password });
         await saveSession(data.token, data.user);
+        queryClient.clear();
         setUser(data.user);
       },
       logout: async () => {
+        try {
+          await api.post('/logout');
+        } catch {
+          // The local session must drop even if the API call fails.
+        }
         await clearSession();
-        setUser(null);
         queryClient.clear();
-        api.post('/logout').catch(() => undefined);
+        setUser(null);
       },
     }),
     [ready, user],

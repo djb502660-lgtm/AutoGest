@@ -1,13 +1,15 @@
 import { Empty, ListRow, Loading, ScrollScreen } from '../../../src/components/ui';
 import { api, type Appointment } from '../../../src/lib/api';
+import { useAuth } from '../../../src/lib/auth';
 import { statusTone } from '../../../src/lib/theme';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import { Pressable } from 'react-native';
 
 export default function AppointmentsScreen() {
+  const { user } = useAuth();
   const query = useQuery({
-    queryKey: ['appointments'],
+    queryKey: ['appointments', user?.id],
     queryFn: async () => ((await api.get('/appointments?status=pendiente')).data.appointments ?? []) as Appointment[],
   });
 

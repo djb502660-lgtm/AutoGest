@@ -3,7 +3,7 @@ import { colors } from '../../src/lib/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Redirect, Tabs, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Alert, Platform, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 function tabIcon(on: keyof typeof Ionicons.glyphMap, off: keyof typeof Ionicons.glyphMap) {
   return ({ color, focused }: { color: string; focused: boolean }) => (
@@ -52,21 +52,22 @@ function LogoutButton() {
       activeOpacity={0.7}
       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
       style={{
-        marginRight: 12,
-        minWidth: 44,
-        height: 40,
-        paddingHorizontal: 10,
-        borderRadius: 20,
+        marginRight: 8,
+        minWidth: 72,
+        height: 36,
+        paddingHorizontal: 12,
+        borderRadius: 18,
         backgroundColor: colors.soft,
         alignItems: 'center',
         justifyContent: 'center',
         flexDirection: 'row',
-        gap: 4,
+        gap: 6,
       }}
       accessibilityRole="button"
       accessibilityLabel="Cerrar sesión"
     >
-      <Ionicons name="log-out-outline" size={20} color={colors.text} />
+      <Ionicons name="log-out-outline" size={18} color={colors.text} />
+      <Text style={{ color: colors.text, fontWeight: '800', fontSize: 13 }}>Salir</Text>
     </TouchableOpacity>
   );
 }

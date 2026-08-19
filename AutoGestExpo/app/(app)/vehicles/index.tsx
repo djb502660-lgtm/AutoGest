@@ -7,10 +7,10 @@ import { Link, useRouter } from 'expo-router';
 import { Pressable } from 'react-native';
 
 export default function VehiclesScreen() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const router = useRouter();
   const query = useQuery({
-    queryKey: ['vehicles'],
+    queryKey: ['vehicles', user?.id],
     queryFn: async () => ((await api.get('/vehicles')).data.vehicles ?? []) as Vehicle[],
   });
 

@@ -12,8 +12,9 @@ export default function HomeScreen() {
   const { user, role } = useAuth();
   const router = useRouter();
   const dashboard = useQuery({
-    queryKey: ['dashboard'],
+    queryKey: ['dashboard', user?.id],
     queryFn: fetchDashboard,
+    enabled: Boolean(user?.id),
   });
 
   if (dashboard.isLoading) {

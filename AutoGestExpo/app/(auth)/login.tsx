@@ -1,11 +1,12 @@
 import { useAuth } from '../../src/lib/auth';
 import { colors, radius } from '../../src/lib/theme';
-import { Redirect } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 export default function LoginScreen() {
   const { login, user } = useAuth();
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -20,6 +21,7 @@ export default function LoginScreen() {
     setError('');
     try {
       await login(email.trim(), password);
+      router.replace('/(app)/home');
     } catch (e: any) {
       setError(e?.response?.data?.message ?? e?.response?.data?.email?.[0] ?? 'No se pudo iniciar sesión.');
     } finally {
@@ -40,7 +42,8 @@ export default function LoginScreen() {
         <TextInput
           autoCapitalize="none"
           keyboardType="email-address"
-          placeholder="correo@ejemplo.com"
+          autoComplete="email"
+          placeholder="Correo"
           placeholderTextColor={colors.muted}
           style={styles.input}
           value={email}
@@ -49,6 +52,7 @@ export default function LoginScreen() {
         <TextInput
           placeholder="Contraseña"
           placeholderTextColor={colors.muted}
+          autoComplete="password"
           secureTextEntry
           style={styles.input}
           value={password}
@@ -58,7 +62,6 @@ export default function LoginScreen() {
         <Pressable disabled={busy} onPress={onSubmit} style={[styles.button, busy && styles.buttonOff]}>
           <Text style={styles.buttonText}>{busy ? 'Entrando…' : 'Entrar'}</Text>
         </Pressable>
-        <Text style={styles.hint}>Demo: cliente1@autogest.test / password</Text>
       </View>
     </KeyboardAvoidingView>
   );
@@ -93,5 +96,4 @@ const styles = StyleSheet.create({
   buttonOff: { opacity: 0.7 },
   buttonText: { color: '#fff', fontWeight: '800', fontSize: 16 },
   error: { color: colors.danger, fontWeight: '600' },
-  hint: { color: colors.muted, fontSize: 12, textAlign: 'center' },
 });

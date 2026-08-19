@@ -1,5 +1,6 @@
 import { Empty, Loading } from '../../src/components/ui';
 import { api } from '../../src/lib/api';
+import { useAuth } from '../../src/lib/auth';
 import { colors } from '../../src/lib/theme';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -38,11 +39,12 @@ function extractVehicleChips(messages: ChatMessage[]): { plate: string; label: s
 }
 
 export default function ChatbotScreen() {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
 
   const query = useQuery({
-    queryKey: ['chatbot'],
+    queryKey: ['chatbot', user?.id],
     queryFn: async () => (await api.get('/chatbot')).data as { messages: ChatMessage[] },
   });
 

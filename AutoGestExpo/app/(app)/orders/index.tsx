@@ -16,11 +16,11 @@ const filters = [
 ] as const;
 
 export default function OrdersScreen() {
-  const { role } = useAuth();
+  const { role, user } = useAuth();
   const router = useRouter();
   const [filter, setFilter] = useState<(typeof filters)[number]['value']>('abiertas');
   const query = useQuery({
-    queryKey: ['orders'],
+    queryKey: ['orders', user?.id],
     queryFn: async () =>
       ((await api.get('/orders')).data.orders ?? []).map((item: Record<string, unknown>) => normalizeOrder(item)),
   });
