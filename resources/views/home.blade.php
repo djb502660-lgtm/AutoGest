@@ -13,7 +13,7 @@
     <header class="home-header">
         <div class="home-header-inner">
             <a href="{{ route('home') }}" class="home-logo">
-                <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-istae-logo">
+                <img src="{{ asset('images/logo-istae-automotriz.png') }}" alt="ISTAE Automotriz" class="home-istae-logo">
                 <span class="home-logo-text">
                     <span class="home-logo-app">AutoGest</span>
                 </span>
@@ -150,7 +150,7 @@
     <footer class="home-footer">
         <div class="home-footer-inner">
             <div class="home-footer-brand">
-                <img src="{{ asset('images/logo-istae.png') }}" alt="Instituto Superior Tecnológico Alberto Enríquez" class="home-footer-istae">
+                <img src="{{ asset('images/logo-istae-automotriz.png') }}" alt="ISTAE Automotriz" class="home-footer-istae">
                 <div>
                     <p class="home-footer-app"><strong>AutoGest</strong></p>
                     <p>Mecánica Automotriz</p>

@@ -272,9 +272,10 @@ body.panel-page {
 
 .brand-logo {
     display: block;
-    width: auto;
-    max-width: 72px;
-    height: 64px;
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    max-height: 52px;
     object-fit: contain;
     object-position: left center;
 }
@@ -1325,14 +1326,14 @@ body.auth-page {
 }
 
 .auth-istae-logo {
-    height: 148px;
-    width: auto;
-    max-width: min(100%, 160px);
+    height: auto;
+    width: min(100%, 280px);
+    max-height: 96px;
     object-fit: contain;
     display: block;
     margin: 0 auto 1.25rem auto;
     background: #fff;
-    padding: 0.5rem;
+    padding: 0.65rem 0.85rem;
     border-radius: 16px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
@@ -2222,9 +2223,9 @@ body.home-page {
 }
 
 .home-istae-logo {
-    height: 52px;
+    height: 48px;
     width: auto;
-    max-width: 52px;
+    max-width: 220px;
     object-fit: contain;
     flex-shrink: 0;
 }
@@ -2335,9 +2336,9 @@ body.home-page {
 }
 
 .home-footer-istae {
-    height: 64px;
+    height: 56px;
     width: auto;
-    max-width: 64px;
+    max-width: 240px;
     object-fit: contain;
 }
 
