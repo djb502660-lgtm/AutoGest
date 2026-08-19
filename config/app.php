@@ -56,7 +56,7 @@ return [
 
     'android_apk_url' => env(
         'ANDROID_APK_URL',
-        'https://expo.dev/artifacts/eas/Oa6Bh9rAW6z7iyL1TxcFLKu2JGPPfjoqHQtkpsz_Cmc.apk'
+        'https://expo.dev/artifacts/eas/QBGwsAq3n7bF8dz53Jheb1h-6yQvKUyj3zWqg7pi-yY.apk'
     ),
 
     /*

@@ -53,6 +53,6 @@ Proyecto EAS: https://expo.dev/accounts/kagarrutax/projects/autogest
 
 APK preview (build 1.1.0):
 - Instalación: https://expo.dev/accounts/kagarrutax/projects/autogest/builds/7f1bfa74-be6b-4bf6-9bb1-c07216971e1c
-- Descarga directa: https://expo.dev/artifacts/eas/Oa6Bh9rAW6z7iyL1TxcFLKu2JGPPfjoqHQtkpsz_Cmc.apk
+- Descarga directa: https://expo.dev/artifacts/eas/QBGwsAq3n7bF8dz53Jheb1h-6yQvKUyj3zWqg7pi-yY.apk
 
 El perfil `production` (AAB / Play Store) queda para más adelante.
